@@ -1,11 +1,13 @@
 #pragma once
-#include "OptUtil.h"
 
 class COptImportExportBase
 {
 public:
 	COptImportExportBase(bool b_make_log = false);
 	~COptImportExportBase(void);
+	static int SplitString(CString& str_input, vector< char >& split_chrs_input, vector< CString >& str_output);
+	static int SplitString(char* str_input, vector< char >& split_chrs_input, vector< CString >& str_output);
+	static int SplitString(string& str_input, vector< char >& split_chrs_input, vector< string >& str_output);
 
 	char m_str_line_from_file[1024];
 	FILE* m_fp_input;
@@ -41,9 +43,9 @@ public:
 	void ReadLinesUntilString(CString until_string);
 	bool m_bMakeLog;
 	// for progress
-	float m_iFileCount;
-	float m_iFileIndex;
-	float m_iByteCount;
-	float m_iByteIndex;
+	long m_iFileCount;
+	long m_iFileIndex;
+	long m_iByteCount;
+	long m_iByteIndex;
 	CString m_strOneLine;
 };

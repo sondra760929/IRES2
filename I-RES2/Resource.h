@@ -79,7 +79,9 @@
 #define IDR_RIBBON                      307
 #define IDB_BITMAP1                     310
 #define IDB_BITMAP2                     311
-#define ID_WRITE_PASTEASHYPERLINK       32770
+#define IDD_DIALOG1                     312
+#define IDD_DIALOG_SELECT_SECTIONS      312
+#define IDC_LIST1                       1000
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_BUTTONZoomProg               32771
 #define ID_BUTTONZoomWin                32772
@@ -136,14 +138,18 @@
 #define ID_SPIN_HULL_X_ANGLE            32829
 #define ID_SPIN_HULL_Y_ANGLE            32830
 #define ID_SPIN_HULL_Z_Angle            32831
+#define ID_BUTTON_SAVE_HULL             32834
+#define ID_BUTTON_ANALYSIS              32835
+#define ID_BUTTON_SELECT_SECTION        32836
+#define ID_SPIN_SECTION_X               32837
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        312
-#define _APS_NEXT_COMMAND_VALUE         32834
-#define _APS_NEXT_CONTROL_VALUE         1000
+#define _APS_NEXT_RESOURCE_VALUE        314
+#define _APS_NEXT_COMMAND_VALUE         32838
+#define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

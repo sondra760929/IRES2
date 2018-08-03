@@ -6,3 +6,11 @@ I-RES2/x64/
 x64/Release/I-RES2.pdb
 x64/Release/I-RES2.lib
 x64/Release/I-RES2.exp
+x64/Debug/I-RES2.exp
+x64/Debug/I-RES2.ilk
+x64/Debug/I-RES2.lib
+x64/Debug/I-RES2.pdb
+x64/Release/I-RES2.iobj
+x64/Release/I-RES2.ipdb
+.vs/
+I-RES2.opensdf

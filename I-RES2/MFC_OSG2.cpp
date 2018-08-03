@@ -9,11 +9,11 @@ const unsigned int MASK_2D = 0xF0000000;
 const unsigned int MASK_3D = 0x0F000000;
 
 float Axis_Offset = 45.0f;
-COSSimulatorView* m_pGView = NULL;
+CIRES2View* m_pGView = NULL;
 
 struct ColorWidget : public osgWidget::Widget {
-	ColorWidget(const std::string& name = "") :
-		osgWidget::Widget(name, 32.0f, 32.0f) {
+	ColorWidget(const std::string& name = "", int size = 32) :
+		osgWidget::Widget(name, size, size) {
 		setEventMask(osgWidget::EVENT_ALL);
 	}
 
@@ -239,7 +239,7 @@ void cOSG2::InitSceneGraph(void)
 	//mRoot->addChild(mModel.get());
 }
 
-void cOSG2::SetView(COSSimulatorView* view)
+void cOSG2::SetView(CIRES2View* view)
 {
 	m_pView = view;
 	m_pGView = view;
@@ -497,8 +497,8 @@ void cOSG2::InitCameraConfig(void)
 
 	MainScene->addChild(mRoot2.get());
 
-	//mRoot->getOrCreateStateSet()->setMode(osg::PolygonMode::FRONT, osg::PolygonMode::FILL);
-	//mRoot->getOrCreateStateSet()->setMode(osg::PolygonMode::BACK, osg::PolygonMode::LINE);
+	mRoot->getOrCreateStateSet()->setMode(osg::PolygonMode::FRONT, osg::PolygonMode::FILL);
+	mRoot->getOrCreateStateSet()->setMode(osg::PolygonMode::BACK, osg::PolygonMode::LINE);
 
 	//if (m_bUseBasePlane)
 	//{
@@ -538,24 +538,85 @@ void cOSG2::InitCameraConfig(void)
 
 	//}
 
-	//m_WindowManager = new osgWidget::WindowManager(
-	//	mViewer,
-	//	1280.0f,
-	//	1024.0f,
-	//	MASK_2D/*,
-	//	osgWidget::WindowManager::WM_PICK_DEBUG*/
-	//	);
-	//m_WindowManager->setPointerFocusMode(osgWidget::WindowManager::PFM_SLOPPY);
+	m_WindowManager = new osgWidget::WindowManager(
+		mViewer,
+		1280.0f,
+		1024.0f,
+		MASK_2D/*,
+		osgWidget::WindowManager::WM_PICK_DEBUG*/
+		);
+	m_WindowManager->setPointerFocusMode(osgWidget::WindowManager::PFM_SLOPPY);
 
-	//char toolbar_name[255];
-	//m_widgetOPTType = new osgWidget::Box("TYPE_BAR", osgWidget::Box::VERTICAL, false);
-	//m_widgetOPTType->getBackground()->setColor(1.0f, 1.0f, 1.0f, 0.0f);
-	////m_widgetOPTType->attachMoveCallback();
-	//m_WindowManager->addChild(m_widgetOPTType);
+	char toolbar_name[255];
+	for (int i = 0; i < 5; i++)
+	{
+		m_widgetOPTType[i] = new osgWidget::Box("TYPE_BAR", osgWidget::Box::VERTICAL, false);
+		m_widgetOPTType[i]->getBackground()->setColor(1.0f, 1.0f, 1.0f, 0.0f);
+	}
+	//m_widgetOPTType->attachMoveCallback();
+	m_WindowManager->addChild(m_widgetOPTType[0]);
+	m_WindowManager->addChild(m_widgetOPTType[1]);
+	m_WindowManager->addChild(m_widgetOPTType[2]);
+	m_WindowManager->addChild(m_widgetOPTType[3]);
+	m_WindowManager->addChild(m_widgetOPTType[4]);
 
-	//string str_app_path(m_strAppPath);
-	//str_app_path += "/";
+	string str_app_path(m_strAppPath);
+	str_app_path += "/";
 
+	//m_widgetOPTType[0]->addWidget(AddButton("Import HULL", str_app_path + "switch-off-16.png"));
+	//m_widgetOPTType[0]->addWidget(AddButton("Define Section", str_app_path + "switch-off-16.png"));
+	//m_widgetOPTType[0]->addWidget(AddButton("Extract Section Points", str_app_path + "switch-off-16.png"));
+	//m_widgetOPTType[0]->addWidget(AddButton("Analysis", str_app_path + "switch-off-16.png"));
+
+	//m_widgetOPTType[1]->addWidget(AddButton("Import HULL", str_app_path + "switch-on-16.png"));
+	//m_widgetOPTType[1]->addWidget(AddButton("Define Section", str_app_path + "switch-off-16.png"));
+	//m_widgetOPTType[1]->addWidget(AddButton("Extract Section Points", str_app_path + "switch-off-16.png"));
+	//m_widgetOPTType[1]->addWidget(AddButton("Analysis", str_app_path + "switch-off-16.png"));
+
+	//m_widgetOPTType[2]->addWidget(AddButton("Import HULL", str_app_path + "switch-on-16.png"));
+	//m_widgetOPTType[2]->addWidget(AddButton("Define Section", str_app_path + "switch-on-16.png"));
+	//m_widgetOPTType[2]->addWidget(AddButton("Extract Section Points", str_app_path + "switch-off-16.png"));
+	//m_widgetOPTType[2]->addWidget(AddButton("Analysis", str_app_path + "switch-off-16.png"));
+
+	//m_widgetOPTType[3]->addWidget(AddButton("Import HULL", str_app_path + "switch-on-16.png"));
+	//m_widgetOPTType[3]->addWidget(AddButton("Define Section", str_app_path + "switch-on-16.png"));
+	//m_widgetOPTType[3]->addWidget(AddButton("Extract Section Points", str_app_path + "switch-on-16.png"));
+	//m_widgetOPTType[3]->addWidget(AddButton("Analysis", str_app_path + "switch-off-16.png"));
+
+	//m_widgetOPTType[4]->addWidget(AddButton("Import HULL", str_app_path + "switch-on-16.png"));
+	//m_widgetOPTType[4]->addWidget(AddButton("Define Section", str_app_path + "switch-on-16.png"));
+	//m_widgetOPTType[4]->addWidget(AddButton("Extract Section Points", str_app_path + "switch-on-16.png"));
+	//m_widgetOPTType[4]->addWidget(AddButton("Analysis", str_app_path + "switch-on-16.png"));
+
+	m_widgetOPTType[0]->addWidget(AddButton("Analysis", str_app_path + "switch-off-32.png"));
+	m_widgetOPTType[0]->addWidget(AddButton("Extract Section Points", str_app_path + "switch-off-32.png"));
+	m_widgetOPTType[0]->addWidget(AddButton("Define Section", str_app_path + "switch-off-32.png"));
+	m_widgetOPTType[0]->addWidget(AddButton("Import HULL", str_app_path + "switch-off-32.png"));
+
+	m_widgetOPTType[1]->addWidget(AddButton("Analysis", str_app_path + "switch-off-32.png"));
+	m_widgetOPTType[1]->addWidget(AddButton("Extract Section Points", str_app_path + "switch-off-32.png"));
+	m_widgetOPTType[1]->addWidget(AddButton("Define Section", str_app_path + "switch-off-32.png"));
+	m_widgetOPTType[1]->addWidget(AddButton("Import HULL", str_app_path + "switch-on-32.png"));
+
+	m_widgetOPTType[2]->addWidget(AddButton("Analysis", str_app_path + "switch-off-32.png"));
+	m_widgetOPTType[2]->addWidget(AddButton("Extract Section Points", str_app_path + "switch-off-32.png"));
+	m_widgetOPTType[2]->addWidget(AddButton("Define Section", str_app_path + "switch-on-32.png"));
+	m_widgetOPTType[2]->addWidget(AddButton("Import HULL", str_app_path + "switch-on-32.png"));
+
+	m_widgetOPTType[3]->addWidget(AddButton("Analysis", str_app_path + "switch-off-32.png"));
+	m_widgetOPTType[3]->addWidget(AddButton("Extract Section Points", str_app_path + "switch-on-32.png"));
+	m_widgetOPTType[3]->addWidget(AddButton("Define Section", str_app_path + "switch-on-32.png"));
+	m_widgetOPTType[3]->addWidget(AddButton("Import HULL", str_app_path + "switch-on-32.png"));
+
+	m_widgetOPTType[4]->addWidget(AddButton("Analysis", str_app_path + "switch-on-32.png"));
+	m_widgetOPTType[4]->addWidget(AddButton("Extract Section Points", str_app_path + "switch-on-32.png"));
+	m_widgetOPTType[4]->addWidget(AddButton("Define Section", str_app_path + "switch-on-32.png"));
+	m_widgetOPTType[4]->addWidget(AddButton("Import HULL", str_app_path + "switch-on-32.png"));
+
+	m_widgetOPTType[1]->hide();
+	m_widgetOPTType[2]->hide();
+	m_widgetOPTType[3]->hide();
+	m_widgetOPTType[4]->hide();
 	//for (int i = main_toolbar.size() - 1; i >= 0; i--)
 	//{
 	//	MakeToolbar(main_toolbar[i].first, str_app_path + main_toolbar[i].second);
@@ -571,21 +632,21 @@ void cOSG2::InitCameraConfig(void)
 	//	}
 	//}
 
-	//m_widgetOPTName = new osgWidget::Box("NAME_BAR", osgWidget::Box::VERTICAL, false);
-	//m_widgetLabels[0] = AddLabel("");
-	//m_widgetLabels[1] = AddLabel("");
-	//m_widgetLabels[2] = AddLabel("");
-	//m_widgetLabels[3] = AddLabel("");
+	m_widgetOPTName = new osgWidget::Box("NAME_BAR", osgWidget::Box::VERTICAL, false);
+	m_widgetLabels[0] = AddLabel("Import HULL", "Import HULL", 12, false);
+	m_widgetLabels[1] = AddLabel("Define Section", "Define Section", 12, false);
+	m_widgetLabels[2] = AddLabel("Extract Section Points", "Extract Section Points", 12, false);
+	m_widgetLabels[3] = AddLabel("Analysis", "Analysis", 12, false);
 	//m_widgetLabels[4] = AddLabel("");
 
 	//m_widgetOPTName->addWidget(m_widgetLabels[4]);
-	//m_widgetOPTName->addWidget(m_widgetLabels[3]);
-	//m_widgetOPTName->addWidget(m_widgetLabels[2]);
-	//m_widgetOPTName->addWidget(m_widgetLabels[1]);
-	//m_widgetOPTName->addWidget(m_widgetLabels[0]);
-	//m_widgetOPTName->getBackground()->setColor(1.0f, 1.0f, 1.0f, 0.0f);
-	////m_widgetOPTName->attachMoveCallback();
-	//m_WindowManager->addChild(m_widgetOPTName);
+	m_widgetOPTName->addWidget(m_widgetLabels[3]);
+	m_widgetOPTName->addWidget(m_widgetLabels[2]);
+	m_widgetOPTName->addWidget(m_widgetLabels[1]);
+	m_widgetOPTName->addWidget(m_widgetLabels[0]);
+	m_widgetOPTName->getBackground()->setColor(1.0f, 1.0f, 1.0f, 0.0f);
+	//m_widgetOPTName->attachMoveCallback();
+	m_WindowManager->addChild(m_widgetOPTName);
 
 	//m_widgetSimulation = new osgWidget::Box("SIMULATION_BAR", osgWidget::Box::HORIZONTAL, false);
 	//m_widgetSimulation->addWidget(AddButton("COpMoveSlower", str_app_path + "gui/slower.png"));
@@ -612,20 +673,20 @@ void cOSG2::InitCameraConfig(void)
 	////m_widgetOPTType->attachMoveCallback();
 	//m_WindowManager->addChild(m_widgetCurrentOperator);
 
-	//m_WindowManagerCamera = m_WindowManager->createParentOrthoCamera();
-	//MainScene->addChild(m_WindowManagerCamera);
+	m_WindowManagerCamera = m_WindowManager->createParentOrthoCamera();
+	MainScene->addChild(m_WindowManagerCamera);
 
-	//mViewer->addEventHandler(new osgWidget::MouseHandler(m_WindowManager));
-	//mViewer->addEventHandler(new osgWidget::KeyboardHandler(m_WindowManager));
-	//mViewer->addEventHandler(new osgWidget::ResizeHandler(m_WindowManager, m_WindowManagerCamera));
-	//mViewer->addEventHandler(new osgWidget::CameraSwitchHandler(m_WindowManager, m_WindowManagerCamera));
-	//mViewer->addEventHandler(new osgViewer::StatsHandler());
-	//mViewer->addEventHandler(new osgViewer::WindowSizeHandler());
-	//mViewer->addEventHandler(new osgGA::StateSetManipulator(
-	//	m_WindowManagerCamera->getOrCreateStateSet()
-	//	));
+	mViewer->addEventHandler(new osgWidget::MouseHandler(m_WindowManager));
+	mViewer->addEventHandler(new osgWidget::KeyboardHandler(m_WindowManager));
+	mViewer->addEventHandler(new osgWidget::ResizeHandler(m_WindowManager, m_WindowManagerCamera));
+	mViewer->addEventHandler(new osgWidget::CameraSwitchHandler(m_WindowManager, m_WindowManagerCamera));
+	mViewer->addEventHandler(new osgViewer::StatsHandler());
+	mViewer->addEventHandler(new osgViewer::WindowSizeHandler());
+	mViewer->addEventHandler(new osgGA::StateSetManipulator(
+		m_WindowManagerCamera->getOrCreateStateSet()
+		));
 
-	//m_WindowManager->resizeAllWindows();
+	m_WindowManager->resizeAllWindows();
 	
 	mViewer->setSceneData(MainScene);
 
@@ -637,7 +698,7 @@ void cOSG2::InitCameraConfig(void)
 	osg::CullSettings::CullingMode mode = mViewer->getCamera()->getCullingMode();
 	mViewer->getCamera()->setCullingMode(mode & (~osg::CullSettings::SMALL_FEATURE_CULLING));
 
-	ResizeToolbar(traits->width, traits->height);
+	//ResizeToolbar(traits->width, traits->height);
 	// Correct aspect ratio
 	/*double fovy,aspectRatio,z1,z2;
 	mViewer->getCamera()->getProjectionMatrixAsPerspective(fovy,aspectRatio,z1,z2);
@@ -905,7 +966,7 @@ osg::Geode* cOSG2::createAxesGeometry()
 
 void cOSG2::PreFrameUpdate()
 {
-	//m_pView->PreFrameUpdate();
+	m_pView->PreFrameUpdate();
 }
 
 void cOSG2::PostFrameUpdate()
@@ -1043,18 +1104,18 @@ void cOSG2::OnViewIso()
 	mViewer->updateTraversal();
 }
 
-osgWidget::Widget* cOSG2::AddButton(string name, string path)
+osgWidget::Widget* cOSG2::AddButton(string name, string path, int size)
 {
 	if (name == "sep")
 	{
-		osgWidget::Widget* widget = new osgWidget::Widget("sep", 32, 2);
+		osgWidget::Widget* widget = new osgWidget::Widget("sep", 16, 2);
 		widget->setPadding(3.0f);
 		widget->setColor(0.5f, 0.5f, 0.5f, 0.5f);
 		return (widget);
 	}
 	else
 	{
-		osgWidget::Widget* widget3 = new ColorWidget(name);
+		osgWidget::Widget* widget3 = new ColorWidget(name, size);
 
 		bool b_image = widget3->setImage(path);
 		if (!b_image)
@@ -1081,18 +1142,20 @@ osgWidget::Label* cOSG2::AddLabel(string name, string value, unsigned int size, 
 	label->setFontSize(size);
 	label->setFontColor(0.0f, 0.0f, 0.0f, 1.0f);
 	label->setLabel(value);
-	label->setSize(200, 32);
 	label->setPadding(3.0f);
-	label->setAlignHorizontal(osgWidget::Widget::HorizontalAlignment::HA_RIGHT);
+	label->setAlignHorizontal(osgWidget::Widget::HorizontalAlignment::HA_LEFT);
 	//label->getText()->setFontResolution(30, 30);
 	if (use_outline)
 	{
 		label->getText()->setBackdropType(osgText::Text::OUTLINE);
+		label->getText()->setAlignment(osgText::Text::LEFT_CENTER);
 		//label->getText()->setBackdropType(osgText::Text::DROP_SHADOW_BOTTOM_RIGHT);
 		label->getText()->setBackdropImplementation(osgText::Text::NO_DEPTH_BUFFER);
 		label->getText()->setBackdropColor(osg::Vec4(1.0, 1.0, 1.0, 1));
 		label->getText()->setBackdropOffset(0.1f);
 	}
+
+	label->setSize(label->getTextSize().x(), 32);
 	return label;
 }
 
@@ -1110,32 +1173,33 @@ void cOSG2::MakeToolbar(string name, string image_path)
 void cOSG2::ResizeToolbar(int cx, int cy)
 {
 	int offset = 10;
-	for each (auto var in m_mapNameToToolbar)
-	{
-		osg::Vec2 size = var.second->getSize();
-		var.second->setOrigin(cx - size.x() - offset, cy - size.y() - offset);
-	}
+	//for each (auto var in m_mapNameToToolbar)
+	//{
+	//	osg::Vec2 size = var.second->getSize();
+	//	var.second->setOrigin(cx - size.x() - offset, cy - size.y() - offset);
+	//}
 	if (m_widgetOPTType)
 	{
-		osg::Vec2 size = m_widgetOPTType->getSize();
-		m_widgetOPTType->setOrigin(cx - size.x() - offset - size.x() - offset, cy - size.y() - offset);
+		osg::Vec2 size = m_widgetOPTType[0]->getSize();
+		for(int i=0; i<5; i++)
+			m_widgetOPTType[i]->setOrigin(offset, cy - size.y() - offset - 70);
 	}
 	if (m_widgetOPTName)
 	{
 		osg::Vec2 size = m_widgetOPTName->getSize();
-		m_widgetOPTName->setOrigin(cx - 32 - offset - 32 - offset - size.x() - offset, cy - size.y() - offset);
+		m_widgetOPTName->setOrigin(offset + 32 + offset, cy - size.y() - offset - 70);
 	}
-	if (m_widgetSimulation)
-	{
-		osg::Vec2 size = m_widgetSimulation->getSize();
-		m_widgetSimulation->setOrigin((cx - size.x()) / 2, offset);
-	}
-	if (m_widgetCurrentOperator)
-	{
-		osg::Vec2 size = m_widgetCurrentOperator->getSize();
-		m_widgetCurrentOperator->setOrigin((cx - size.x()) / 2, cy - size.y() - offset);
-	}
-
+	//if (m_widgetSimulation)
+	//{
+	//	osg::Vec2 size = m_widgetSimulation->getSize();
+	//	m_widgetSimulation->setOrigin((cx - size.x()) / 2, offset);
+	//}
+	//if (m_widgetCurrentOperator)
+	//{
+	//	osg::Vec2 size = m_widgetCurrentOperator->getSize();
+	//	m_widgetCurrentOperator->setOrigin((cx - size.x()) / 2, cy - size.y() - offset);
+	//}
+	m_WindowManager->resizeAllWindows();
 }
 
 void cOSG2::ResetBackgroundColor(COLORREF color_up, COLORREF color_down)

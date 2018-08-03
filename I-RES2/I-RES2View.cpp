@@ -31,6 +31,13 @@
 #include <Poly_PolygonOnTriangulation.hxx>
 #include <GCPnts_UniformDeflection.hxx>
 #include <osg/ComputeBoundsVisitor>
+#include <osgUtil/PlaneIntersector>
+#include <osg/Point>
+#include <IntAna2d_AnaIntersection.hxx>
+#include <gp_Lin2d.hxx>
+#include "OptImportExportBase.h"
+#include <osg/BlendFunc>
+#include "CDlgSelectSections.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -62,6 +69,47 @@ BEGIN_MESSAGE_MAP(CIRES2View, CView)
 	ON_COMMAND(ID_EDIT_SPACE, &CIRES2View::OnEditSpace)
 	ON_COMMAND(ID_EDIT_POINT_GAP, &CIRES2View::OnEditPointGap)
 	ON_COMMAND(ID_BUTTON_CALCULATE_SECTION_POINTS, &CIRES2View::OnButtonCalculateSectionPoints)
+	ON_COMMAND(ID_BUTTON_SHOW_HIDE_SECTIONS, &CIRES2View::OnButtonShowHideSections)
+	ON_COMMAND(ID_BUTTON_SHOW_HIDE_SECTION_CUT, &CIRES2View::OnButtonShowHideSectionCut)
+	ON_COMMAND(ID_BUTTON_HIDE_SHOW_WATERLINES, &CIRES2View::OnButtonHideShowWaterlines)
+	ON_COMMAND(ID_BUTTON_SHOW_HIDE_WATERLINE_CUT, &CIRES2View::OnButtonShowHideWaterlineCut)
+	ON_UPDATE_COMMAND_UI(ID_BUTTON_SHOW_HIDE_SECTIONS, &CIRES2View::OnUpdateButtonShowHideSections)
+	ON_UPDATE_COMMAND_UI(ID_BUTTON_SHOW_HIDE_SECTION_CUT, &CIRES2View::OnUpdateButtonShowHideSectionCut)
+	ON_UPDATE_COMMAND_UI(ID_BUTTON_HIDE_SHOW_WATERLINES, &CIRES2View::OnUpdateButtonHideShowWaterlines)
+	ON_UPDATE_COMMAND_UI(ID_BUTTON_SHOW_HIDE_WATERLINE_CUT, &CIRES2View::OnUpdateButtonShowHideWaterlineCut)
+	ON_COMMAND(ID_BUTTON_SAVE_HULL, &CIRES2View::OnButtonSaveHull)
+	ON_COMMAND(ID_BUTTON_ANALYSIS, &CIRES2View::OnButtonAnalysis)
+	ON_COMMAND(ID_BUTTON_SELECT_SECTION, &CIRES2View::OnButtonSelectSection)
+	ON_WM_TIMER()
+	ON_WM_SIZE()
+	ON_COMMAND(ID_SPIN_HULL_X_POS, &CIRES2View::OnSpinHullXPos)
+	ON_COMMAND(ID_SPIN_HULL_Y_POS, &CIRES2View::OnSpinHullYPos)
+	ON_COMMAND(ID_SPIN_HULL_Z_POS, &CIRES2View::OnSpinHullZPos)
+	ON_COMMAND(ID_SPIN_HULL_X_ANGLE, &CIRES2View::OnSpinHullXAngle)
+	ON_COMMAND(ID_SPIN_SECTION_Z, &CIRES2View::OnSpinSectionZ)
+	ON_COMMAND(ID_SPIN_WATERLINE_Z, &CIRES2View::OnSpinWaterlineZ)
+	ON_COMMAND(ID_SPIN_WATERLINE_X, &CIRES2View::OnSpinWaterlineX)
+	ON_COMMAND(ID_SPIN_WATERLINE_Y, &CIRES2View::OnSpinWaterlineY)
+	ON_COMMAND(ID_SPIN_HULL_Y_ANGLE, &CIRES2View::OnSpinHullYAngle)
+	ON_COMMAND(ID_SPIN_HULL_Z_Angle, &CIRES2View::OnSpinHullZAngle)
+	ON_COMMAND(ID_BUTTON_HULL_POINT_TO_POINT, &CIRES2View::OnButtonHullPointToPoint)
+	ON_WM_MOUSEMOVE()
+	ON_WM_LBUTTONDOWN()
+	ON_COMMAND(ID_SPIN_SECTION_X, &CIRES2View::OnSpinSectionX)
+	ON_COMMAND(ID_SPIN_SECTION_Y, &CIRES2View::OnSpinSectionY)
+	ON_COMMAND(ID_BUTTON_Nurbs_Conversion, &CIRES2View::OnButtonNurbsConversion)
+	ON_UPDATE_COMMAND_UI(ID_BUTTON_Nurbs_Conversion, &CIRES2View::OnUpdateButtonNurbsConversion)
+	ON_COMMAND(ID_BUTTONFront, &CIRES2View::OnButtonfront)
+	ON_COMMAND(ID_BUTTONTop, &CIRES2View::OnButtontop)
+	ON_COMMAND(ID_BUTTONLeft, &CIRES2View::OnButtonleft)
+	ON_COMMAND(ID_BUTTONBack, &CIRES2View::OnButtonback)
+	ON_COMMAND(ID_BUTTONRight, &CIRES2View::OnButtonright)
+	ON_COMMAND(ID_BUTTONBottom, &CIRES2View::OnButtonbottom)
+	ON_COMMAND(ID_BUTTONAxo, &CIRES2View::OnButtonaxo)
+	ON_COMMAND(ID_BUTTONReset, &CIRES2View::OnButtonreset)
+	ON_COMMAND(ID_BUTTONZoomWin, &CIRES2View::OnButtonzoomwin)
+	ON_COMMAND(ID_BUTTONZoomAll, &CIRES2View::OnButtonzoomall)
+	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 int N_FRAME;
@@ -152,15 +200,38 @@ CIRES2View::CIRES2View()
 	, m_pHULLSpinXRot(NULL)
 	, m_pHULLSpinYRot(NULL)
 	, m_pHULLSpinZRot(NULL)
+	, m_pSectionSpinXRot(NULL)
 	, m_pSectionSpinYRot(NULL)
 	, m_pSectionSpinZRot(NULL)
 	, m_pWaterlineSpinZPos(NULL)
 	, m_pWaterlineSpinXRot(NULL)
 	, m_pWaterlineSpinYRot(NULL)
 	, m_bBowBreaking(true)
+	, m_bShowSection(true)
+	, m_bShowSectionData(true)
+	, m_bShowWaterline(true)
+	, m_bShowWaterlineData(true)
+	, m_iCurrentStep(0)
+	, m_bSetCenterPoint(false)
+	, m_bSetFlipNormal(false)
+	, m_bSelectWindow(false)
+	, m_bInitialize(false)
 {
-	// TODO: 여기에 생성 코드를 추가합니다.
-
+	//m_iHULLPos[0] = 0;
+	//m_iHULLPos[1] = 0;
+	//m_iHULLPos[2] = 0;
+	//m_iHULLRot[0] = 0;
+	//m_iHULLRot[1] = 0;
+	//m_iHULLRot[2] = 0;
+	//m_iSectionRot[0] = 0;
+	//m_iSectionRot[1] = 0;
+	//m_iSectionRot[2] = 0;
+	//m_iWaterLinePos[0] = 0;
+	//m_iWaterLinePos[1] = 0;
+	//m_iWaterLinePos[2] = 0;
+	//m_iWaterLineRot[0] = 0;
+	//m_iWaterLineRot[1] = 0;
+	//m_iWaterLineRot[2] = 0;
 }
 
 CIRES2View::~CIRES2View()
@@ -256,7 +327,103 @@ int CIRES2View::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 
 	mOSG = new cOSG2(this->m_hWnd);
+	mOSG->InitOSG();
+	mOSG->SetView(this);
 
+	hints = new osg::TessellationHints;
+	hints->setDetailRatio(0.5f);
+
+	mThreadHandle = new CRenderingThread(mOSG);
+	mThreadHandle->start();
+
+	osgAxis = new osg::MatrixTransform();
+	mOSG->mRoot->addChild(osgAxis);
+
+	osgSelectPoint = new osg::MatrixTransform();
+	//mOSG->mRoot->addChild(osgSelectPoint);
+	osg::ref_ptr<osg::Geode> base_point = new osg::Geode;
+	osg::ref_ptr<osg::Geometry> base_point_geo = new osg::Geometry;
+	osg::ref_ptr<osg::Vec3Array> v_array = new osg::Vec3Array;
+	v_array->push_back(osg::Vec3(0, 0, 0));
+	base_point_geo->setVertexArray(v_array);
+	osg::ref_ptr<osg::Vec4Array> cross_color = new osg::Vec4Array;
+	cross_color->push_back(osg::Vec4(1, 0, 0, 1));
+	base_point_geo->setColorArray(cross_color.get());
+	base_point_geo->setColorBinding(osg::Geometry::BIND_OVERALL);
+	osg::DrawArrays* drawArrayPoints = new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, v_array->size()); // Is your line strip 
+	base_point_geo->addPrimitiveSet(drawArrayPoints);
+	osg::Point* point = new osg::Point;
+	point->setSize(5);
+	base_point_geo->getOrCreateStateSet()->setAttribute(point);
+	base_point_geo->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	base_point->addDrawable(base_point_geo);
+	osgSelectPoint->addChild(base_point);
+
+	osgHull_Center = new osg::MatrixTransform();
+	mOSG->mRoot->addChild(osgHull_Center);
+
+	osgHull = new osg::MatrixTransform();
+	osgHull_Center->addChild(osgHull);
+
+
+	m_goedeRectangle = new osg::Geode;
+	m_ptSelectionRect = new osg::Vec3Array;
+	osg::Vec4Array* color1 = new osg::Vec4Array;
+	m_geometrySelectionRect = new osg::Geometry;
+	m_geometrySelectionRect->setDataVariance(osg::Object::DYNAMIC);
+	m_geometrySelectionRect->setUseDisplayList(false);
+	m_geometrySelectionRect->setUseVertexBufferObjects(true);
+
+	color1->push_back(osg::Vec4(0.0, 0.0, 0.0, 0.8f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+	m_ptSelectionRect->push_back(osg::Vec3(-0.5f, -0.5f, -0.5f));
+
+	m_geometrySelectionRect->setVertexArray(m_ptSelectionRect);
+	m_geometrySelectionRect->setColorArray(color1);
+	m_geometrySelectionRect->setColorBinding(osg::Geometry::BIND_OVERALL);
+	m_geometrySelectionRect->addPrimitiveSet(new osg::DrawArrays(GL_LINES, 0, m_ptSelectionRect->size()));
+
+	m_goedeRectangle->addDrawable(m_geometrySelectionRect);
+	osg::StateSet* state1 = m_geometrySelectionRect->getOrCreateStateSet();
+	state1->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	osg::LineWidth* lineWidth1 = new osg::LineWidth(2);
+	state1->setAttributeAndModes(lineWidth1, osg::StateAttribute::ON);
+
+	m_cameraStatus = new osg::Camera;
+	m_cameraStatus->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
+	m_cameraStatus->setProjectionMatrixAsOrtho2D(0, 1280, 0, 1024);
+	m_cameraStatus->setViewMatrix(osg::Matrix::identity());
+	m_cameraStatus->setClearMask(GL_DEPTH_BUFFER_BIT);
+	m_cameraStatus->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+
+	m_cameraStatus->addChild(m_goedeRectangle);
+	//mOSG->mRoot->addChild(m_cameraStatus);
+
+	//osg::ref_ptr<osg::StateSet> stateset = new osg::StateSet;
+	////osg::Material* material = new osg::Material;
+	//osg::ref_ptr<osg::PolygonMode> polymode = new osg::PolygonMode;
+	//polymode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
+	//stateset->setAttributeAndModes(polymode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
+	//osgHull->setStateSet(stateset);
+
+	osgWaterline = new osg::MatrixTransform();
+	mOSG->mRoot->addChild(osgWaterline);
+
+	osgWaterlineSection = new osg::MatrixTransform();
+	mOSG->mRoot->addChild(osgWaterlineSection);
+
+
+	m_bInitialize = true;
 	return 0;
 }
 
@@ -273,24 +440,6 @@ void CIRES2View::OnDestroy()
 void CIRES2View::OnInitialUpdate()
 {
 	CView::OnInitialUpdate();
-
-	mOSG->InitOSG();
-
-	hints = new osg::TessellationHints;
-	hints->setDetailRatio(0.5f);
-
-	mThreadHandle = new CRenderingThread(mOSG);
-	mThreadHandle->start();
-
-	osgAxis = new osg::MatrixTransform();
-	mOSG->mRoot->addChild(osgAxis);
-
-	osgHull = new osg::MatrixTransform();
-	mOSG->mRoot->addChild(osgHull);
-
-	osgWaterline = new osg::MatrixTransform();
-	mOSG->mRoot->addChild(osgWaterline);
-
 	CMainFrame *pFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
 	if (pFrame)
 	{
@@ -313,24 +462,28 @@ void CIRES2View::OnInitialUpdate()
 		m_iHULLPos[2] = 0;
 
 		m_pHULLSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_X_ANGLE));
-		m_pHULLSpinXRot->EnableSpinButtons(0, 360);
+		m_pHULLSpinXRot->EnableSpinButtons(-360, 360);
 		m_pHULLSpinXRot->SetEditText("0");
 		m_iHULLRot[0] = 0;
 		m_pHULLSpinYRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Y_ANGLE));
-		m_pHULLSpinYRot->EnableSpinButtons(0, 360);
+		m_pHULLSpinYRot->EnableSpinButtons(-360, 360);
 		m_pHULLSpinYRot->SetEditText("0");
 		m_iHULLRot[1] = 0;
 		m_pHULLSpinZRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Z_Angle));
-		m_pHULLSpinZRot->EnableSpinButtons(0, 360);
+		m_pHULLSpinZRot->EnableSpinButtons(-360, 360);
 		m_pHULLSpinZRot->SetEditText("0");
 		m_iHULLRot[2] = 0;
 
+		m_pSectionSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_SECTION_X));
+		m_pSectionSpinXRot->EnableSpinButtons(-360, 360);
+		m_pSectionSpinXRot->SetEditText("0");
+		m_iSectionRot[0] = 0;
 		m_pSectionSpinYRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_SECTION_Y));
-		m_pSectionSpinYRot->EnableSpinButtons(0, 360);
+		m_pSectionSpinYRot->EnableSpinButtons(-360, 360);
 		m_pSectionSpinYRot->SetEditText("0");
 		m_iSectionRot[1] = 0;
 		m_pSectionSpinZRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_SECTION_Z));
-		m_pSectionSpinZRot->EnableSpinButtons(0, 360);
+		m_pSectionSpinZRot->EnableSpinButtons(-360, 360);
 		m_pSectionSpinZRot->SetEditText("0");
 		m_iSectionRot[2] = 0;
 
@@ -339,12 +492,12 @@ void CIRES2View::OnInitialUpdate()
 		m_pWaterlineSpinZPos->SetEditText("0");
 		m_iWaterLinePos[2] = 0;
 
-		m_pWaterlineSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_Y));
-		m_pWaterlineSpinXRot->EnableSpinButtons(0, 360);
+		m_pWaterlineSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_X));
+		m_pWaterlineSpinXRot->EnableSpinButtons(-360, 360);
 		m_pWaterlineSpinXRot->SetEditText("0");
 		m_iWaterLineRot[0] = 0;
 		m_pWaterlineSpinYRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_Y));
-		m_pWaterlineSpinYRot->EnableSpinButtons(0, 360);
+		m_pWaterlineSpinYRot->EnableSpinButtons(-360, 360);
 		m_pWaterlineSpinYRot->SetEditText("0");
 		m_iWaterLineRot[1] = 0;
 	}
@@ -353,116 +506,164 @@ void CIRES2View::OnInitialUpdate()
 
 void CIRES2View::OnButtonImportHull()
 {
+	UnSetFlipNormal();
+	UnSetCenterPoint();
+
 	CFileDialog dlg(TRUE,
 		NULL,
 		NULL,
 		OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-		"IGES Files (*.iges , *.igs)|*.iges; *.igs|All Files (*.*)|*.*||",
+		"IGES Files (*.iges , *.igs)|*.iges; *.igs|I-RES2 Files (*.osgb)|*.osgb|All Files (*.*)|*.*||",
 		NULL);
 
 	if (dlg.DoModal() == IDOK)
 	{
 		time_t start_time;
-		time(&start_time);
-		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
-		TCollection_AsciiString aFileName((const char*)dlg.GetPathName());
-		IGESControl_Reader Reader;
-		Standard_Integer status = Reader.ReadFile(aFileName.ToCString());
 		time_t end_time;
 		double diff_time1;
-		if (status == IFSelect_RetDone)
+
+		CString ext_str = dlg.GetFileExt().MakeLower();
+		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+		if (ext_str == "iges" || ext_str == "igs")
 		{
-			Reader.TransferRoots();
-			TopoDS_Shape aShape = Reader.OneShape();
+			time(&start_time);
+			TCollection_AsciiString aFileName((const char*)dlg.GetPathName());
+			IGESControl_Reader Reader;
+			Standard_Integer status = Reader.ReadFile(aFileName.ToCString());
+			if (status == IFSelect_RetDone)
+			{
+				Reader.TransferRoots();
+				TopoDS_Shape aShape = Reader.OneShape();
+				time(&end_time);
+				diff_time1 = difftime(end_time, start_time);
+
+				osg::Geode* geode = new osg::Geode;
+				LoadShapesGeo(aShape, geode);
+
+				if (geode->getNumChildren() > 0)
+				{
+					osgUtil::Optimizer optimizer;
+					optimizer.optimize(geode, osgUtil::Optimizer::OptimizationOptions::ALL_OPTIMIZATIONS);
+					optimizer.reset();
+
+					PreFrameUpdateData pf(osgHull, NULL);
+					m_QRemoveChild.push(pf);
+
+					PreFrameUpdateData pf1(osgHull, geode);
+					m_QAddChild.push(pf1);
+					//osgHull->addChild(geode);
+
+					ClearSections();
+					SetCurrentStep(1);
+				}
+			}
+		}
+		else//
+		{
+			time(&start_time);
 			time(&end_time);
 			diff_time1 = difftime(end_time, start_time);
 
-			osg::Geode* geode = new osg::Geode;
-			LoadShapesGeo(aShape, geode);
-
-			if (geode->getNumChildren() > 0)
+			CT2CA pszConvertedAnsiString(dlg.GetPathName());
+			std::string strStd(pszConvertedAnsiString);
+			osg::Node* geo_node = osgDB::readNodeFile(strStd);
+			if (geo_node)
 			{
-				osgHull->addChild(geode);
+				PreFrameUpdateData pf(osgHull, NULL);
+				m_QRemoveChild.push(pf);
 
-				osg::BoundingBox bbHull;
-				bbHull.expandBy(osgHull->getBound());
-				bbHullRadius = osgHull->getBound().radius();
-				//osg::ComputeBoundsVisitor cbbv;
-				//osgHull->accept(cbbv);
-				//osg::BoundingBox bbHull = cbbv.getBoundingBox();
+				PreFrameUpdateData pf1(osgHull, geo_node);
+				m_QAddChild.push(pf1);
+				//osgHull->addChild(geo_node);
 
-				//CString temp_string;
-				//temp_string.Format("%lf, %lf, %lf, %lf, %lf, %lf", bbHull.xMin(), bbHull.xMax(), bbHull.yMin(), bbHull.yMax(), bbHull.zMin(), bbHull.zMax());
-				//AfxMessageBox(temp_string);
-
-				int child_no = osgWaterline->getNumChildren();
-				if (child_no > 0)
-				{
-					osgWaterline->removeChildren(0, child_no);
-				}
-
-				osg::ref_ptr<osg::Geode> base_plane = new osg::Geode;
-				osgWaterline->addChild(base_plane);
-
-				osg::ref_ptr<osg::Geometry> base_palne_geo = new osg::Geometry;
-				osg::ref_ptr<osg::Vec3Array> v_array = new osg::Vec3Array;
-				v_array->push_back(osg::Vec3(-bbHullRadius, -bbHullRadius, 0));
-				v_array->push_back(osg::Vec3(bbHullRadius, -bbHullRadius, 0));
-				v_array->push_back(osg::Vec3(bbHullRadius, bbHullRadius, 0));
-
-				v_array->push_back(osg::Vec3(-bbHullRadius, -bbHullRadius, 0));
-				v_array->push_back(osg::Vec3(bbHullRadius, bbHullRadius, 0));
-				v_array->push_back(osg::Vec3(-bbHullRadius, bbHullRadius, 0));
-
-				m_iWaterLinePos[0] = bbHull.center().x();
-				m_iWaterLinePos[1] = bbHull.center().y();
-				m_iWaterLinePos[2] = bbHull.center().z();
-
-				osg::Matrix tr;
-				tr.setTrans(bbHull.center());
-				osgWaterline->setMatrix(tr);
-
-				osg::ref_ptr<osg::Vec3Array> n_array = new osg::Vec3Array;
-				n_array->push_back(osg::Vec3(0, 0, 1));
-
-				base_palne_geo->setVertexArray(v_array);
-				osg::ref_ptr<osg::Vec4Array> cross_color = new osg::Vec4Array;
-				cross_color->push_back(osg::Vec4(0.8, 0.8, 1.0, 0.5));
-				base_palne_geo->setColorArray(cross_color.get());
-				base_palne_geo->setColorBinding(osg::Geometry::BIND_OVERALL);
-				base_palne_geo->setNormalArray(n_array.get());
-				base_palne_geo->setNormalBinding(osg::Geometry::BIND_OVERALL);
-
-				osg::ref_ptr<osg::DrawElementsUInt> de = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
-				de->push_back(0);
-				de->push_back(1);
-				de->push_back(2);
-				de->push_back(3);
-				de->push_back(4);
-				de->push_back(5);
-				base_palne_geo->addPrimitiveSet(de.get());
-				base_palne_geo->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
-				base_plane->addDrawable(base_palne_geo);
-
-				UpdateGlobalAxis(max(max(bbHull.xMax(), bbHull.yMax()), bbHull.zMax()));
-
-				if (m_pEditStart)
-				{
-					CString temp_string;
-					temp_string.Format("%g", bbHull.xMin() / 1000.0f);
-					m_pEditStart->SetEditText(temp_string);
-
-					temp_string.Format("%g", bbHull.xMax() / 1000.0f);
-					m_pEditEnd->SetEditText(temp_string);
-
-					//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 / 1000.0f);
-					m_pEditSpace->SetEditText("0.5");
-				}
-
+				ClearSections();
+				SetCurrentStep(1);
 			}
 		}
+
+		//if (load_ok)
+		//{
+		//	bbHull.expandBy(osgHull->getBound());
+		//	bbHullRadius = osgHull->getBound().radius();
+		//	//osg::ComputeBoundsVisitor cbbv;
+		//	//osgHull->accept(cbbv);
+		//	//osg::BoundingBox bbHull = cbbv.getBoundingBox();
+
+		//	//CString temp_string;
+		//	//temp_string.Format("%lf, %lf, %lf, %lf, %lf, %lf", bbHull.xMin(), bbHull.xMax(), bbHull.yMin(), bbHull.yMax(), bbHull.zMin(), bbHull.zMax());
+		//	//AfxMessageBox(temp_string);
+
+		//	int child_no = osgWaterline->getNumChildren();
+		//	if (child_no > 0)
+		//	{
+		//		osgWaterline->removeChildren(0, child_no);
+		//	}
+
+		//	osg::ref_ptr<osg::Geode> base_plane = new osg::Geode;
+
+		//	osg::ref_ptr<osg::Geometry> base_palne_geo = new osg::Geometry;
+		//	osg::ref_ptr<osg::Vec3Array> v_array = new osg::Vec3Array;
+		//	v_array->push_back(osg::Vec3(-bbHullRadius, -bbHullRadius, 0));
+		//	v_array->push_back(osg::Vec3(bbHullRadius, -bbHullRadius, 0));
+		//	v_array->push_back(osg::Vec3(bbHullRadius, bbHullRadius, 0));
+
+		//	v_array->push_back(osg::Vec3(-bbHullRadius, -bbHullRadius, 0));
+		//	v_array->push_back(osg::Vec3(bbHullRadius, bbHullRadius, 0));
+		//	v_array->push_back(osg::Vec3(-bbHullRadius, bbHullRadius, 0));
+
+		//	m_iWaterLinePos[0] = bbHull.center().x();
+		//	m_iWaterLinePos[1] = bbHull.center().y();
+		//	m_iWaterLinePos[2] = bbHull.center().z();
+
+		//	osg::Matrix tr;
+		//	tr.setTrans(bbHull.center());
+		//	osgWaterline->setMatrix(tr);
+
+		//	osg::ref_ptr<osg::Vec3Array> n_array = new osg::Vec3Array;
+		//	n_array->push_back(osg::Vec3(0, 0, 1));
+
+		//	base_palne_geo->setVertexArray(v_array);
+		//	osg::ref_ptr<osg::Vec4Array> cross_color = new osg::Vec4Array;
+		//	cross_color->push_back(osg::Vec4(0.8, 0.8, 1.0, 0.5));
+		//	base_palne_geo->setColorArray(cross_color.get());
+		//	base_palne_geo->setColorBinding(osg::Geometry::BIND_OVERALL);
+		//	base_palne_geo->setNormalArray(n_array.get());
+		//	base_palne_geo->setNormalBinding(osg::Geometry::BIND_OVERALL);
+
+		//	osg::ref_ptr<osg::DrawElementsUInt> de = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
+		//	de->push_back(0);
+		//	de->push_back(1);
+		//	de->push_back(2);
+		//	de->push_back(3);
+		//	de->push_back(4);
+		//	de->push_back(5);
+		//	base_palne_geo->addPrimitiveSet(de.get());
+		//	base_palne_geo->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+		//	base_plane->addDrawable(base_palne_geo);
+
+		//	PreFrameUpdateData pf(osgWaterline, base_plane);
+		//	m_QAddChild.push(pf);
+		//	//osgWaterline->addChild(base_plane);
+
+		//	UpdateGlobalAxis(max(max(bbHull.xMax(), bbHull.yMax()), bbHull.zMax()));
+
+		//	if (m_pEditStart)
+		//	{
+		//		CString temp_string;
+		//		temp_string.Format("%g", bbHull.xMin() / 1000.0f);
+		//		m_pEditStart->SetEditText(temp_string);
+
+		//		temp_string.Format("%g", bbHull.xMax() / 1000.0f);
+		//		m_pEditEnd->SetEditText(temp_string);
+
+		//		//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 / 1000.0f);
+		//		m_pEditSpace->SetEditText("0.5");
+		//	}
+
+		//}
+
 		SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
-		FitWorld();
+		//FitWorld();
 
 		time_t end_time1;
 		time(&end_time1);
@@ -535,6 +736,10 @@ bool CIRES2View::LoadShapesGeo(const TopoDS_Shape& aShape, osg::Geode* geode)
 		osg::Geometry* geo = FaceToGeometry(f, m_fFaceDeflection);
 		if (geo != NULL)
 		{
+			geo->setDataVariance(osg::Object::DYNAMIC);
+			geo->setUseDisplayList(false);
+			geo->setUseVertexBufferObjects(true);
+
 			osg::StateSet *ss = geo->getOrCreateStateSet();
 			osg::Material *mtl = new osg::Material();
 			mtl->setDiffuse(osg::Material::FRONT_AND_BACK,
@@ -1014,7 +1219,7 @@ osg::Node* CIRES2View::OnSelectPoint(double x, double y, osg::Vec3d& hit_pt)
 				m_SelectedGeo = dynamic_cast<osg::Geometry*>(hitr->drawable.get());
 				
 				const vector< unsigned int >& selIndices = hitr->indexList;
-				if (m_SelectedGeo)
+				if (m_SelectedGeo && selIndices.size() > 2)
 				{
 					m_vecSelectedNormal = hitr->getLocalIntersectNormal();
 					hit_pt = hitr->getWorldIntersectPoint();
@@ -1044,7 +1249,6 @@ osg::Node* CIRES2View::OnSelectPoint(double x, double y, osg::Vec3d& hit_pt)
 								m_geoVertex = p0;
 							}
 						}
-
 
 						int j = i - 1;
 						if (j < 0)
@@ -1102,7 +1306,8 @@ osg::Node* CIRES2View::OnSelectPoint(double x, double y, osg::Vec3d& hit_pt)
 						if (mt == NULL)
 							continue;
 
-						return mt;
+						if(mt == osgHull)
+							return mt;
 					}
 				}
 			}
@@ -1117,7 +1322,7 @@ void CIRES2View::UpdateGlobalAxis(float length)
 
 	osg::LineWidth* lineWidth = new osg::LineWidth(2);
 	geode->getOrCreateStateSet()->setAttributeAndModes(lineWidth, osg::StateAttribute::ON);
-	//geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
 	double pyramidBaseZ = length / 100.0f;
 	double outerBaseRadius = length / 200.0f;
@@ -1162,6 +1367,15 @@ void CIRES2View::UpdateGlobalAxis(float length)
 
 void CIRES2View::OnButtonDefineSections()
 {
+	UnSetFlipNormal();
+	UnSetCenterPoint();
+
+	if (m_iCurrentStep < 1)
+	{
+		AfxMessageBox("Import HULL first.");
+		return;
+	}
+
 	if (m_pEditStart == NULL)
 	{
 		CMainFrame *pFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
@@ -1190,8 +1404,30 @@ void CIRES2View::OnButtonDefineSections()
 		temp_string = m_pEditSpace->GetEditText();
 		m_aSectionOffset.push_back(atof(temp_string) * 1000.0f);
 
+		ClearSections();
 		DefineSections();
 	}
+}
+
+void CIRES2View::ClearSections()
+{
+	for each(auto section in osgSections)
+	{
+		PreFrameUpdateData pf(mOSG->mRoot, section);
+		m_QRemoveChild.push(pf);
+	}
+	for each(auto section in osgSectionsData)
+	{
+		PreFrameUpdateData pf(mOSG->mRoot, section);
+		m_QRemoveChild.push(pf);
+	}
+
+	osgSections.clear();
+	osgSectionsData.clear();
+	osgSectionPosList.clear();
+	osgSectionEnable.clear();
+
+	ClearSectionPoints();
 }
 
 void CIRES2View::DefineSections()
@@ -1203,7 +1439,7 @@ void CIRES2View::DefineSections()
 
 	for (int i = 0; i < m_aSectionStart.size(); i++)
 	{
-		float center_x;
+		float center_x = bbHull.center().x();
 		float center_y = bbHull.center().y();
 		float center_z = bbHull.center().z();
 		if (m_bBowBreaking)
@@ -1214,32 +1450,41 @@ void CIRES2View::DefineSections()
 			{
 				osg::Vec3 center_pnt(center_x, center_y, center_z);
 				osgSectionPosList.push_back(center_pnt);
+				osgSectionEnable.push_back(true);
 
+				prev_x = center_x;
+				center_x += m_aSectionOffset[i];
+			}
+
+			reverse(osgSectionPosList.begin(), osgSectionPosList.end());
+
+			for each(auto center_pnt in osgSectionPosList)
+			{
 				//osg::Plane section_plane(osg::Vec3(1, 0, 0), osg::Vec3(0, 0, 0));
 
 				osg::ref_ptr<osg::MatrixTransform> base_plane_tr = new osg::MatrixTransform;
 				osgSections.push_back(base_plane_tr);
-				mOSG->mRoot->addChild(base_plane_tr);
+
+				osg::ref_ptr<osg::MatrixTransform> base_plane_tr1 = new osg::MatrixTransform;
+				osgSectionsData.push_back(base_plane_tr1);
 
 				osg::ref_ptr<osg::Geode> base_plane = new osg::Geode;
 				base_plane_tr->addChild(base_plane);
 
 				osg::ref_ptr<osg::Geometry> base_palne_geo = new osg::Geometry;
 				osg::ref_ptr<osg::Vec3Array> v_array = new osg::Vec3Array;
-				v_array->push_back(osg::Vec3(0, -bbHullRadius, -bbHullRadius));
-				v_array->push_back(osg::Vec3(0, bbHullRadius, -bbHullRadius));
-				v_array->push_back(osg::Vec3(0, bbHullRadius, bbHullRadius));
+				v_array->push_back(osg::Vec3(0, -bbLength[1], -bbLength[2]));
+				v_array->push_back(osg::Vec3(0, bbLength[1], -bbLength[2]));
+				v_array->push_back(osg::Vec3(0, bbLength[1], bbLength[2]));
 
-				v_array->push_back(osg::Vec3(0, -bbHullRadius, -bbHullRadius));
-				v_array->push_back(osg::Vec3(0, bbHullRadius, bbHullRadius));
-				v_array->push_back(osg::Vec3(0, -bbHullRadius, bbHullRadius));
-
-				m_iWaterLinePos[0] = bbHull.center().x();
-				m_iWaterLinePos[1] = bbHull.center().y();
-				m_iWaterLinePos[2] = bbHull.center().z();
+				v_array->push_back(osg::Vec3(0, -bbLength[1], -bbLength[2]));
+				v_array->push_back(osg::Vec3(0, bbLength[1], bbLength[2]));
+				v_array->push_back(osg::Vec3(0, -bbLength[1], bbLength[2]));
 
 				osg::Matrix tr;
+				osg::Quat q(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
 				tr.setTrans(center_pnt);
+				tr.setRotate(q);
 				base_plane_tr->setMatrix(tr);
 
 				osg::ref_ptr<osg::Vec3Array> n_array = new osg::Vec3Array;
@@ -1261,17 +1506,23 @@ void CIRES2View::DefineSections()
 				de->push_back(4);
 				de->push_back(5);
 				base_palne_geo->addPrimitiveSet(de.get());
-				base_palne_geo->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+
+				osg::StateSet *ss = base_palne_geo->getOrCreateStateSet();
+				ss->setMode(GL_BLEND, osg::StateAttribute::ON);
+				osg::ref_ptr<osg::Depth> depth = new osg::Depth;
+				depth->setWriteMask(true);
+				ss->setAttributeAndModes(depth.get(), osg::StateAttribute::ON);
+				ss->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+				ss->setAttributeAndModes(new osg::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA), osg::StateAttribute::ON);
+
 				base_plane->addDrawable(base_palne_geo);
 
-				osgSections.push_back(base_plane_tr);
-
-				sprintf_s(label_txt, 255, "%g", center_x / 1000.0f);
+				sprintf_s(label_txt, 255, "%.2lf", center_pnt.x() / 1000.0f);
 				osgText::Text* text = new  osgText::Text;
 				osgText::Font* normal_font = osgText::readFontFile("fonts/arial.ttf");
 				text->setFont(normal_font);
 				text->setText(label_txt);
-				text->setPosition(osg::Vec3(0, -bbHullRadius, bbHullRadius));
+				text->setPosition(osg::Vec3(0, -bbLength[1], bbLength[2]));
 				text->setCharacterSize(15.0f);
 				text->setFontResolution(20, 20);
 				text->setAutoRotateToScreen(true);
@@ -1280,97 +1531,115 @@ void CIRES2View::DefineSections()
 				text->setAlignment(osgText::Text::CENTER_CENTER);
 				base_plane->addDrawable(text);
 
-				prev_x = center_x;
-				center_x += m_aSectionOffset[i];
+				PreFrameUpdateData pf(mOSG->mRoot, base_plane_tr);
+				m_QAddChild.push(pf);
+				PreFrameUpdateData pf1(mOSG->mRoot, base_plane_tr1);
+				m_QAddChild.push(pf1);
+				//mOSG->mRoot->addChild(base_plane_tr);
+				//mOSG->mRoot->addChild(base_plane_tr1);
+			}
+		}
+		else
+		{
+			center_y = m_aSectionStart[i];
+			float prev_y = center_y;
+			while (center_y < m_aSectionEnd[i])
+			{
+				osg::Vec3 center_pnt(center_x, center_y, center_z);
+				osgSectionPosList.push_back(center_pnt);
+				osgSectionEnable.push_back(true);
+
+				prev_y = center_y;
+				center_y += m_aSectionOffset[i];
 			}
 
-			//if ((m_aSectionEnd[i] - prev_x) > 0.0001)
-			//{
-			//	gp_Pln aFacePlane(gp_Pnt(m_aSectionEnd[i], center_y, center_z), gp_Dir(1.0, 0.0, 0.0));
+			reverse(osgSectionPosList.begin(), osgSectionPosList.end());
 
-			//	BRepBuilderAPI_MakeFace aMakeFaceCommand(aFacePlane, -length_z / 1.5, length_z / 1.5, -length_y / 1.5, length_y / 1.5);
-			//	TopoDS_Face aShape = aMakeFaceCommand.Face();
-			//	Handle(AIS_Shape) myShape = new AIS_Shape(aShape);
-			//	myShape->SetTransparency(0.5);
-			//	myShape->SetColor(Quantity_NOC_WHITE);
-			//	if (m_bDisplaySection)
-			//		myAISContext->Display(myShape, Standard_False);
-			//	section_list.push_back(myShape);
-			//	sectionpln_list.push_back(aFacePlane);
+			for each(auto center_pnt in osgSectionPosList)
+			{
+				//osg::Plane section_plane(osg::Vec3(1, 0, 0), osg::Vec3(0, 0, 0));
 
-			//	Handle(AIS_TextLabel) aLabel = new AIS_TextLabel();
-			//	sprintf_s(label_txt, 255, "%g", center_x);
-			//	aLabel->SetText(label_txt);
-			//	aLabel->SetPosition(gp_Pnt(center_x, center_y - length_y / 1.5, m_aSectionOffset[1]));
-			//	myAISContext->Display(aLabel, Standard_False);
-			//	section_label_list.push_back(aLabel);
-			//}
+				osg::ref_ptr<osg::MatrixTransform> base_plane_tr = new osg::MatrixTransform;
+				osgSections.push_back(base_plane_tr);
+
+				osg::ref_ptr<osg::MatrixTransform> base_plane_tr1 = new osg::MatrixTransform;
+				osgSectionsData.push_back(base_plane_tr1);
+
+				osg::ref_ptr<osg::Geode> base_plane = new osg::Geode;
+				base_plane_tr->addChild(base_plane);
+
+				osg::ref_ptr<osg::Geometry> base_palne_geo = new osg::Geometry;
+				osg::ref_ptr<osg::Vec3Array> v_array = new osg::Vec3Array;
+				v_array->push_back(osg::Vec3(-bbLength[0], 0, -bbLength[2]));
+				v_array->push_back(osg::Vec3(bbLength[0], 0, -bbLength[2]));
+				v_array->push_back(osg::Vec3(bbLength[0], 0, bbLength[2]));
+
+				v_array->push_back(osg::Vec3(-bbLength[0], 0, -bbLength[2]));
+				v_array->push_back(osg::Vec3(bbLength[0], 0, bbLength[2]));
+				v_array->push_back(osg::Vec3(-bbLength[0], 0, bbLength[2]));
+
+				osg::Matrix tr;
+				osg::Quat q(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+				tr.setTrans(center_pnt);
+				tr.setRotate(q);
+				base_plane_tr->setMatrix(tr);
+
+				osg::ref_ptr<osg::Vec3Array> n_array = new osg::Vec3Array;
+				n_array->push_back(osg::Vec3(0, 1, 0));
+
+				base_palne_geo->setVertexArray(v_array);
+				osg::ref_ptr<osg::Vec4Array> cross_color = new osg::Vec4Array;
+				cross_color->push_back(osg::Vec4(1, 1, 0.5, 0.5));
+				base_palne_geo->setColorArray(cross_color.get());
+				base_palne_geo->setColorBinding(osg::Geometry::BIND_OVERALL);
+				base_palne_geo->setNormalArray(n_array.get());
+				base_palne_geo->setNormalBinding(osg::Geometry::BIND_OVERALL);
+
+				osg::ref_ptr<osg::DrawElementsUInt> de = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
+				de->push_back(0);
+				de->push_back(1);
+				de->push_back(2);
+				de->push_back(3);
+				de->push_back(4);
+				de->push_back(5);
+				base_palne_geo->addPrimitiveSet(de.get());
+
+				osg::StateSet *ss = base_palne_geo->getOrCreateStateSet();
+				ss->setMode(GL_BLEND, osg::StateAttribute::ON);
+				osg::ref_ptr<osg::Depth> depth = new osg::Depth;
+				depth->setWriteMask(true);
+				ss->setAttributeAndModes(depth.get(), osg::StateAttribute::ON);
+				ss->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+				ss->setAttributeAndModes(new osg::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA), osg::StateAttribute::ON);
+
+				base_plane->addDrawable(base_palne_geo);
+
+				sprintf_s(label_txt, 255, "%.2lf", center_pnt.y() / 1000.0f);
+				osgText::Text* text = new  osgText::Text;
+				osgText::Font* normal_font = osgText::readFontFile("fonts/arial.ttf");
+				text->setFont(normal_font);
+				text->setText(label_txt);
+				text->setPosition(osg::Vec3(bbLength[0], 0, bbLength[2]));
+				text->setCharacterSize(15.0f);
+				text->setFontResolution(20, 20);
+				text->setAutoRotateToScreen(true);
+				text->setColor(osg::Vec4(0, 0, 0, 1));
+				text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
+				text->setAlignment(osgText::Text::CENTER_CENTER);
+				base_plane->addDrawable(text);
+
+				PreFrameUpdateData pf(mOSG->mRoot, base_plane_tr);
+				m_QAddChild.push(pf);
+				PreFrameUpdateData pf1(mOSG->mRoot, base_plane_tr1);
+				m_QAddChild.push(pf1);
+				//mOSG->mRoot->addChild(base_plane_tr);
+				//mOSG->mRoot->addChild(base_plane_tr1);
+			}
 		}
-		//else
-		//{
-		//	center_y = m_aSectionStart[i];
-		//	Standard_Real prev_y = center_y;
-		//	//vector< vector< Handle(AIS_Shape) > > m_aSectionList;
-		//	while (center_y < m_aSectionEnd[i])
-		//	{
-		//		gp_Pnt center(center_x, center_y, center_z);
-		//		section_pos_list.push_back(center);
-		//		gp_Pln aFacePlane(center, gp_Dir(0.0, 1.0, 0.0));
-
-		//		BRepBuilderAPI_MakeFace aMakeFaceCommand(aFacePlane, -length_z / 1.5, length_z / 1.5, -length_x / 1.5, length_x / 1.5);
-		//		TopoDS_Face aShape = aMakeFaceCommand.Face();
-		//		Handle(AIS_Shape) myShape = new AIS_Shape(aShape);
-		//		myShape->SetTransparency(0.5);
-		//		myAISContext->Display(myShape, Standard_False);
-		//		gp_Trsf aPistonTrsf;
-		//		aPistonTrsf.SetTranslationPart(gp_Vec(gp_Pnt(0, 0, 0), center));
-		//		myAISContext->SetLocation(myShape, aPistonTrsf);
-
-		//		section_list.push_back(myShape);
-		//		sectionpln_list.push_back(aFacePlane);
-
-		//		Handle(AIS_TextLabel) aLabel = new AIS_TextLabel();
-		//		sprintf_s(label_txt, 255, "%g", center_y);
-		//		aLabel->SetText(label_txt);
-		//		aLabel->SetPosition(gp_Pnt(center_x + length_x / 1.5, center_y, m_aSectionOffset[1]));
-		//		myAISContext->Display(aLabel, Standard_False);
-		//		section_label_list.push_back(aLabel);
-
-		//		prev_y = center_y;
-		//		center_y += m_aSection[2][i];
-		//	}
-
-		//	//if ((m_aSectionEnd[i] - prev_y) > 0.0001)
-		//	//{
-		//	//	gp_Pln aFacePlane(gp_Pnt(m_aSectionEnd[i], center_y, center_z), gp_Dir(0.0, 1.0, 0.0));
-
-		//	//	BRepBuilderAPI_MakeFace aMakeFaceCommand(aFacePlane, -length_z / 1.5, length_z / 1.5, -length_x / 1.5, length_x / 1.5);
-		//	//	TopoDS_Face aShape = aMakeFaceCommand.Face();
-		//	//	Handle(AIS_Shape) myShape = new AIS_Shape(aShape);
-		//	//	myShape->SetTransparency(0.5);
-		//	//	myShape->SetColor(Quantity_NOC_WHITE);
-		//	//	if (m_bDisplaySection)
-		//	//		myAISContext->Display(myShape, Standard_False);
-		//	//	section_list.push_back(myShape);
-		//	//	sectionpln_list.push_back(aFacePlane);
-
-		//	//	Handle(AIS_TextLabel) aLabel = new AIS_TextLabel();
-		//	//	sprintf_s(label_txt, 255, "%g", center_y);
-		//	//	aLabel->SetText(label_txt);
-		//	//	aLabel->SetPosition(gp_Pnt(center_x + length_x / 1.5, center_y, m_aSectionOffset[1]));
-		//	//	myAISContext->Display(aLabel, Standard_False);
-		//	//	section_label_list.push_back(aLabel);
-
-		//	//}
-		//}
-
-		//m_aSectionList.push_back(section_list);
-		//m_aSectionPosList.push_back(section_pos_list);
-		//m_aSectionLabelList.push_back(section_label_list);
-		//m_aSectionPlnList.push_back(sectionpln_list);
-
-		//myAISContext->UpdateCurrentViewer();
 	}
+
+	SetCurrentStep(2);
+	ClearSectionPoints();
 }
 
 
@@ -1421,9 +1690,612 @@ void CIRES2View::OnEditPointGap()
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 }
 
+bool sort_curves_x(vector< osg::Vec3 > i, vector< osg::Vec3 > j)
+{
+	return (i[0].x() < j[0].x());
+}
+
+bool sort_curves_y(vector< osg::Vec3 > i, vector< osg::Vec3 > j)
+{
+	return (i[0].y() < j[0].y());
+}
+
+bool sort_curves_z(vector< osg::Vec3 > i, vector< osg::Vec3 > j)
+{
+	return (i[0].z() < j[0].z());
+}
+
+bool same_side(osg::Vec3& p1, osg::Vec3& p2, osg::Vec3& a, osg::Vec3& b)
+{
+	osg::Vec3 cp1 = (b - a) ^ (p1 - a);
+	osg::Vec3 cp2 = (b - a) ^ (p2 - a);
+	return (cp1*cp2 >= 0);
+}
+
+//vector< osg::Vec3 > temp_pt_list;
+void CIRES2View::GetNormal(osg::Drawable* geo, PointData& pd)
+{
+	osg::Geometry* geom = geo->asGeometry();
+	if (geom)
+	{
+		osg::Vec3Array *vertices = (osg::Vec3Array *)geom->getVertexArray();
+		osg::Vec3Array *normals = (osg::Vec3Array *)geom->getNormalArray();
+		osg::Geometry::PrimitiveSetList primitiveList = geom->getPrimitiveSetList();
+
+		int polygonIndex = 0;
+		osg::Vec3 p1, p2, p3;
+		int index1, index2, index3;
+		//double dot00;
+		//double dot01;
+		//double dot02;
+		//double dot11;
+		//double dot12;
+		//double invDenom, u, v;
+		osg::Vec3 v0, v1, v2, v3;
+
+		for (int x = 0; x <primitiveList.size(); x++)
+		{
+			osg::PrimitiveSet *set = primitiveList[x];
+			int numberOfIndices = set->getNumIndices();
+			if (set->getMode() == osg::PrimitiveSet::Mode::TRIANGLES)
+			{
+				for (unsigned int y = 0; y < set->getDrawElements()->getNumIndices() /*numberOfIndices*/; y+=3)
+				{
+					index1 = set->getDrawElements()->getElement(y); //set->index(y); 
+					if (index1 < vertices->size())
+					{
+						p1 = vertices->at(index1);
+					}
+					index2 = set->getDrawElements()->getElement(y +1); //set->index(y); 
+					if (index2 < vertices->size())
+					{
+						p2 = vertices->at(index2);
+					}
+					index3 = set->getDrawElements()->getElement(y +2); //set->index(y); 
+					if (index3 < vertices->size())
+					{
+						p3 = vertices->at(index3);
+					}
+
+					//	Same Side Technique
+					if (same_side(pd.pnt, p1, p2, p3) && same_side(pd.pnt, p2, p1, p3) && same_side(pd.pnt, p3, p1, p2))
+					{
+						//temp_pt_list.push_back(p1);
+						//temp_pt_list.push_back(p2);
+						//temp_pt_list.push_back(p3);
+						v1 = p2 - p1;
+						v3 = p3 - p2;
+						osg::Vec3 normal = v1 ^ v3;
+						//osg::Vec3 normal = normals->at(index1) + normals->at(index2) + normals->at(index3);
+						normal.normalize();
+						pd.normal = normal;
+
+						try	//	for alpha
+						{
+							gp_Lin2d lin0(gp_Pnt2d(pd.pnt.x(), pd.pnt.y()), gp_Dir2d(pd.normal.y(), -pd.normal.x()));
+							gp_Lin2d lin1(gp_Pnt2d(0, 0), gp_Dir2d(1, 0));
+							IntAna2d_AnaIntersection Inters;
+							Inters.Perform(lin0, lin1);
+							if (Inters.IsDone())
+							{
+								if (Inters.IsDone())
+								{
+									if (!Inters.IdenticalElements() && !Inters.ParallelElements())
+									{
+										pd.alpha_exist = true;
+										pd.pnt_alpha = osg::Vec3(Inters.Point(1).Value().X(), Inters.Point(1).Value().Y(), pd.pnt.z());
+										pd.angle_alpha = abs(lin0.Angle(lin1) * 180.0 / M_PI);
+										if (pd.angle_alpha > 90)
+										{
+											pd.angle_alpha = 180.0f - pd.angle_alpha;
+										}
+									}
+								}
+							}
+						}
+						catch (Standard_Failure e)
+						{
+							//AfxMessageBox(e.GetMessageString());
+						}
+
+						try	//	for beta
+						{
+							gp_Lin2d lin0(gp_Pnt2d(pd.pnt.y(), pd.pnt.z()), gp_Dir2d(pd.normal.z(), -pd.normal.y()));
+							gp_Lin2d lin1(gp_Pnt2d(0, 0), gp_Dir2d(0, 1));
+							IntAna2d_AnaIntersection Inters;
+							Inters.Perform(lin0, lin1);
+							if (Inters.IsDone())
+							{
+								if (Inters.IsDone())
+								{
+									if (!Inters.IdenticalElements() && !Inters.ParallelElements())
+									{
+										pd.beta_exist = true;
+										pd.pnt_beta = osg::Vec3(pd.pnt.x(), Inters.Point(1).Value().X(), Inters.Point(1).Value().Y());
+										pd.angle_beta = abs(lin0.Angle(lin1) * 180.0 / M_PI);
+										if (pd.angle_beta > 90)
+										{
+											pd.angle_beta = 180.0f - pd.angle_beta;
+										}
+									}
+								}
+							}
+						}
+						catch (Standard_Failure e)
+						{
+							//AfxMessageBox(e.GetMessageString());
+						}
+
+						try	//	for gamma
+						{
+							gp_Lin2d lin0(gp_Pnt2d(pd.pnt.x(), pd.pnt.z()), gp_Dir2d(pd.normal.z(), -pd.normal.x()));
+							gp_Lin2d lin1(gp_Pnt2d(0, 0), gp_Dir2d(0, 1));
+							IntAna2d_AnaIntersection Inters;
+							Inters.Perform(lin0, lin1);
+							if (Inters.IsDone())
+							{
+								if (Inters.IsDone())
+								{
+									if (!Inters.IdenticalElements() && !Inters.ParallelElements())
+									{
+										pd.gamma_exist = true;
+										pd.pnt_gamma = osg::Vec3(Inters.Point(1).Value().X(), pd.pnt.y(), Inters.Point(1).Value().Y());
+										pd.angle_gamma = abs(lin0.Angle(lin1) * 180.0 / M_PI);
+										if (pd.angle_gamma > 90)
+										{
+											pd.angle_gamma = 180.0f - pd.angle_gamma;
+										}
+									}
+								}
+							}
+						}
+						catch (Standard_Failure e)
+						{
+							//AfxMessageBox(e.GetMessageString());
+						}
+						return;
+					}
+
+					////	Barycentric Technique
+					//v0 = p3 - p1;
+					//v1 = p2 - p1;
+					//v2 = pnt - p1;
+					//dot00 = v0 * v0;
+					//dot01 = v0 * v1;
+					//dot02 = v0 * v2;
+					//dot11 = v1 * v1;
+					//dot12 = v1 * v2;
+
+					//// Compute barycentric coordinates
+					//invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01);
+					//u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+					//v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+					//// Check if point is in triangle
+					//if ((u >= 0) && (v >= 0) && (u + v < 1))
+					//{
+					//	temp_pt_list.push_back(p1); 
+					//	temp_pt_list.push_back(p2);
+					//	temp_pt_list.push_back(p3);
+					//	//v3 = p3 - p2;
+					//	//osg::Vec3 normal = v1 ^ v3;
+					//	osg::Vec3 normal = normals->at(index1) + normals->at(index2) + normals->at(index3);
+					//	normal.normalize();
+					//	return normal;
+					//}
+				}
+			}
+		}
+	}
+	pd.normal = osg::Vec3(0, 0, 0);
+}
+
+void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 plane_point, int align_axis, vector< PointData >& section_point_data, bool check_point_distance, float point_distance, vector< vector< osg::Vec3 > >& section_line)
+{
+	map< double, osg::Drawable* > loop_geo;
+	osg::Plane water_plane(plane_normal, plane_point);
+	osg::ref_ptr<osgUtil::PlaneIntersector> intersector = new osgUtil::PlaneIntersector(water_plane, osg::Polytope());
+	//intersector->enter(*dynamic_cast<osg::Node*>(m_mtScan.get()));
+	osgUtil::PlaneIntersector::Intersections& intersections = intersector->getIntersections();
+	osgUtil::IntersectionVisitor            _intersectionVisitor;
+	_intersectionVisitor.reset();
+	_intersectionVisitor.setIntersector(intersector.get());
+
+	osgHull_Center.get()->accept(_intersectionVisitor);
+
+	typedef osgUtil::PlaneIntersector::Intersection::Polyline Polyline;
+	if (!intersections.empty())
+	{
+		osgUtil::PlaneIntersector::Intersections::iterator itr;
+		for (itr = intersections.begin();
+			itr != intersections.end();
+			++itr)
+		{
+			osgUtil::PlaneIntersector::Intersection& intersection = *itr;
+
+			if (intersection.matrix.valid())
+			{
+				// osg::notify(osg::NOTICE)<<"  transforming "<<std::endl;
+				// transform points on polyline 
+				for (Polyline::iterator pitr = intersection.polyline.begin();
+					pitr != intersection.polyline.end();
+					++pitr)
+				{
+					*pitr = (*pitr) * (*intersection.matrix);
+				}
+
+				// matrix no longer needed.
+				intersection.matrix = 0;
+			}
+		}
+
+		for (itr = intersections.begin();
+			itr != intersections.end();
+			++itr)
+		{
+			//	more에서 문제가 있어서 중간 포인트 정리하는 과정을 생략한다.
+			//map< CString, int > temp_exist;
+			CString str_exist;
+			vector< osg::Vec3 > temp_loop;
+			osg::Vec3 temp_pt;
+			osgUtil::PlaneIntersector::Intersection& intersection = *itr;
+			Polyline::iterator pitr = intersection.polyline.begin();
+			for (;
+				pitr != intersection.polyline.end();
+				++pitr)
+			{
+				temp_pt = *pitr;
+				//str_exist.Format("%.0lf-%.0lf-%.0lf", temp_pt.x() * 100.0f, temp_pt.y() * 100.0f, temp_pt.z() * 100.0f);
+				//if (temp_exist.find(str_exist) == temp_exist.end())
+				//{
+				temp_loop.push_back(temp_pt);
+				//	temp_exist[str_exist] = 1;
+				//}
+
+			}
+
+			switch (align_axis)
+			{
+			case 0:
+			{
+				if (temp_loop[0].x() > temp_loop[temp_loop.size() - 1].x()) std::reverse(temp_loop.begin(), temp_loop.end());
+				loop_geo[temp_loop[0].x()] = intersection.drawable.get();
+			}
+			break;
+			case 1:
+			{
+				if (temp_loop[0].y() > temp_loop[temp_loop.size() - 1].y()) std::reverse(temp_loop.begin(), temp_loop.end());
+				loop_geo[temp_loop[0].y()] = intersection.drawable.get();
+			}
+			break;
+			case 2:
+			{
+				if (temp_loop[0].z() > temp_loop[temp_loop.size() - 1].z()) std::reverse(temp_loop.begin(), temp_loop.end());
+				loop_geo[temp_loop[0].z()] = intersection.drawable.get();
+			}
+			break;
+			}
+			section_line.push_back(temp_loop);
+		}
+
+		switch (align_axis)
+		{
+		case 0:
+		{
+			sort(section_line.begin(), section_line.end(), sort_curves_x);
+			if (check_point_distance)
+			{
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
+
+						float remain_length = 0;
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
+							float current_length = dir.length();
+							float step_length = remain_length;
+							dir.normalize();
+							while (current_length - step_length < remain_length)
+							{
+								PointData pd;
+								step_length += remain_length;
+								pd.pnt = section_line[j][i - 1] + (dir * step_length);
+								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								{
+									GetNormal(geo, pd);
+									section_point_data.push_back(pd);
+								}
+								remain_length = point_distance;
+							}
+
+							remain_length = point_distance - (current_length - step_length);
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
+						float current_x = floor(section_line[j][0].x() / 1000.0f) * 1000.0f - point_distance;
+						while (current_x < section_line[j][0].x())
+						{
+							current_x += point_distance;
+						}
+
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							while (section_line[j][i].x() >= current_x)
+							{
+								PointData pd;
+								float ratio = (current_x - section_line[j][i - 1].x()) / (section_line[j][i].x() - section_line[j][i - 1].x());
+								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
+								vec *= ratio;
+								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
+								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								{
+									GetNormal(geo, pd);
+									section_point_data.push_back(pd);
+								}
+								current_x += point_distance;
+							}
+						}
+					}
+				}
+			}
+		}
+		break;
+		case 1:
+		{
+			sort(section_line.begin(), section_line.end(), sort_curves_y);
+			if (check_point_distance)
+			{
+				float remain_length = 0;
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].y()];
+
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
+							float current_length = dir.length();
+							float step_length = 0;
+							dir.normalize();
+							//fprintf(stderr, "[%d / %d] cl : %lf, sl : %lf, rl : %lf\n", i, section_line[j].size(), current_length, step_length, remain_length);
+							while (current_length - step_length > remain_length)
+							{
+								PointData pd;
+								step_length += remain_length;
+								//fprintf(stderr, "[%d / %d] add > cl : %lf, sl : %lf, rl : %lf\n", i, section_line[j].size(), current_length, step_length, remain_length);
+								pd.pnt = section_line[j][i - 1] + (dir * step_length);
+								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								{
+									GetNormal(geo, pd);
+									//fprintf(stderr, "[%d / %d] add > /t%lf, /t%lf, /t%lf >> %lf, %lf, %lf\n", i, section_line[j].size(), pd.pnt.x(), pd.pnt.y(), pd.pnt.z(), pd.normal.x(), pd.normal.y(), pd.normal.z());
+									section_point_data.push_back(pd);
+								}
+								remain_length = point_distance;
+							}
+
+							remain_length -= (current_length - step_length);
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].y()];
+						float current_y = floor(section_line[j][0].y() / 1000.0f) * 1000.0f - point_distance;
+						while (current_y < section_line[j][0].y())
+						{
+							current_y += point_distance;
+						}
+
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							while (section_line[j][i].y() >= current_y)
+							{
+								PointData pd;
+								float ratio = (current_y - section_line[j][i - 1].y()) / (section_line[j][i].y() - section_line[j][i - 1].y());
+								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
+								vec *= ratio;
+								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
+								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								{
+									GetNormal(geo, pd);
+									section_point_data.push_back(pd);
+								}
+								current_y += point_distance;
+							}
+						}
+					}
+				}
+			}
+		}
+		break;
+		case 2:
+		{
+			sort(section_line.begin(), section_line.end(), sort_curves_z);
+			if (check_point_distance)
+			{
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].z()];
+
+						float remain_length = 0;
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
+							float current_length = dir.length();
+							float step_length = remain_length;
+							dir.normalize();
+							while (current_length - step_length < remain_length)
+							{
+								PointData pd;
+								step_length += remain_length;
+								pd.pnt = section_line[j][i - 1] + (dir * step_length);
+								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								{
+									GetNormal(geo, pd);
+									section_point_data.push_back(pd);
+								}
+								remain_length = point_distance;
+							}
+
+							remain_length = point_distance - (current_length - step_length);
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].z()];
+						float current_z = floor(section_line[j][0].z() / 1000.0f) * 1000.0f - point_distance;
+						while (current_z < section_line[j][0].z())
+						{
+							current_z += point_distance;
+						}
+
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							while (section_line[j][i].z() >= current_z)
+							{
+								PointData pd;
+								float ratio = (current_z - section_line[j][i - 1].z()) / (section_line[j][i].z() - section_line[j][i - 1].z());
+								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
+								vec *= ratio;
+								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
+								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								{
+									GetNormal(geo, pd);
+									section_point_data.push_back(pd);
+								}
+								current_z += point_distance;
+							}
+						}
+					}
+				}
+			}
+		}
+		break;
+		}
+	}
+	else
+	{
+		osg::notify(osg::NOTICE) << "No intersections found." << std::endl;
+	}
+}
+
+void CIRES2View::AddSectionDataGeo(vector< PointData >& pt_list, osg::Group* group)
+{
+	osg::ref_ptr<osg::Geode> base_plane = new osg::Geode;
+	osg::ref_ptr<osg::Geometry> base_palne_geo = new osg::Geometry;
+	osg::ref_ptr<osg::Vec3Array> v_array = new osg::Vec3Array;
+	for each(auto pd in pt_list)
+	{
+		v_array->push_back(pd.pnt);
+		v_array->push_back(pd.pnt + (pd.normal * 500.0f));
+	}
+	base_palne_geo->setVertexArray(v_array);
+	osg::ref_ptr<osg::Vec4Array> cross_color = new osg::Vec4Array;
+	cross_color->push_back(osg::Vec4(1, 0, 0, 1));
+	base_palne_geo->setColorArray(cross_color.get());
+	base_palne_geo->setColorBinding(osg::Geometry::BIND_OVERALL);
+	osg::DrawArrays* drawArrayPoints = new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, v_array->size()); // Is your line strip 
+	base_palne_geo->addPrimitiveSet(drawArrayPoints);
+	osg::Point* point = new osg::Point;
+	point->setSize(5);
+	base_palne_geo->getOrCreateStateSet()->setAttribute(point);
+	osg::LineWidth* lineWidth = new osg::LineWidth(2);
+	base_palne_geo->getOrCreateStateSet()->setAttributeAndModes(lineWidth, osg::StateAttribute::ON);
+	base_palne_geo->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	base_plane->addDrawable(base_palne_geo);
+
+	group->addChild(base_plane);
+}
+
+void CIRES2View::AddSectionGeo(vector< vector< osg::Vec3 > >& pt_list, osg::Group* group)
+{
+	osg::ref_ptr<osg::Geode> base_plane = new osg::Geode;
+	for (int i = 0; i < pt_list.size(); i++)
+	{
+		osg::ref_ptr<osg::Geometry> base_palne_geo = new osg::Geometry;
+		osg::ref_ptr<osg::Vec3Array> v_array = new osg::Vec3Array;
+		for each(auto pd in pt_list[i])
+		{
+			v_array->push_back(pd);
+		}
+		base_palne_geo->setVertexArray(v_array);
+		osg::ref_ptr<osg::Vec4Array> cross_color = new osg::Vec4Array;
+		cross_color->push_back(osg::Vec4(1, 0, 0, 1));
+		base_palne_geo->setColorArray(cross_color.get());
+		base_palne_geo->setColorBinding(osg::Geometry::BIND_OVERALL);
+		osg::DrawArrays* drawArrayPoints = new osg::DrawArrays(osg::PrimitiveSet::LINE_STRIP, 0, v_array->size()); // Is your line strip 
+		base_palne_geo->addPrimitiveSet(drawArrayPoints);
+		osg::LineWidth* lineWidth = new osg::LineWidth(2);
+		base_palne_geo->getOrCreateStateSet()->setAttributeAndModes(lineWidth, osg::StateAttribute::ON);
+		base_palne_geo->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+		base_plane->addDrawable(base_palne_geo);
+	}
+
+	group->addChild(base_plane);
+}
+
+void CIRES2View::ClearSectionPoints()
+{
+	m_aWaterLine.clear();
+	m_aWaterLinePointData.clear();
+
+	m_aSectionLine.clear();
+	m_aSectionPointDataList.clear();
+
+	PreFrameUpdateData pf(osgWaterlineSection, NULL);
+	m_QRemoveChild.push(pf);
+
+	for each(auto section in osgSectionsData)
+	{
+		PreFrameUpdateData pf(section, NULL);
+		m_QRemoveChild.push(pf);
+	}
+}
 
 void CIRES2View::OnButtonCalculateSectionPoints()
 {
+	UnSetFlipNormal();
+	UnSetCenterPoint();
+
+	if (m_iCurrentStep < 2)
+	{
+		AfxMessageBox("Define Sections first.");
+		return;
+	}
+
+	float points_gap = 500.0f;
+	if (m_pEditPointsGap)
+	{
+		CString temp_string;
+		temp_string = m_pEditPointsGap->GetEditText();
+		points_gap = atof(temp_string) * 1000.0f;
+	}
+
 	if (osgHull->getNumChildren() < 1)
 	{
 		AfxMessageBox("Import HULL data first.");
@@ -1437,108 +2309,98 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 		return;
 	}
 
-	osg::Plane water_plane(osg::Vec3(0, 0, 1), osg::Vec3(m_iHULLPos[0], m_iHULLPos[1], m_iHULLPos[2]));
-
-
-	Standard_Boolean PerformNow = Standard_False;
-	BRepBuilderAPI_Transform bbat(m_shapeHull, m_aiHull->LocalTransformation(), true);
-	TopoDS_Shape new_hull = bbat.Shape();
-	BRepBuilderAPI_Transform bbat1(m_aisWaterLine->Shape(), m_aisWaterLine->LocalTransformation(), true);
-	TopoDS_Shape new_waterline = bbat1.Shape();
-	BRepAlgoAPI_Section section(new_hull, new_waterline, PerformNow);
-	section.ComputePCurveOn1(Standard_True);
-	section.Approximation(TopOpeBRepTool_APPROX);
-	section.Build();
-
-	m_aisWaterLineResult = new AIS_Shape(section.Shape());
-	m_aisWaterLineResult->SetWidth(2.0);
-	m_aisWaterLineResult->SetDisplayMode(0);
-	m_aisWaterLineResult->SetColor(Quantity_NOC_RED);
-	myAISContext->Display(m_aisWaterLineResult, Standard_False);
-
-	RemoveSectionPoints();
-	double edge_deflection = 1.0f;
-	m_aSectionPointDataList.clear();
-
-	if (m_pEditPointsGap == NULL)
+	fopen_s(&fp_4, m_strAppPath + "\\ICE_INPUT.inp", "rt");
+	if (fp_4)
 	{
-		CMainFrame *pFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
-		if (pFrame)
+		COptImportExportBase ifp;
+		ifp.m_fp_input = fp_4;
+		ifp.m_array_strSplit.push_back(' ');
+		if (ifp.ReadOneLineFromFile() > 0)
 		{
-			m_pEditPointsGap = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_POINT_GAP));
+			HULL_TYPE = atoi(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			FG = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 2)
+		{
+			SIGMAP = atof(ifp.m_array_strOutput[0]);
+			SIGMAK = atof(ifp.m_array_strOutput[1]);
+			SSIGMA = atof(ifp.m_array_strOutput[2]);
+		}
+		if (ifp.ReadOneLineFromFile() > 2)
+		{
+			HH = atof(ifp.m_array_strOutput[0]);
+			HK = atof(ifp.m_array_strOutput[1]);
+			SH = atof(ifp.m_array_strOutput[2]);
+		}
+		ifp.ReadOneLineFromFile();
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+			DRAFT = atof(ifp.m_array_strOutput[0]);
+			BREADTH = atof(ifp.m_array_strOutput[1]);
+		}
+		if (ifp.ReadOneLineFromFile() > 2)
+		{
+			VS = atof(ifp.m_array_strOutput[0]);
+			VE = atof(ifp.m_array_strOutput[1]);
+			VI = atof(ifp.m_array_strOutput[2]);
 		}
 	}
 
-	float points_gap = 0.01f;
-	if (m_pEditPointsGap)
+	ClearSectionPoints();
+
+	m_aWaterLine.clear();
+	m_aSectionLine.clear();
+
+	osg::Matrix m;
+	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iWaterLinePos);
+	m.setRotate(q);
+	osg::Vec3 n(0, 0, 1);
+	n = m.preMult(n) - m_iWaterLinePos;
+
+	CalculateSectionWaterline(n, m_iWaterLinePos, 0, m_aWaterLinePointData, false, 500.0f, m_aWaterLine);
+	AddSectionDataGeo(m_aWaterLinePointData, osgWaterlineSection);
+	AddSectionGeo(m_aWaterLine, osgWaterlineSection);
+
+	osg::Vec3 normal;
+	osg::Matrix m1;
+
+	if (m_bBowBreaking)
 	{
-		CString temp_string;
-		temp_string = m_pEditPointsGap->GetEditText();
-		points_gap = atof(temp_string) * 1000.0f;
+		osg::Quat q1(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+		m1.setRotate(q1);
+		osg::Vec3 n(1, 0, 0);
+		normal = m1.preMult(n);
+	}
+	else
+	{
+		osg::Quat q1(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+		m1.setRotate(q1);
+		osg::Vec3 n(0, 1, 0);
+		normal = m1.preMult(n);
 	}
 
-	if (!m_aiHull.IsNull())
+	for (int i = 0; i < osgSectionPosList.size(); i++)
 	{
-		TopExp_Explorer Ex(new_hull, TopAbs_FACE);
-		vector< Handle_Geom_Surface > surface_list;
-		vector< TopAbs_Orientation > surface_orient_list;
-		while (Ex.More())
+		if (osgSectionEnable[i])
 		{
-			TopoDS_Shape* face = new TopoDS_Shape((Ex.Current()));
-			TopoDS_Face f = TopoDS::Face(*face);
-			Handle_Geom_Surface Surface = BRep_Tool::Surface(f);
-			surface_list.push_back(Surface);
-			surface_orient_list.push_back(f.Orientation());
-			Ex.Next();
-		}
-
-		m_aWaterLinePointData.clear();
-		if (!m_aisWaterLineResult.IsNull())
-		{
-			myAISContext->Remove(m_aisWaterLineResult, Standard_False);
-			m_aisWaterLineResult.Nullify();
-		}
-
-		m_aisWaterLineResult = CalculateSectionWaterline(new_hull, surface_list, surface_orient_list, new_waterline, 0, m_aWaterLinePointData);
-		m_aisWaterLineResult->SetWidth(2.0);
-		m_aisWaterLineResult->SetDisplayMode(0);
-		m_aisWaterLineResult->SetColor(Quantity_NOC_RED);
-
-		if (m_aisWaterLineResult)
-			myAISContext->Display(m_aisWaterLineResult, Standard_False);
-
-
-		for (int i = 0; i < m_aSectionList.size(); i++)
-		{
-			vector< Handle(AIS_Shape) > section_list;
-			for (int j = 0; j < m_aSectionList[i].size(); j++)
+			vector< PointData > section_point_data;
+			vector< vector< osg::Vec3 > > section_line;
+			//float m_iSectionRot[3];
+			CalculateSectionWaterline(normal, osgSectionPosList[i], 1, section_point_data, true, points_gap, section_line);
+			if (section_point_data.size() > 0)
 			{
-				vector< PointData > section_point_data;
-				Handle(AIS_Shape) myShape = m_aSectionList[i][j];
-
-				BRepBuilderAPI_Transform bbat2(myShape->Shape(), myShape->LocalTransformation(), true);
-				TopoDS_Shape new_section = bbat2.Shape();
-
-
-				Handle(AIS_Shape) asection = CalculateSection(new_hull, surface_list, surface_orient_list, new_section, 1, section_point_data, points_gap);
-				asection->SetWidth(2.0);
-				asection->SetDisplayMode(0);
-				asection->SetColor(Quantity_NOC_RED);
-
-				if (section_point_data.size() > 0)
-					m_aSectionPointDataList.push_back(section_point_data);
-
-				if (m_bDisplaySectionResult)
-					myAISContext->Display(asection, Standard_False);
-
-				section_list.push_back(asection);
+				m_aSectionLine.push_back(section_line);
+				m_aSectionPointDataList.push_back(section_point_data);
+				AddSectionDataGeo(section_point_data, osgSectionsData[i]);
+				AddSectionGeo(section_line, osgSectionsData[i]);
 			}
-			m_aSectionResultList.push_back(section_list);
 		}
 	}
-	myAISContext->UpdateCurrentViewer();
-
-	CalculateOutputResult();
+	SetCurrentStep(3);
 }
 
 void CIRES2View::CalculateOutputResult(bool refresh)
@@ -1571,22 +2433,22 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 				for (int i = 0; i < m_aWaterLinePointData.size(); i++)
 				{
 					fprintf_s(save_file, "   %lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",
-						m_aWaterLinePointData[i].pnt.X() / 1000.0f,
-						m_aWaterLinePointData[i].pnt.Y() / 1000.0f,
-						m_aWaterLinePointData[i].pnt.Z() / 1000.0f,
-						m_aWaterLinePointData[i].normal.X(),
-						m_aWaterLinePointData[i].normal.Y(),
-						m_aWaterLinePointData[i].normal.Z(),
+						m_aWaterLinePointData[i].pnt.x() / 1000.0f,
+						m_aWaterLinePointData[i].pnt.y() / 1000.0f,
+						m_aWaterLinePointData[i].pnt.z() / 1000.0f,
+						m_aWaterLinePointData[i].normal.x(),
+						m_aWaterLinePointData[i].normal.y(),
+						m_aWaterLinePointData[i].normal.z(),
 						m_aWaterLinePointData[i].angle_alpha,
 						m_aWaterLinePointData[i].angle_beta,
 						m_aWaterLinePointData[i].angle_gamma);
 					if (i == 0)
 					{
-						max_y = m_aWaterLinePointData[i].pnt.Y() / 1000.0f;
+						max_y = m_aWaterLinePointData[i].pnt.y() / 1000.0f;
 					}
 					else
 					{
-						float current_y = m_aWaterLinePointData[i].pnt.Y() / 1000.0f;
+						float current_y = m_aWaterLinePointData[i].pnt.y() / 1000.0f;
 						if (current_y > max_y)
 						{
 							max_y = current_y;
@@ -1617,17 +2479,17 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 				for (int i = 0; i < m_aSectionPointDataList.size(); i++)
 				{
 					fprintf_s(save_file, "\n");
-					fprintf_s(save_file, "   %lf   %d\n", m_aSectionPointDataList[i][0].pnt.X() / 1000.0f, m_aSectionPointDataList[i].size());
+					fprintf_s(save_file, "   %lf   %d\n", m_aSectionPointDataList[i][0].pnt.x() / 1000.0f, m_aSectionPointDataList[i].size());
 					fprintf_s(save_file, "   ");
 					for (int j = 0; j < m_aSectionPointDataList[i].size(); j++)
 					{
-						fprintf_s(save_file, "   %lf", abs(m_aSectionPointDataList[i][j].pnt.Y()) / 1000.0f);
+						fprintf_s(save_file, "   %lf", abs(m_aSectionPointDataList[i][j].pnt.y()) / 1000.0f);
 					}
 					fprintf_s(save_file, "\n");
 					fprintf_s(save_file, "   ");
 					for (int j = 0; j < m_aSectionPointDataList[i].size(); j++)
 					{
-						fprintf_s(save_file, "   %lf", m_aSectionPointDataList[i][j].pnt.Z() / 1000.0f);
+						fprintf_s(save_file, "   %lf", m_aSectionPointDataList[i][j].pnt.z() / 1000.0f);
 					}
 					fprintf_s(save_file, "\n");
 					fprintf_s(save_file, "   ");
@@ -1858,13 +2720,13 @@ void CIRES2View::CAL_COND()
 	FROUD.resize(NV);
 	for (int IVS = 1; IVS <= NV; IVS++)
 	{
-		VSP[IVS] = VS + VI*(IVS - 1);
-		VELOCI[IVS] = VSP[IVS] * 0.5144f;
-		FROUD[IVS] = VELOCI[IVS] / sqrt(GG * BREADTH);
+		VSP[IVS-1] = VS + VI*(IVS - 1);
+		VELOCI[IVS-1] = VSP[IVS-1] * 0.5144f;
+		FROUD[IVS-1] = VELOCI[IVS-1] / sqrt(GG * BREADTH);
 		//fprintf(stderr, "%lf, %lf\n", VSP[IVS], FROUD[IVS]);
 		if (fp_8)
 		{
-			fprintf_s(fp_8, " VSP =   %lf     FROUD =   %lf\n", VSP[IVS], FROUD[IVS]);
+			fprintf_s(fp_8, " VSP =   %lf     FROUD =   %lf\n", VSP[IVS-1], FROUD[IVS-1]);
 		}
 	}
 
@@ -1945,7 +2807,10 @@ void CIRES2View::READ_HULL(int ID)
 		BETA[I - 1] = BETA[I - 1] / (180 / PI3);
 		GAMMA[I - 1] = GAMMA[I - 1] / (180 / PI3);
 	}
-	X_COOR.push_back(2.0f * X_COOR[N_FRAME - 1] - X_COOR[N_FRAME - 2]);
+	if(N_FRAME > 1)
+		X_COOR.push_back(2.0f * X_COOR[N_FRAME - 1] - X_COOR[N_FRAME - 2]);
+	else
+		X_COOR.push_back(2.0f * X_COOR[N_FRAME - 1]);
 	Y.push_back(Y[N_FRAME - 1]);
 	Z_COOR.push_back(Z_COOR[N_FRAME - 1]);
 	X_NORM.push_back(X_NORM[N_FRAME - 1]);
@@ -1959,8 +2824,8 @@ void CIRES2View::READ_HULL(int ID)
 
 	for (int II = 0; II < N_FRAME; II++)
 	{
-		float TEM_I = min(1.0, max(-1., (Z_NORM[II] * Z_NORM[II] + Y_NORM[II] * Y_NORM[II])));
-		float TEM_J = min(1.0, max(-1., (X_NORM[II] * Y_NORM[II])));
+		float TEM_I = min(1.0f, max(-1.0f, (Z_NORM[II] * Z_NORM[II] + Y_NORM[II] * Y_NORM[II])));
+		float TEM_J = min(1.0f, max(-1.0f, (X_NORM[II] * Y_NORM[II])));
 		ALPHA[II] = abs(acos(TEM_I));
 		fprintf_s(fp_6, "   %d   %lf   %lf\n", II + 1, ALPHA[II] * 180 / PI3, BETA[II] * 180 / PI3);
 	}
@@ -2246,10 +3111,10 @@ void CIRES2View::BOUYANCY1()
 			Staion_length_Buoy[KK - 1] = abs(S_N[KK] - S_N[KK - 1]);
 			GIRTH_LENGTH[KK - 1] = 0.;
 			I_FINISH = 5;
-			for (int I3 = 1; I3 >= N_BETA[KK - 1]; I3++)
+			for (int I3 = 1; I3 <= N_BETA[KK - 1]; I3++)
 			{
-				Z_BUOY[KK - 1][I3 - 1] = abs(Z_VAL_ST[KK - 1][I3] - Z_VAL_ST[KK - 1][I3 - 1]);
-				Y_BUOY[KK - 1][I3 - 1] = abs(Y_VAL_ST[KK - 1][I3] - Y_VAL_ST[KK - 1][I3 - 1]);
+				Z_BUOY[KK - 1][I3 - 1] = abs(Z_VAL_ST[KK - 1][I3-1] - Z_VAL_ST[KK - 1][I3 - 1]);
+				Y_BUOY[KK - 1][I3 - 1] = abs(Y_VAL_ST[KK - 1][I3-1] - Y_VAL_ST[KK - 1][I3 - 1]);
 
 				if (Y_BUOY[KK - 1][I3 - 1] == 0)
 				{
@@ -2448,4 +3313,896 @@ void CIRES2View::WRITE_OUT()
 			}
 		}
 	}
+}
+
+void CIRES2View::OnButtonShowHideSections()
+{
+	UnSetFlipNormal();
+	UnSetCenterPoint();
+
+	if (m_bShowSection)
+	{
+		for (int i = 0; i < osgSections.size(); i++)
+		{
+			PreFrameUpdateData pf(mOSG->mRoot, osgSections[i]);
+			m_QRemoveChild.push(pf);
+			//mOSG->mRoot->removeChild(osgSections[i]);
+		}
+		m_bShowSection = false;
+	}
+	else
+	{
+		for (int i = 0; i < osgSections.size(); i++)
+		{
+			PreFrameUpdateData pf(mOSG->mRoot, osgSections[i]);
+			m_QAddChild.push(pf);
+			//mOSG->mRoot->addChild(osgSections[i]);
+		}
+		m_bShowSection = true;
+	}
+}
+
+
+void CIRES2View::OnButtonShowHideSectionCut()
+{
+	UnSetFlipNormal();
+	UnSetCenterPoint();
+
+	if (m_bShowSectionData)
+	{
+		for (int i = 0; i < osgSectionsData.size(); i++)
+		{
+			PreFrameUpdateData pf(mOSG->mRoot, osgSectionsData[i]);
+			m_QRemoveChild.push(pf);
+
+			mOSG->mRoot->removeChild(osgSectionsData[i]);
+		}
+		m_bShowSectionData = false;
+	}
+	else
+	{
+		for (int i = 0; i < osgSectionsData.size(); i++)
+		{
+			PreFrameUpdateData pf(mOSG->mRoot, osgSectionsData[i]);
+			m_QAddChild.push(pf);
+
+			mOSG->mRoot->addChild(osgSectionsData[i]);
+		}
+		m_bShowSectionData = true;
+	}
+}
+
+
+void CIRES2View::OnButtonHideShowWaterlines()
+{
+	UnSetFlipNormal();
+	UnSetCenterPoint();
+
+	if (m_bShowWaterline)
+	{
+		PreFrameUpdateData pf(mOSG->mRoot, osgWaterline);
+		m_QRemoveChild.push(pf);
+		//mOSG->mRoot->removeChild(osgWaterline);
+		m_bShowWaterline = false;
+	}
+	else
+	{
+		PreFrameUpdateData pf(mOSG->mRoot, osgWaterline);
+		m_QAddChild.push(pf);
+		//mOSG->mRoot->addChild(osgWaterline);
+		m_bShowWaterline = true;
+	}
+}
+
+
+void CIRES2View::OnButtonShowHideWaterlineCut()
+{
+	UnSetFlipNormal();
+	UnSetCenterPoint();
+
+	if (m_bShowWaterlineData)
+	{
+		PreFrameUpdateData pf(mOSG->mRoot, osgWaterlineSection);
+		m_QRemoveChild.push(pf);
+		//mOSG->mRoot->removeChild(osgWaterlineSection);
+		m_bShowWaterlineData = false;
+	}
+	else
+	{
+		PreFrameUpdateData pf(mOSG->mRoot, osgWaterlineSection);
+		m_QAddChild.push(pf);
+		//mOSG->mRoot->addChild(osgWaterlineSection);
+		m_bShowWaterlineData = true;
+	}
+}
+
+
+void CIRES2View::OnUpdateButtonShowHideSections(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(m_bShowSection);
+}
+
+
+void CIRES2View::OnUpdateButtonShowHideSectionCut(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(m_bShowSectionData);
+}
+
+
+void CIRES2View::OnUpdateButtonHideShowWaterlines(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(m_bShowWaterline);
+}
+
+
+void CIRES2View::OnUpdateButtonShowHideWaterlineCut(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(m_bShowWaterlineData);
+}
+
+
+void CIRES2View::OnButtonSaveHull()
+{
+	UnSetFlipNormal();
+	UnSetCenterPoint();
+
+	if (osgHull->getNumChildren() > 0)
+	{
+		CFileDialog dlg(TRUE,
+			NULL,
+			NULL,
+			OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+			"I-RES2 Files (*.osgb)|*.osgb|All Files (*.*)|*.*||",
+			NULL);
+
+		if (dlg.DoModal() == IDOK)
+		{
+			CT2CA pszConvertedAnsiString(dlg.GetPathName());
+			std::string strStd(pszConvertedAnsiString);
+			osg::Node* node = osgHull->getChild(0);
+			bool result = osgDB::writeNodeFile(*node, strStd);
+		}
+	}
+}
+
+void CIRES2View::PreFrameUpdate()
+{
+	//mOSG->ResizeToolbar(screen_width, screen_height);
+
+	while (!m_QRemoveChild.empty())
+	{
+		PreFrameUpdateData pd = m_QRemoveChild.front();
+		if (pd.parent_node != NULL)
+		{
+			if (pd.child_node != NULL)
+			{
+				pd.parent_node->removeChild(pd.child_node);
+			}
+			else
+			{
+				int count = pd.parent_node->getNumChildren();
+				if (count > 0)
+				{
+					pd.parent_node->removeChildren(0, count);
+				}
+			}
+		}
+
+		m_QRemoveChild.pop();
+	}
+
+	while (!m_QAddChild.empty())
+	{
+		PreFrameUpdateData pd = m_QAddChild.front();
+		if(pd.parent_node != NULL && pd.child_node != NULL)
+			pd.parent_node->addChild(pd.child_node);
+		m_QAddChild.pop();
+		
+		if (pd.parent_node == osgHull)
+		{
+			//bbHull.expandBy(osgHull->getBound());
+			//bbHullRadius = osgHull->getBound().radius();
+			osg::ComputeBoundsVisitor cbbv;
+			osgHull_Center->accept(cbbv);
+			bbHull = cbbv.getBoundingBox();
+
+			//CString temp_string;
+			//temp_string.Format("%lf, %lf, %lf, %lf, %lf, %lf", bbHull.xMin(), bbHull.xMax(), bbHull.yMin(), bbHull.yMax(), bbHull.zMin(), bbHull.zMax());
+			//AfxMessageBox(temp_string);
+
+			int child_no = osgWaterline->getNumChildren();
+			if (child_no > 0)
+			{
+				osgWaterline->removeChildren(0, child_no);
+			}
+
+			osg::ref_ptr<osg::Geode> base_plane = new osg::Geode;
+
+			osg::ref_ptr<osg::Geometry> base_palne_geo = new osg::Geometry;
+			osg::ref_ptr<osg::Vec3Array> v_array = new osg::Vec3Array;
+			//v_array->push_back(osg::Vec3(-bbHullRadius, -bbHullRadius, 0));
+			//v_array->push_back(osg::Vec3(bbHullRadius, -bbHullRadius, 0));
+			//v_array->push_back(osg::Vec3(bbHullRadius, bbHullRadius, 0));
+
+			//v_array->push_back(osg::Vec3(-bbHullRadius, -bbHullRadius, 0));
+			//v_array->push_back(osg::Vec3(bbHullRadius, bbHullRadius, 0));
+			//v_array->push_back(osg::Vec3(-bbHullRadius, bbHullRadius, 0));
+
+			bbLength[0] = (bbHull.xMax() - bbHull.xMin()) * 0.6f;
+			bbLength[1] = (bbHull.yMax() - bbHull.yMin()) * 0.6f;
+			bbLength[2] = (bbHull.zMax() - bbHull.zMin()) * 0.6f;
+			v_array->push_back(osg::Vec3(-bbLength[0], -bbLength[1], 0));
+			v_array->push_back(osg::Vec3(bbLength[0], -bbLength[1], 0));
+			v_array->push_back(osg::Vec3(bbLength[0], bbLength[1], 0));
+
+			v_array->push_back(osg::Vec3(-bbLength[0], -bbLength[1], 0));
+			v_array->push_back(osg::Vec3(bbLength[0], bbLength[1], 0));
+			v_array->push_back(osg::Vec3(-bbLength[0], bbLength[1], 0));
+
+			m_iWaterLinePos = bbHull.center();
+			//UpdateWaterlinePos();
+
+			osg::Matrix tr;
+			tr.setTrans(bbHull.center());
+			osgWaterline->setMatrix(tr);
+
+			osg::ref_ptr<osg::Vec3Array> n_array = new osg::Vec3Array;
+			n_array->push_back(osg::Vec3(0, 0, 1));
+
+			base_palne_geo->setVertexArray(v_array);
+			osg::ref_ptr<osg::Vec4Array> cross_color = new osg::Vec4Array;
+			cross_color->push_back(osg::Vec4(0.8, 0.8, 1.0, 0.5));
+			base_palne_geo->setColorArray(cross_color.get());
+			base_palne_geo->setColorBinding(osg::Geometry::BIND_OVERALL);
+			base_palne_geo->setNormalArray(n_array.get());
+			base_palne_geo->setNormalBinding(osg::Geometry::BIND_OVERALL);
+
+			osg::ref_ptr<osg::DrawElementsUInt> de = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
+			de->push_back(0);
+			de->push_back(1);
+			de->push_back(2);
+			de->push_back(3);
+			de->push_back(4);
+			de->push_back(5);
+			base_palne_geo->addPrimitiveSet(de.get());
+
+			osg::StateSet *ss = base_palne_geo->getOrCreateStateSet();
+			ss->setMode(GL_BLEND, osg::StateAttribute::ON);
+			osg::ref_ptr<osg::Depth> depth = new osg::Depth;
+			depth->setWriteMask(true);
+			ss->setAttributeAndModes(depth.get(), osg::StateAttribute::ON);
+			ss->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+			ss->setAttributeAndModes(new osg::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA), osg::StateAttribute::ON);
+
+			base_plane->addDrawable(base_palne_geo);
+
+			//PreFrameUpdateData pf(osgWaterline, base_plane);
+			//m_QAddChild.push(pf);
+			osgWaterline->addChild(base_plane);
+
+			UpdateGlobalAxis(max(max(bbHull.xMax(), bbHull.yMax()), bbHull.zMax()));
+
+			SetTimer(1, 10, NULL);
+			//if (m_pEditStart)
+			//{
+			//	CString temp_string;
+			//	temp_string.Format("%g", bbHull.xMin() / 1000.0f);
+			//	m_pEditStart->SetEditText(temp_string);
+
+			//	temp_string.Format("%g", bbHull.xMax() / 1000.0f);
+			//	m_pEditEnd->SetEditText(temp_string);
+
+			//	//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 / 1000.0f);
+			//	m_pEditSpace->SetEditText("0.5");
+			//}
+
+		}
+	}
+}
+
+void CIRES2View::SetCurrentStep(int i_step)
+{
+	mOSG->m_widgetOPTType[m_iCurrentStep]->hide();
+	m_iCurrentStep = i_step;
+	mOSG->m_widgetOPTType[m_iCurrentStep]->show();
+	mOSG->ResizeToolbar(screen_width, screen_height);
+}
+
+void CIRES2View::OnTimer(UINT_PTR nIDEvent)
+{
+	if (nIDEvent == 1)
+	{
+		if (m_pEditStart)
+		{
+			CString temp_string;
+			temp_string.Format("%g", bbHull.xMin() / 1000.0f);
+			m_pEditStart->SetEditText(temp_string);
+
+			temp_string.Format("%g", bbHull.xMax() / 1000.0f);
+			m_pEditEnd->SetEditText(temp_string);
+
+			//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 / 1000.0f);
+			m_pEditSpace->SetEditText("0.5");
+
+			UpdateWaterlinePos();
+			
+			FitWorld();
+		}
+
+		KillTimer(1);
+	}
+
+	CView::OnTimer(nIDEvent);
+}
+
+
+void CIRES2View::OnButtonAnalysis()
+{
+	UnSetFlipNormal();
+	UnSetCenterPoint();
+
+	if (m_iCurrentStep < 3)
+	{
+		AfxMessageBox("Calculate Section Points first.");
+		return;
+	}
+
+	CalculateOutputResult();
+	SetCurrentStep(4);
+}
+
+
+void CIRES2View::OnSize(UINT nType, int cx, int cy)
+{
+	CView::OnSize(nType, cx, cy);
+
+	screen_width = cx;
+	screen_height = cy;
+
+	if (mOSG && mOSG->m_WindowManager)
+	{
+		mOSG->ResizeToolbar(cx, cy);
+	}
+
+	if (m_bInitialize)
+	{
+		m_cameraStatus->setProjectionMatrixAsOrtho2D(0, mOSG->getViewer()->getCamera()->getViewport()->width(), 0, mOSG->getViewer()->getCamera()->getViewport()->height());
+	}
+}
+
+
+void CIRES2View::OnButtonSelectSection()
+{
+	UnSetFlipNormal();
+	UnSetCenterPoint();
+
+	CDlgSelectSections pDlg(this);
+	if (pDlg.DoModal() == IDOK)
+	{
+	}
+}
+
+
+void CIRES2View::OnSpinHullXPos()
+{
+	CString str_x = m_pHULLSpinXPos->GetEditText();
+	str_x.Replace(",", "");
+	m_iHULLPos[0] = atof(str_x);
+	osg::Matrix m;
+	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iHULLPos);
+	m.setRotate(q);
+	osgHull_Center->setMatrix(m);
+}
+
+
+void CIRES2View::OnSpinHullYPos()
+{
+	CString str_x = m_pHULLSpinYPos->GetEditText();
+	str_x.Replace(",", "");
+	m_iHULLPos[1] = atof(str_x);
+	osg::Matrix m;
+	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iHULLPos);
+	m.setRotate(q);
+	osgHull_Center->setMatrix(m);
+}
+
+
+void CIRES2View::OnSpinHullZPos()
+{
+	CString str_x = m_pHULLSpinZPos->GetEditText();
+	str_x.Replace(",", "");
+	m_iHULLPos[2] = atof(str_x);
+	osg::Matrix m;
+	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iHULLPos);
+	m.setRotate(q);
+	osgHull_Center->setMatrix(m);
+}
+
+
+void CIRES2View::OnSpinHullXAngle()
+{
+	CString str_x = m_pHULLSpinXRot->GetEditText();
+	str_x.Replace(",", "");
+	m_iHULLRot[0] = osg::DegreesToRadians(atof(str_x));
+	osg::Matrix m;
+	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iHULLPos);
+	m.setRotate(q);
+	osgHull_Center->setMatrix(m);
+}
+
+
+
+void CIRES2View::OnSpinSectionX()
+{
+	CString str_x = m_pSectionSpinXRot->GetEditText();
+	str_x.Replace(",", "");
+	m_iSectionRot[0] = osg::DegreesToRadians(atof(str_x));
+	osg::Quat q;
+	if(m_bBowBreaking)
+		q = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+	else
+		q = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+
+	for (int i = 0; i < osgSections.size(); i++)
+	{
+		osg::Matrix m;
+		m.setTrans(osgSectionPosList[i]);
+		m.setRotate(q);
+		osgSections[i]->setMatrix(m);
+	}
+}
+
+void CIRES2View::OnSpinSectionY()
+{
+	CString str_x = m_pSectionSpinYRot->GetEditText();
+	str_x.Replace(",", "");
+	m_iSectionRot[1] = osg::DegreesToRadians(atof(str_x));
+	osg::Quat q;
+	if (m_bBowBreaking)
+		q = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+	else
+		q = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+
+	for (int i = 0; i < osgSections.size(); i++)
+	{
+		osg::Matrix m;
+		m.setTrans(osgSectionPosList[i]);
+		m.setRotate(q);
+		osgSections[i]->setMatrix(m);
+	}
+}
+
+void CIRES2View::OnSpinSectionZ()
+{
+	CString str_x = m_pSectionSpinZRot->GetEditText();
+	str_x.Replace(",", "");
+	m_iSectionRot[2] = osg::DegreesToRadians(atof(str_x));
+	osg::Quat q;
+	if (m_bBowBreaking)
+		q = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+	else
+		q = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+
+	for (int i = 0; i < osgSections.size(); i++)
+	{
+		osg::Matrix m;
+		m.setTrans(osgSectionPosList[i]);
+		m.setRotate(q);
+		osgSections[i]->setMatrix(m);
+	}
+}
+
+
+void CIRES2View::OnSpinWaterlineZ()
+{
+	CString str_z = m_pWaterlineSpinZPos->GetEditText();
+	str_z.Replace(",", "");
+	m_iWaterLinePos[2] = atof(str_z);
+
+	osg::Matrix m;
+	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iWaterLinePos);
+	m.setRotate(q);
+	osgWaterline->setMatrix(m);
+}
+
+
+void CIRES2View::OnSpinWaterlineX()
+{
+	CString str_z = m_pWaterlineSpinXRot->GetEditText();
+	str_z.Replace(",", "");
+	m_iWaterLineRot[0] = osg::DegreesToRadians(atof(str_z));
+
+	osg::Matrix m;
+	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iWaterLinePos);
+	m.setRotate(q);
+	osgWaterline->setMatrix(m);
+}
+
+
+void CIRES2View::OnSpinWaterlineY()
+{
+	CString str_z = m_pWaterlineSpinYRot->GetEditText();
+	str_z.Replace(",", "");
+	m_iWaterLineRot[1] = osg::DegreesToRadians(atof(str_z));
+
+	osg::Matrix m;
+	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iWaterLinePos);
+	m.setRotate(q);
+	osgWaterline->setMatrix(m);
+}
+
+
+void CIRES2View::OnSpinHullYAngle()
+{
+	CString str_x = m_pHULLSpinYRot->GetEditText();
+	str_x.Replace(",", "");
+	m_iHULLRot[1] = osg::DegreesToRadians(atof(str_x));
+	osg::Matrix m;
+	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iHULLPos);
+	m.setRotate(q);
+	osgHull_Center->setMatrix(m);
+}
+
+
+void CIRES2View::OnSpinHullZAngle()
+{
+	CString str_x = m_pHULLSpinZRot->GetEditText();
+	str_x.Replace(",", "");
+	m_iHULLRot[2] = osg::DegreesToRadians(atof(str_x));
+	osg::Matrix m;
+	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iHULLPos);
+	m.setRotate(q);
+	osgHull_Center->setMatrix(m);
+}
+
+
+void CIRES2View::OnButtonHullPointToPoint()
+{
+	UnSetFlipNormal();
+
+	PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+	m_QAddChild.push(pf);
+	m_bSetCenterPoint = true;
+}
+
+void CIRES2View::SetSelectionWindow(CPoint start, CPoint end)
+{
+	float y = mOSG->getViewer()->getCamera()->getViewport()->height();
+
+	float center_x = (start.x + end.x) / 2.0f;
+	float center_y = (start.y + end.y) / 2.0f;
+	m_ptSelectionRect->at(0).set(osg::Vec3(start.x, y - start.y, 0));
+	m_ptSelectionRect->at(1).set(osg::Vec3(start.x, y - end.y, 0));
+	m_ptSelectionRect->at(2).set(osg::Vec3(start.x, y - end.y, 0));
+	m_ptSelectionRect->at(3).set(osg::Vec3(end.x, y - end.y, 0));
+	m_ptSelectionRect->at(4).set(osg::Vec3(end.x, y - end.y, 0));
+	m_ptSelectionRect->at(5).set(osg::Vec3(end.x, y - start.y, 0));
+	m_ptSelectionRect->at(6).set(osg::Vec3(end.x, y - start.y, 0));
+	m_ptSelectionRect->at(7).set(osg::Vec3(start.x, y - start.y, 0));
+	m_ptSelectionRect->at(8).set(osg::Vec3(center_x - 10.0f, y - center_y, 0));
+	m_ptSelectionRect->at(9).set(osg::Vec3(center_x + 10.0f, y - center_y, 0));
+	m_ptSelectionRect->at(10).set(osg::Vec3(center_x, y - center_y - 10.0f, 0));
+	m_ptSelectionRect->at(11).set(osg::Vec3(center_x, y - center_y + 10.0f, 0));
+
+	m_ptSelectionRect->dirty();
+	m_geometrySelectionRect->dirtyBound();
+}
+
+void CIRES2View::OnMouseMove(UINT nFlags, CPoint point)
+{
+	if (m_bSelectWindow)
+	{
+		SetSelectionWindow(m_ptStart, point);
+	}
+	else if (m_bSetCenterPoint)
+	{
+		osg::Vec3d hit_pt;
+		osg::Node* p_element = OnSelectPoint(point.x, point.y, hit_pt);
+		if (p_element)
+		{
+			osg::Matrix m;
+			m.setTrans(m_geoVertex);
+			osgSelectPoint->setMatrix(m);
+		}
+	}
+	else if (m_bSetFlipNormal)
+	{
+		osg::Vec3d hit_pt;
+		osg::Node* p_element = OnSelectPoint(point.x, point.y, hit_pt);
+		if (m_SelectedGeo)
+		{
+			osg::Matrix m;
+			m.setTrans(hit_pt);
+			TRACE("%lf, %lf, %lf\n", hit_pt.x(), hit_pt.y(), hit_pt.z());
+			osgSelectPoint->setMatrix(m);
+		}
+	}
+
+	CView::OnMouseMove(nFlags, point);
+}
+
+
+void CIRES2View::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	if (m_bSelectWindow)
+	{
+		::SetCursor(::LoadCursor(NULL, IDC_CROSS));
+		mOSG->SetCruise(false);
+		m_ptStart = point;
+		SetSelectionWindow(m_ptStart, point);
+		PreFrameUpdateData pf(mOSG->mRoot, m_cameraStatus);
+		m_QAddChild.push(pf);
+	}
+	else if (m_bSetCenterPoint)
+	{
+		osg::Vec3 diff = m_geoVertex - m_iHULLPos;
+		m_iHULLPos = m_geoVertex;
+
+		osg::Matrix m;
+		osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+		m.setTrans(m_iHULLPos);
+		m.setRotate(q);
+		osgHull_Center->setMatrix(m);
+
+		m.makeIdentity();
+		m.setTrans(-diff);
+		osgHull->setMatrix(m);
+
+		UpdateHullPos();
+
+		PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+		m_QRemoveChild.push(pf);
+		m_bSetCenterPoint = false;
+	}
+	else if (m_bSetFlipNormal)
+	{
+		if (m_SelectedGeo)
+		{
+			osg::Vec3Array *vertices = (osg::Vec3Array *)m_SelectedGeo->getVertexArray();
+			osg::Vec3Array *normals = (osg::Vec3Array *)m_SelectedGeo->getNormalArray();
+			if (vertices != NULL && normals != NULL)
+			{
+				osg::Geometry::PrimitiveSetList primitiveList = m_SelectedGeo->getPrimitiveSetList();
+
+				int polygonIndex = 0;
+				osg::Vec3 p1, p2, p3;
+				int index1, index2, index3;
+				//double dot00;
+				//double dot01;
+				//double dot02;
+				//double dot11;
+				//double dot12;
+				//double invDenom, u, v;
+				osg::Vec3 v0, v1, v2, v3;
+
+				for (int i = 0; i < normals->size(); i++)
+				{
+					normals->at(i).set(-normals->at(i));
+				}
+				normals->dirty();
+
+				for (int x = 0; x < primitiveList.size(); x++)
+				{
+					osg::PrimitiveSet *set = primitiveList[x];
+					int numberOfIndices = set->getNumIndices();
+					if (set->getMode() == osg::PrimitiveSet::Mode::TRIANGLES)
+					{
+						for (unsigned int y = 0; y < set->getDrawElements()->getNumIndices() /*numberOfIndices*/; y += 3)
+						{
+							index1 = set->getDrawElements()->getElement(y); //set->index(y); 
+							index2 = set->getDrawElements()->getElement(y + 1); //set->index(y); 
+							index3 = set->getDrawElements()->getElement(y + 2); //set->index(y); 
+
+							set->getDrawElements()->setElement(y + 1, index3);
+							set->getDrawElements()->setElement(y + 2, index2);
+						}
+						set->dirty();
+					}
+				}
+				m_SelectedGeo->dirtyBound();
+			}
+		}
+	}
+
+	CView::OnLButtonDown(nFlags, point);
+}
+
+void CIRES2View::UpdateHullPos()
+{
+	if (m_pHULLSpinXPos)
+	{
+		CString temp_string;
+		temp_string.Format("%.2lf", m_iHULLPos[0]);
+		m_pHULLSpinXPos->SetEditText(temp_string);
+		temp_string.Format("%.2lf", m_iHULLPos[1]);
+		m_pHULLSpinYPos->SetEditText(temp_string);
+		temp_string.Format("%.2lf", m_iHULLPos[2]);
+		m_pHULLSpinZPos->SetEditText(temp_string);
+	}
+}
+
+void CIRES2View::UpdateWaterlinePos()
+{
+	if (m_pWaterlineSpinZPos)
+	{
+		CString temp_string;
+		temp_string.Format("%.2lf", m_iWaterLinePos[2]);
+		m_pWaterlineSpinZPos->SetEditText(temp_string);
+	}
+}
+
+void CIRES2View::OnButtonNurbsConversion()
+{
+	UnSetCenterPoint();
+
+	if (m_bSetFlipNormal)
+	{
+		UnSetFlipNormal();
+	}
+	else
+	{
+		PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+		m_QAddChild.push(pf);
+		m_bSetFlipNormal = true;
+	}
+}
+
+
+void CIRES2View::OnUpdateButtonNurbsConversion(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(m_bSetFlipNormal);
+}
+
+void CIRES2View::UnSetCenterPoint()
+{
+	if (m_bSetCenterPoint)
+	{
+		PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+		m_QRemoveChild.push(pf);
+		m_bSetCenterPoint = false;
+	}
+}
+
+void CIRES2View::UnSetFlipNormal()
+{
+	if (m_bSetFlipNormal)
+	{
+		PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+		m_QRemoveChild.push(pf);
+		m_bSetFlipNormal = false;
+	}
+}
+
+void CIRES2View::OnButtonfront()
+{
+	mOSG->OnViewFront();
+}
+
+
+void CIRES2View::OnButtontop()
+{
+	mOSG->OnViewTop();
+}
+
+
+void CIRES2View::OnButtonleft()
+{
+	mOSG->OnViewLeft();
+}
+
+
+void CIRES2View::OnButtonback()
+{
+	mOSG->OnViewRear();
+}
+
+
+void CIRES2View::OnButtonright()
+{
+	mOSG->OnViewRight();
+}
+
+
+void CIRES2View::OnButtonbottom()
+{
+	mOSG->OnViewBottom();
+}
+
+
+void CIRES2View::OnButtonaxo()
+{
+	mOSG->OnViewIso();
+}
+
+
+void CIRES2View::OnButtonreset()
+{
+	FitWorld();
+	mOSG->OnViewIso();
+}
+
+
+void CIRES2View::OnButtonzoomwin()
+{
+	m_bSelectWindow = true;
+}
+
+
+void CIRES2View::OnButtonzoomall()
+{
+	FitWorld();
+	mOSG->OnViewIso();
+}
+
+
+void CIRES2View::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	if (m_bSelectWindow)
+	{
+		::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+		mOSG->SetCruise(true);
+		PreFrameUpdateData pf(mOSG->mRoot, m_cameraStatus);
+		m_QRemoveChild.push(pf);
+		m_bSelectWindow = false;
+		float dx = abs(m_ptStart.x - point.x);
+		float dy = abs(m_ptStart.y - point.y);
+
+		if (dx > 10 && dy > 10)
+		{
+			float y = mOSG->getViewer()->getCamera()->getViewport()->height();
+			float x = mOSG->getViewer()->getCamera()->getViewport()->width();
+			float hx = x / 2.0f;
+			float hy = y / 2.0f;
+			float dhx = min(m_ptStart.x, point.x) + (dx / 2.0f);
+			float dhy = min(m_ptStart.y, point.y) + (dy / 2.0f);
+			float ratio = max(dx / x, dy / y);
+			float center_dx = dhx - hx;
+			float center_dy = dhy - hy;
+			float distance = mOSG->trackball->getDistance();
+
+			osg::Vec3d hit_pt;
+			osg::Node* node = OnSelectPoint(dhx, dhy, hit_pt);
+			if (node)
+			{
+				osg::Matrixd inv = mOSG->trackball->getInverseMatrix();
+				osg::Vec3d offset = hit_pt * inv;
+
+				float distance_offset = -offset.z() - distance;
+				float new_distance = (distance * ratio) + distance_offset;
+				if (new_distance < 1.0f)
+					new_distance = 1.0f;
+				mOSG->trackball->setCenter(hit_pt);
+				mOSG->trackball->setDistance(new_distance);
+			}
+			else
+			{
+				osg::Matrix rotation_matrix;
+				rotation_matrix.makeRotate(mOSG->trackball->getRotation());
+
+				osg::Vec3d dv(dx, dy, 0);
+				mOSG->trackball->setCenter(mOSG->trackball->getCenter() + (dv * rotation_matrix));
+				mOSG->trackball->setDistance(distance * ratio);
+			}
+		}
+		else
+		{
+			osg::Vec3d hit_pt;
+			osg::Node* node = OnSelectPoint(point.x, point.y, hit_pt);
+			if (node)
+			{
+				mOSG->trackball->setCenter(hit_pt);
+			}
+		}
+	}
+
+	CView::OnLButtonUp(nFlags, point);
 }

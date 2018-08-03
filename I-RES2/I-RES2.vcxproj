@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -22,26 +22,27 @@
     <ProjectGuid>{0E4024EE-CE86-4F7E-9C97-B1B124BD83F3}</ProjectGuid>
     <RootNamespace>IRES2</RootNamespace>
     <Keyword>MFCProj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
@@ -49,7 +50,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
@@ -75,14 +76,16 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\include;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\include;E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\inc;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\win64\vc14\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(OPENSCENEGRAPH340_2013)\include;$(OPENSCENEGRAPH340_2013)\X64\include;$(OPENCASCADE690_2013)\inc;$(OPENCASCADE690_2013)\drv\STEPCAFControl;$(OPENCASCADE690_2013)\drv\IGESCAFControl;$(OPENCASCADE690_2013)\X64;$(OPENSCENEGRAPH340_2013)\3rdParty_x86_x64\x64\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(OPENCASCADE690_2013)\X64\out\lib\Release;$(OPENSCENEGRAPH340_2013)\X64\lib;$(OPENSCENEGRAPH340_2013)\3rdParty_x86_x64\x64\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\include;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\include;E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\inc;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\win64\vc14\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -118,6 +121,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>TKBRep.lib;TKernel.lib;TKG3d.lib;TKGeomBase.lib;TKMath.lib;TKIGES.lib;TKXDEIGES.lib;TKMesh.lib;TKXSBase.lib;OpenThreadsd.lib;osgd.lib;osgGAd.lib;osgDBd.lib;osgFxd.lib;osgTextd.lib;osgManipulatord.lib;osgUtild.lib;osgShadowd.lib;osgViewerd.lib;osgWidgetd.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -172,6 +176,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>TKBRep.lib;TKernel.lib;TKG3d.lib;TKGeomBase.lib;TKMath.lib;TKIGES.lib;TKXDEIGES.lib;TKMesh.lib;TKXSBase.lib;OpenThreads.lib;osg.lib;osgGA.lib;osgDB.lib;osgFx.lib;osgText.lib;osgManipulator.lib;osgUtil.lib;osgShadow.lib;osgViewer.lib;osgWidget.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -187,6 +192,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CDlgSelectSections.h" />
     <ClInclude Include="ClassView.h" />
     <ClInclude Include="FileView.h" />
     <ClInclude Include="I-RES2.h" />
@@ -196,7 +202,6 @@
     <ClInclude Include="MFC_OSG2.h" />
     <ClInclude Include="OptImportExportBase.h" />
     <ClInclude Include="OptMultiTouchTrackballManipulator.h" />
-    <ClInclude Include="OptUtil.h" />
     <ClInclude Include="OutputWnd.h" />
     <ClInclude Include="PropertiesWnd.h" />
     <ClInclude Include="Resource.h" />
@@ -205,6 +210,7 @@
     <ClInclude Include="ViewTree.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CDlgSelectSections.cpp" />
     <ClCompile Include="ClassView.cpp" />
     <ClCompile Include="FileView.cpp" />
     <ClCompile Include="I-RES2.cpp" />
@@ -214,8 +220,6 @@
     <ClCompile Include="MFC_OSG2.cpp" />
     <ClCompile Include="OptImportExportBase.cpp" />
     <ClCompile Include="OptMultiTouchTrackballManipulator.cpp" />
-    <ClCompile Include="OptUtil.cpp" />
-    <ClCompile Include="OptUtil2.cpp" />
     <ClCompile Include="OutputWnd.cpp" />
     <ClCompile Include="PropertiesWnd.cpp" />
     <ClCompile Include="stdafx.cpp">

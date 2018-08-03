@@ -35,7 +35,7 @@
 #include <osgWidget/Label>
 #include <osgWidget/ViewerEventHandlers>
 #include <osgGA/StateSetManipulator>
-class COSSimulatorView;
+class CIRES2View;
 
 
 class cOSG2
@@ -71,10 +71,10 @@ public:
 	osg::ref_ptr<osg::Geometry> m_pBackgroundGeometry;
 	osg::ref_ptr<osg::Vec4Array> m_pBackgroundColor;
 
-	COSSimulatorView* m_pView;
+	CIRES2View* m_pView;
 	osg::ref_ptr<osgGA::OptMultiTouchTrackballManipulator> trackball;
-	void SetView(COSSimulatorView* view);
-	osgWidget::Widget* AddButton(string name, string path);
+	void SetView(CIRES2View* view);
+	osgWidget::Widget* AddButton(string name, string path, int size = 32);
 	osgWidget::Label* AddLabel(string name, string value = "", unsigned int size = 13, bool use_outline = true);
 	void ResizeToolbar(int cx, int cy);
 	bool use_outline;
@@ -92,7 +92,7 @@ public:
 	void MakeToolbar(string name, string image_path);
 	void InsertWidget(osgWidget::Box* box, osgWidget::Widget* widget, int index);
 	//osgWidget::Box* m_widgetObject[5];
-	osgWidget::Box* m_widgetOPTType;
+	osgWidget::Box* m_widgetOPTType[5];
 	osgWidget::Box* m_widgetOPTName;
 	osgWidget::Box* m_widgetSimulation;
 	osgWidget::Box* m_widgetCurrentOperator;

@@ -55,7 +55,7 @@ bool COptImportExportBase::OpenInputFile(CString input_file_path)
 		if(m_fp_input)
 		{
 			m_strInputFilePath = input_file_path;
-			m_iByteCount = ffind.GetLength();
+			m_iByteCount = (long)ffind.GetLength();
 			m_iByteIndex = 0;
 			m_iCurrentLineNo = 0;
 			if(m_bMakeLog)
@@ -135,18 +135,26 @@ int COptImportExportBase::ReadOneLineFromFile()
 		if (m_fp_input)
 		{
 			m_iSplitCount = -1;
-			if (fgets(m_str_line_from_file, 1024, m_fp_input) != NULL)
+			CString get_string;
+			m_strOneLine = "";
+			while (fgets(m_str_line_from_file, 1024, m_fp_input) != NULL)
 			{
-				m_strOneLine = CString(m_str_line_from_file);
+				get_string = CString(m_str_line_from_file);
+				get_string.Replace('\n', '\0');
+				m_strOneLine += get_string;
+				if (get_string.GetLength() < 1023)
+				{
+					break;
+				}
 				//m_strOneLine.Format(_T("%ws"), m_str_line_from_file);
-				m_strOneLine.Replace('\n', '\0');
-				m_array_strOutput.clear();
-				m_iSplitCount = COptUtil::SplitString(m_str_line_from_file, m_array_strSplit, m_array_strOutput);
-				m_iCurrentLineNo++;
-				WriteLog((LPCTSTR)m_str_line_from_file);
+				//m_strOneLine.Replace('\n', '\0');
 
 				//fprintf(stderr, "[%d] %s\n", m_iCurrentLineNo, m_str_line_from_file);
 			}
+			m_array_strOutput.clear();
+			m_iSplitCount = SplitString(m_strOneLine, m_array_strSplit, m_array_strOutput);
+			m_iCurrentLineNo++;
+			WriteLog((LPCTSTR)m_str_line_from_file);
 		}
 	}
 	catch (int execption)
@@ -331,4 +339,137 @@ void COptImportExportBase::ReadLinesUntilString(CString until_string)
 	while( ReadOneLineFromFile() > 0 && m_array_strOutput[0] != until_string)
 	{
 	}
+}
+
+int COptImportExportBase::SplitString(CString& str_input, vector< char >& split_chrs_input, vector< CString >& str_output)
+{
+	str_output.clear();
+	vector< int > split_index_array;
+	int split_count = (int)split_chrs_input.size();
+	int temp_split_index;
+
+	for (int split_index = 0; split_index<split_count; ++split_index)
+	{
+		temp_split_index = str_input.Find(split_chrs_input[split_index]);
+		while (temp_split_index > -1)
+		{
+			split_index_array.push_back(temp_split_index);
+			temp_split_index = str_input.Find(split_chrs_input[split_index], temp_split_index + 1);
+		}
+	}
+
+	sort(split_index_array.begin(), split_index_array.end());
+	split_count = (int)split_index_array.size();
+	temp_split_index = -1;
+	CString temp_split_str;
+	for (int split_index = 0; split_index<split_count; ++split_index)
+	{
+		if (temp_split_index < split_index_array[split_index])
+		{
+			temp_split_str = str_input.Mid(temp_split_index + 1, split_index_array[split_index] - temp_split_index - 1);
+			temp_split_index = split_index_array[split_index];
+			if (temp_split_str != "")
+			{
+				str_output.push_back(temp_split_str);
+			}
+		}
+	}
+
+	if (temp_split_index < str_input.GetLength())
+	{
+		temp_split_str = str_input.Mid(temp_split_index + 1, str_input.GetLength() - 1 - temp_split_index);
+		if (temp_split_str != "")
+		{
+			str_output.push_back(temp_split_str);
+		}
+	}
+
+	return (int)str_output.size();
+}
+
+int COptImportExportBase::SplitString(char* str_input, vector< char >& split_chrs_input, vector< CString >& str_output)
+{
+	str_output.clear();
+	int char_index(0);
+	char temp_string[512];
+	int temp_char_index(0);
+	bool b_splitted(false);
+	int split_count = (int)split_chrs_input.size();
+	while (str_input[char_index] != '\0')
+	{
+		b_splitted = false;
+		for (int split_index = 0; split_index<split_count; ++split_index)
+		{
+			if (split_chrs_input[split_index] == str_input[char_index])
+			{
+				b_splitted = true;
+				if (temp_char_index > 0)
+				{
+					temp_string[temp_char_index] = '\0';
+					CString temp_str_output(temp_string);
+					temp_str_output.Trim();
+					str_output.push_back(temp_str_output);
+				}
+				temp_char_index = 0;
+				char_index++;
+				break;
+			}
+		}
+
+		if (b_splitted == false)
+		{
+			temp_string[temp_char_index++] = str_input[char_index++];
+		}
+	}
+
+	if (temp_char_index > 0)
+	{
+		temp_string[temp_char_index] = '\0';
+		CString temp_str_output(temp_string);
+		temp_str_output.Trim();
+		if (temp_str_output != "")
+		{
+			str_output.push_back(temp_str_output);
+		}
+	}
+	return (int)str_output.size();
+}
+
+int COptImportExportBase::SplitString(string& str_input, vector< char >& split_chrs_input, vector< string >& str_output)
+{
+	str_output.clear();
+	vector< int > split_index_array;
+	CString str_input_cstring;
+	str_input_cstring.Format(TEXT("%s"), str_input.c_str());
+	int split_count = (int)split_chrs_input.size();
+	int temp_split_index;
+
+	for (int split_index = 0; split_index<split_count; ++split_index)
+	{
+		temp_split_index = (int)str_input.find_first_of(split_chrs_input[split_index]);
+		while (temp_split_index != string::npos)
+		{
+			split_index_array.push_back(temp_split_index);
+			temp_split_index = (int)str_input.find_first_of(split_chrs_input[split_index], temp_split_index + 1);
+		}
+	}
+
+	sort(split_index_array.begin(), split_index_array.end());
+	split_count = (int)split_index_array.size();
+	temp_split_index = 0;
+	for (int split_index = 0; split_index<split_count; ++split_index)
+	{
+		if (temp_split_index < split_index_array[split_index])
+		{
+			CT2CA pszConvertedAnsiString(str_input_cstring.Mid(temp_split_index, split_index_array[split_index] - temp_split_index));
+			string temp_split_str(pszConvertedAnsiString);
+			temp_split_index = split_index_array[split_index];
+			if (temp_split_str != "")
+			{
+				str_output.push_back(temp_split_str);
+			}
+		}
+	}
+
+	return (int)str_output.size();
 }

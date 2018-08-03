@@ -118,6 +118,12 @@ BOOL CIRES2App::InitInstance()
 	theApp.GetTooltipManager()->SetTooltipParams(AFX_TOOLTIP_TYPE_ALL,
 		RUNTIME_CLASS(CMFCToolTipCtrl), &ttParams);
 
+	TCHAR path[_MAX_PATH];
+	GetModuleFileName(NULL, path, sizeof path);
+	m_strAppPath = path;
+	int i = m_strAppPath.ReverseFind('\\');//실행 파일 이름을 지우기 위해서 왼쪽에 있는 '/'를 찾는다.
+	m_strAppPath = m_strAppPath.Left(i);
+
 	// 응용 프로그램의 문서 템플릿을 등록합니다.  문서 템플릿은
 	//  문서, 프레임 창 및 뷰 사이의 연결 역할을 합니다.
 	CSingleDocTemplate* pDocTemplate;

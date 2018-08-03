@@ -73,15 +73,25 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\I-RES2.ico"
+
 IDR_IRES2TYPE           ICON                    "res\\I-RES2Doc.ico"
+
 IDI_FILE_VIEW           ICON                    "res\\file_view.ico"
+
 IDI_FILE_VIEW_HC        ICON                    "res\\file_view_hc.ico"
+
 IDI_CLASS_VIEW          ICON                    "res\\class_view.ico"
+
 IDI_CLASS_VIEW_HC       ICON                    "res\\class_view_hc.ico"
+
 IDI_OUTPUT_WND          ICON                    "res\\output_wnd.ico"
+
 IDI_OUTPUT_WND_HC       ICON                    "res\\output_wnd_hc.ico"
+
 IDI_PROPERTIES_WND      ICON                    "res\\properties_wnd.ico"
+
 IDI_PROPERTIES_WND_HC   ICON                    "res\\properties_wnd_hc.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -89,27 +99,49 @@ IDI_PROPERTIES_WND_HC   ICON                    "res\\properties_wnd_hc.ico"
 //
 
 IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+
 IDR_MAINFRAME_256       BITMAP                  "res\\Toolbar256.bmp"
+
 IDB_MAIN                BITMAP                  "res\\main.bmp"
+
 IDB_FILELARGE           BITMAP                  "res\\filelarge.bmp"
+
 IDB_FILESMALL           BITMAP                  "res\\filesmall.bmp"
+
 IDB_WRITELARGE          BITMAP                  "res\\writelarge.bmp"
+
 IDB_WRITESMALL          BITMAP                  "res\\writesmall.bmp"
+
 IDB_BUTTONS             BITMAP                  "res\\buttons.bmp"
+
 IDR_SORT                BITMAP                  "res\\sort.bmp"
+
 IDB_SORT_24             BITMAP                  "res\\sort_hc.bmp"
+
 IDB_FILE_VIEW           BITMAP                  "res\\fileview.bmp"
+
 IDB_FILE_VIEW_24        BITMAP                  "res\\fileview_hc.bmp"
+
 IDB_CLASS_VIEW          BITMAP                  "res\\classview.bmp"
+
 IDB_CLASS_VIEW_24       BITMAP                  "res\\classview_hc.bmp"
+
 IDR_EXPLORER            BITMAP                  "res\\explorer.bmp"
+
 IDB_EXPLORER_24         BITMAP                  "res\\explorer_hc.bmp"
+
 IDR_MENU_IMAGES         BITMAP                  "res\\menuimages.bmp"
+
 IDB_MENU_IMAGES_24      BITMAP                  "res\\menuimages_hc.bmp"
+
 IDR_PROPERTIES          BITMAP                  "res\\properties.bmp"
+
 IDB_PROPERTIES_HC       BITMAP                  "res\\properties_hc.bmp"
+
 IDB_BITMAP1             BITMAP                  "res\\filelarge2.bmp"
+
 IDB_BITMAP2             BITMAP                  "res\\filelarge3.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -317,6 +349,17 @@ BEGIN
     DEFPUSHBUTTON   "확인",IDOK,113,41,50,14,WS_GROUP
 END
 
+IDD_DIALOG_SELECT_SECTIONS DIALOGEX 0, 0, 153, 110
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "Select Sections"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "확인",IDOK,60,96,42,12
+    PUSHBUTTON      "취소",IDCANCEL,108,96,42,12
+    LISTBOX         IDC_LIST1,6,6,138,84,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -372,6 +415,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 55
     END
+
+    IDD_DIALOG_SELECT_SECTIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 146
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 103
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -382,6 +433,17 @@ END
 //
 
 IDR_RIBBON              RT_RIBBON_XML           "res\\ribbon.mfcribbon-ms"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_DIALOG_SELECT_SECTIONS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
 
 
 /////////////////////////////////////////////////////////////////////////////

@@ -63,7 +63,7 @@
     <ClInclude Include="OptImportExportBase.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="OptUtil.h">
+    <ClInclude Include="CDlgSelectSections.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
@@ -107,10 +107,7 @@
     <ClCompile Include="OptImportExportBase.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="OptUtil2.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="OptUtil.cpp">
+    <ClCompile Include="CDlgSelectSections.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

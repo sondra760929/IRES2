@@ -16,6 +16,7 @@
 #include "stdafx.h"
 
 
+CString m_strAppPath;
 bool m_bUseOutline = false;
 bool m_bUseVBO = false;
 bool m_bUseShadow = false;
