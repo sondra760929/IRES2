@@ -192,6 +192,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CDlgProgress.h" />
     <ClInclude Include="CDlgSelectSections.h" />
     <ClInclude Include="ClassView.h" />
     <ClInclude Include="FileView.h" />
@@ -210,6 +211,7 @@
     <ClInclude Include="ViewTree.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CDlgProgress.cpp" />
     <ClCompile Include="CDlgSelectSections.cpp" />
     <ClCompile Include="ClassView.cpp" />
     <ClCompile Include="FileView.cpp" />

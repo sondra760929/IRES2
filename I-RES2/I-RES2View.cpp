@@ -362,6 +362,45 @@ int CIRES2View::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	osgHull_Center = new osg::MatrixTransform();
 	mOSG->mRoot->addChild(osgHull_Center);
 
+
+	osg::Geode* geode = new osg::Geode;
+	geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	osgHull_Center->addChild(geode);
+
+	double pyramidBaseZ = 100.0f;
+	double outerBaseRadius = 50.0f;
+	osg::Vec4 color(1, 1, 0, 1);
+	//	x axis
+	osg::Cone* cone = new osg::Cone(osg::Vec3(950.0f, 0.0f, 0.0f), outerBaseRadius, pyramidBaseZ);
+	osg::Quat rotation;
+	rotation.makeRotate(osg::Vec3(0.0f, 0.0f, 1.0f), osg::Vec3(1, 0, 0));
+	cone->setRotation(rotation);
+	osg::ShapeDrawable* shape = new osg::ShapeDrawable(cone);
+	shape->setColor(color);
+	geode->addDrawable(shape);
+	geode->addDrawable(mOSG->createXAxis(1000.0f, pyramidBaseZ, outerBaseRadius, color));
+
+	//	 y axis
+	cone = new osg::Cone(osg::Vec3(0.0f, 950.0f, 0.0f), outerBaseRadius, pyramidBaseZ);
+	rotation.makeRotate(osg::Vec3(0.0f, 0.0f, 1.0f), osg::Vec3(0, 1, 0));
+	cone->setRotation(rotation);
+	shape = new osg::ShapeDrawable(cone);
+	shape->setColor(color);
+	geode->addDrawable(shape);
+	geode->addDrawable(mOSG->createYAxis(1000.0f, pyramidBaseZ, outerBaseRadius, color));
+
+	//	 z axis
+	cone = new osg::Cone(osg::Vec3(0.0f, 0.0f, 950.0f), outerBaseRadius, pyramidBaseZ);
+	shape = new osg::ShapeDrawable(cone);
+	shape->setColor(color);
+	geode->addDrawable(shape);
+	geode->addDrawable(mOSG->createZAxis(1000.0f, pyramidBaseZ, outerBaseRadius, color));
+
+	geode->addDrawable(mOSG->createAxisLabel("X", osg::Vec3(1000.0f + 100, 0, 0), color));
+	geode->addDrawable(mOSG->createAxisLabel("Y", osg::Vec3(0, 1000.0f + 100, 0), color));
+	geode->addDrawable(mOSG->createAxisLabel("Z", osg::Vec3(0, 0, 1000.0f + 100), color));
+
+
 	osgHull = new osg::MatrixTransform();
 	osgHull_Center->addChild(osgHull);
 
@@ -407,10 +446,8 @@ int CIRES2View::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_cameraStatus->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
 	m_cameraStatus->addChild(m_goedeRectangle);
-	//mOSG->mRoot->addChild(m_cameraStatus);
 
 	//osg::ref_ptr<osg::StateSet> stateset = new osg::StateSet;
-	////osg::Material* material = new osg::Material;
 	//osg::ref_ptr<osg::PolygonMode> polymode = new osg::PolygonMode;
 	//polymode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
 	//stateset->setAttributeAndModes(polymode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
@@ -434,6 +471,9 @@ void CIRES2View::OnDestroy()
 
 	delete mThreadHandle;
 	if (mOSG != 0) delete mOSG;
+
+	m_DlgProgress->DestroyWindow();
+	delete m_DlgProgress;
 }
 
 
@@ -501,6 +541,11 @@ void CIRES2View::OnInitialUpdate()
 		m_pWaterlineSpinYRot->SetEditText("0");
 		m_iWaterLineRot[1] = 0;
 	}
+
+	m_DlgProgress = new CDlgProgress();
+	m_DlgProgress->Create(IDD_DIALOG_PROGRESS);
+
+	OnButtonzoomall();
 }
 
 
@@ -1133,6 +1178,7 @@ void CIRES2View::FindLimits(const Adaptor3d_Curve& aCurve,
 void CIRES2View::FitWorld()
 {
 	mOSG->getViewer()->home();
+	mOSG->OnViewIso();
 }
 
 void CIRES2View::OnRButtonDblClk(UINT nFlags, CPoint point)
@@ -1352,9 +1398,10 @@ void CIRES2View::UpdateGlobalAxis(float length)
 	geode->addDrawable(shape);
 	geode->addDrawable(mOSG->createZAxis(length - pyramidBaseZ, pyramidBaseZ, outerBaseRadius));
 
-	geode->addDrawable(mOSG->createAxisLabel("X", osg::Vec3(length + 10, 0, 0)));
-	geode->addDrawable(mOSG->createAxisLabel("Y", osg::Vec3(0, length + 10, 0)));
-	geode->addDrawable(mOSG->createAxisLabel("Z", osg::Vec3(0, 0, length + 10)));
+	osg::Vec4 color(0, 0, 0, 1);
+	geode->addDrawable(mOSG->createAxisLabel("X", osg::Vec3(length + 10, 0, 0), color));
+	geode->addDrawable(mOSG->createAxisLabel("Y", osg::Vec3(0, length + 10, 0), color));
+	geode->addDrawable(mOSG->createAxisLabel("Z", osg::Vec3(0, 0, length + 10), color));
 
 	int count = osgAxis->getNumChildren();
 	if (count > 0)
@@ -1646,6 +1693,26 @@ void CIRES2View::DefineSections()
 void CIRES2View::OnCheckBowBreaking()
 {
 	m_bBowBreaking = true;
+	if (m_bBowBreaking)
+		osgSectionRotation = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+	else
+		osgSectionRotation = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+
+	osg::Vec3 diff(0, 0, - bbLength[2] * 2.0f);
+	for (int i = 0; i < osgSections.size(); i++)
+	{
+		osg::Matrix m;
+		if (osgSectionEnable[i])
+		{
+			m.setTrans(osgSectionPosList[i]);
+		}
+		else
+		{
+			m.setTrans(osgSectionPosList[i] + diff);
+		}
+		m.setRotate(osgSectionRotation);
+		osgSections[i]->setMatrix(m);
+	}
 }
 
 
@@ -1658,6 +1725,26 @@ void CIRES2View::OnUpdateCheckBowBreaking(CCmdUI *pCmdUI)
 void CIRES2View::OnCheckStern()
 {
 	m_bBowBreaking = false;
+	if (m_bBowBreaking)
+		osgSectionRotation = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+	else
+		osgSectionRotation = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+
+	osg::Vec3 diff(0, 0, -bbLength[2] * 2.0f);
+	for (int i = 0; i < osgSections.size(); i++)
+	{
+		osg::Matrix m;
+		if (osgSectionEnable[i])
+		{
+			m.setTrans(osgSectionPosList[i]);
+		}
+		else
+		{
+			m.setTrans(osgSectionPosList[i] + diff);
+		}
+		m.setRotate(osgSectionRotation);
+		osgSections[i]->setMatrix(m);
+	}
 }
 
 
@@ -1721,6 +1808,7 @@ void CIRES2View::GetNormal(osg::Drawable* geo, PointData& pd)
 		osg::Vec3Array *vertices = (osg::Vec3Array *)geom->getVertexArray();
 		osg::Vec3Array *normals = (osg::Vec3Array *)geom->getNormalArray();
 		osg::Geometry::PrimitiveSetList primitiveList = geom->getPrimitiveSetList();
+		osg::Matrix world(osg::computeLocalToWorld(geo->getParentalNodePaths()[0]));
 
 		int polygonIndex = 0;
 		osg::Vec3 p1, p2, p3;
@@ -1735,6 +1823,8 @@ void CIRES2View::GetNormal(osg::Drawable* geo, PointData& pd)
 
 		for (int x = 0; x <primitiveList.size(); x++)
 		{
+			//fprintf(FileLog, "GetNormal [%d / %d] cl : %lf, sl : %lf, rl : %lf\n", x, primitiveList.size(), pd.pnt.x(), pd.pnt.y(), pd.pnt.z());
+
 			osg::PrimitiveSet *set = primitiveList[x];
 			int numberOfIndices = set->getNumIndices();
 			if (set->getMode() == osg::PrimitiveSet::Mode::TRIANGLES)
@@ -1744,25 +1834,26 @@ void CIRES2View::GetNormal(osg::Drawable* geo, PointData& pd)
 					index1 = set->getDrawElements()->getElement(y); //set->index(y); 
 					if (index1 < vertices->size())
 					{
-						p1 = vertices->at(index1);
+						p1 = vertices->at(index1) * world;
 					}
 					index2 = set->getDrawElements()->getElement(y +1); //set->index(y); 
 					if (index2 < vertices->size())
 					{
-						p2 = vertices->at(index2);
+						p2 = vertices->at(index2) * world;
 					}
 					index3 = set->getDrawElements()->getElement(y +2); //set->index(y); 
 					if (index3 < vertices->size())
 					{
-						p3 = vertices->at(index3);
+						p3 = vertices->at(index3) * world;
 					}
 
 					//	Same Side Technique
-					if (same_side(pd.pnt, p1, p2, p3) && same_side(pd.pnt, p2, p1, p3) && same_side(pd.pnt, p3, p1, p2))
+					bool ss1 = same_side(pd.pnt, p1, p2, p3);
+					bool ss2 = same_side(pd.pnt, p2, p1, p3);
+					bool ss3 = same_side(pd.pnt, p3, p1, p2);
+					//fprintf(FileLog, "GetNormal \t %d, %d, %d >> %d, %d, %d\n", index1, index2, index3, ss1, ss2, ss3);
+					if (ss1 && ss2 && ss3)
 					{
-						//temp_pt_list.push_back(p1);
-						//temp_pt_list.push_back(p2);
-						//temp_pt_list.push_back(p3);
 						v1 = p2 - p1;
 						v3 = p3 - p2;
 						osg::Vec3 normal = v1 ^ v3;
@@ -1855,34 +1946,6 @@ void CIRES2View::GetNormal(osg::Drawable* geo, PointData& pd)
 						}
 						return;
 					}
-
-					////	Barycentric Technique
-					//v0 = p3 - p1;
-					//v1 = p2 - p1;
-					//v2 = pnt - p1;
-					//dot00 = v0 * v0;
-					//dot01 = v0 * v1;
-					//dot02 = v0 * v2;
-					//dot11 = v1 * v1;
-					//dot12 = v1 * v2;
-
-					//// Compute barycentric coordinates
-					//invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01);
-					//u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-					//v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-					//// Check if point is in triangle
-					//if ((u >= 0) && (v >= 0) && (u + v < 1))
-					//{
-					//	temp_pt_list.push_back(p1); 
-					//	temp_pt_list.push_back(p2);
-					//	temp_pt_list.push_back(p3);
-					//	//v3 = p3 - p2;
-					//	//osg::Vec3 normal = v1 ^ v3;
-					//	osg::Vec3 normal = normals->at(index1) + normals->at(index2) + normals->at(index3);
-					//	normal.normalize();
-					//	return normal;
-					//}
 				}
 			}
 		}
@@ -1902,17 +1965,23 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 	_intersectionVisitor.setIntersector(intersector.get());
 
 	osgHull_Center.get()->accept(_intersectionVisitor);
-
+	int prev_count = m_iStatus;
+	int total_count = 0;
+	int current_count = 0;
 	typedef osgUtil::PlaneIntersector::Intersection::Polyline Polyline;
 	if (!intersections.empty())
 	{
+		total_count = intersections.size() * 3;
+
 		osgUtil::PlaneIntersector::Intersections::iterator itr;
 		for (itr = intersections.begin();
 			itr != intersections.end();
 			++itr)
 		{
 			osgUtil::PlaneIntersector::Intersection& intersection = *itr;
-
+			current_count++;
+			m_iStatus = prev_count + (current_count / total_count) * 100;
+			UpdateProgress();
 			if (intersection.matrix.valid())
 			{
 				// osg::notify(osg::NOTICE)<<"  transforming "<<std::endl;
@@ -1933,6 +2002,9 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 			itr != intersections.end();
 			++itr)
 		{
+			current_count++;
+			m_iStatus = prev_count + (current_count / total_count) * 100;
+			UpdateProgress();
 			//	more에서 문제가 있어서 중간 포인트 정리하는 과정을 생략한다.
 			//map< CString, int > temp_exist;
 			CString str_exist;
@@ -1987,6 +2059,9 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 			{
 				for (int j = 0; j < section_line.size(); j++)
 				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
@@ -2020,6 +2095,9 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 			{
 				for (int j = 0; j < section_line.size(); j++)
 				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
@@ -2059,27 +2137,31 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 				float remain_length = 0;
 				for (int j = 0; j < section_line.size(); j++)
 				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].y()];
 
+						//fprintf(FileLog, "lines %d\n", j);
 						for (int i = 1; i < section_line[j].size(); i++)
 						{
 							osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
 							float current_length = dir.length();
 							float step_length = 0;
 							dir.normalize();
-							//fprintf(stderr, "[%d / %d] cl : %lf, sl : %lf, rl : %lf\n", i, section_line[j].size(), current_length, step_length, remain_length);
+							//fprintf(FileLog, "[%d / %d] cl : %lf, sl : %lf, rl : %lf\n", i, section_line[j].size(), current_length, step_length, remain_length);
 							while (current_length - step_length > remain_length)
 							{
 								PointData pd;
 								step_length += remain_length;
-								//fprintf(stderr, "[%d / %d] add > cl : %lf, sl : %lf, rl : %lf\n", i, section_line[j].size(), current_length, step_length, remain_length);
+								//fprintf(FileLog, "add > \tcl : %lf, \tsl : %lf, \trl : %lf ", current_length, step_length, remain_length);
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
 								if (pd.pnt.z() / 1000.0f <= DRAFT)
 								{
 									GetNormal(geo, pd);
-									//fprintf(stderr, "[%d / %d] add > /t%lf, /t%lf, /t%lf >> %lf, %lf, %lf\n", i, section_line[j].size(), pd.pnt.x(), pd.pnt.y(), pd.pnt.z(), pd.normal.x(), pd.normal.y(), pd.normal.z());
+									//fprintf(FileLog, "\tp: %lf, %lf, %lf \tn: %lf, %lf, %lf\n", pd.pnt.x(), pd.pnt.y(), pd.pnt.z(), pd.normal.x(), pd.normal.y(), pd.normal.z());
 									section_point_data.push_back(pd);
 								}
 								remain_length = point_distance;
@@ -2094,6 +2176,9 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 			{
 				for (int j = 0; j < section_line.size(); j++)
 				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].y()];
@@ -2132,6 +2217,9 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 			{
 				for (int j = 0; j < section_line.size(); j++)
 				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].z()];
@@ -2165,6 +2253,9 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 			{
 				for (int j = 0; j < section_line.size(); j++)
 				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].z()];
@@ -2202,6 +2293,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 	{
 		osg::notify(osg::NOTICE) << "No intersections found." << std::endl;
 	}
+	m_iStatus = prev_count + 100;
 }
 
 void CIRES2View::AddSectionDataGeo(vector< PointData >& pt_list, osg::Group* group)
@@ -2354,6 +2446,12 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	m_aWaterLine.clear();
 	m_aSectionLine.clear();
 
+	//fopen_s(&FileLog, "d:\log.txt", "wt");
+	m_iTotal = (osgSectionPosList.size() + 1) * 100;
+	m_iStatus = 0;
+	m_strStatus.Format("Calculate Section Points : Waterline");
+	BeginProgress();
+
 	osg::Matrix m;
 	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
 	m.setTrans(m_iWaterLinePos);
@@ -2385,6 +2483,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 
 	for (int i = 0; i < osgSectionPosList.size(); i++)
 	{
+		m_strStatus.Format("Calculate Section Points : Section [%d / %d]", i+1, osgSectionPosList.size());
 		if (osgSectionEnable[i])
 		{
 			vector< PointData > section_point_data;
@@ -2399,7 +2498,13 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 				AddSectionGeo(section_line, osgSectionsData[i]);
 			}
 		}
+		else
+		{
+			m_iStatus += 100;
+		}
 	}
+	//fclose(FileLog);
+	EndProgress();
 	SetCurrentStep(3);
 }
 
@@ -2599,6 +2704,8 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 	{
 		fclose(fp_15);
 	}
+
+	ShellExecute(NULL, "open", m_strAppPath + "\\ice_result.OUT", NULL, NULL, SW_SHOW);
 }
 
 void CIRES2View::CAL_COND()
@@ -3741,17 +3848,24 @@ void CIRES2View::OnSpinSectionX()
 	CString str_x = m_pSectionSpinXRot->GetEditText();
 	str_x.Replace(",", "");
 	m_iSectionRot[0] = osg::DegreesToRadians(atof(str_x));
-	osg::Quat q;
 	if(m_bBowBreaking)
-		q = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+		osgSectionRotation = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
 	else
-		q = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+		osgSectionRotation = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
 
+	osg::Vec3 diff(0, 0, -bbLength[2] * 2.0f);
 	for (int i = 0; i < osgSections.size(); i++)
 	{
 		osg::Matrix m;
-		m.setTrans(osgSectionPosList[i]);
-		m.setRotate(q);
+		if (osgSectionEnable[i])
+		{
+			m.setTrans(osgSectionPosList[i]);
+		}
+		else
+		{
+			m.setTrans(osgSectionPosList[i] + diff);
+		}
+		m.setRotate(osgSectionRotation);
 		osgSections[i]->setMatrix(m);
 	}
 }
@@ -3761,17 +3875,24 @@ void CIRES2View::OnSpinSectionY()
 	CString str_x = m_pSectionSpinYRot->GetEditText();
 	str_x.Replace(",", "");
 	m_iSectionRot[1] = osg::DegreesToRadians(atof(str_x));
-	osg::Quat q;
 	if (m_bBowBreaking)
-		q = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+		osgSectionRotation = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
 	else
-		q = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+		osgSectionRotation = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
 
+	osg::Vec3 diff(0, 0, -bbLength[2] * 2.0f);
 	for (int i = 0; i < osgSections.size(); i++)
 	{
 		osg::Matrix m;
-		m.setTrans(osgSectionPosList[i]);
-		m.setRotate(q);
+		if (osgSectionEnable[i])
+		{
+			m.setTrans(osgSectionPosList[i]);
+		}
+		else
+		{
+			m.setTrans(osgSectionPosList[i] + diff);
+		}
+		m.setRotate(osgSectionRotation);
 		osgSections[i]->setMatrix(m);
 	}
 }
@@ -3781,17 +3902,24 @@ void CIRES2View::OnSpinSectionZ()
 	CString str_x = m_pSectionSpinZRot->GetEditText();
 	str_x.Replace(",", "");
 	m_iSectionRot[2] = osg::DegreesToRadians(atof(str_x));
-	osg::Quat q;
 	if (m_bBowBreaking)
-		q = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+		osgSectionRotation = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
 	else
-		q = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+		osgSectionRotation = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
 
+	osg::Vec3 diff(0, 0, -bbLength[2] * 2.0f);
 	for (int i = 0; i < osgSections.size(); i++)
 	{
 		osg::Matrix m;
-		m.setTrans(osgSectionPosList[i]);
-		m.setRotate(q);
+		if (osgSectionEnable[i])
+		{
+			m.setTrans(osgSectionPosList[i]);
+		}
+		else
+		{
+			m.setTrans(osgSectionPosList[i] + diff);
+		}
+		m.setRotate(osgSectionRotation);
 		osgSections[i]->setMatrix(m);
 	}
 }
@@ -3944,7 +4072,11 @@ void CIRES2View::OnLButtonDown(UINT nFlags, CPoint point)
 	}
 	else if (m_bSetCenterPoint)
 	{
-		osg::Vec3 diff = m_geoVertex - m_iHULLPos;
+		osg::Matrix current_tr = osgHull_Center->getMatrix();
+		osg::Matrix inv_tr;
+		inv_tr.invert(current_tr);
+		osg::Vec3 diff = inv_tr.preMult(m_geoVertex);
+		//osg::Vec3 diff = m_geoVertex - m_iHULLPos;
 		m_iHULLPos = m_geoVertex;
 
 		osg::Matrix m;
@@ -3954,7 +4086,7 @@ void CIRES2View::OnLButtonDown(UINT nFlags, CPoint point)
 		osgHull_Center->setMatrix(m);
 
 		m.makeIdentity();
-		m.setTrans(-diff);
+		m.setTrans(osgHull->getMatrix().getTrans() - diff);
 		osgHull->setMatrix(m);
 
 		UpdateHullPos();
@@ -4127,7 +4259,6 @@ void CIRES2View::OnButtonaxo()
 void CIRES2View::OnButtonreset()
 {
 	FitWorld();
-	mOSG->OnViewIso();
 }
 
 
@@ -4140,7 +4271,6 @@ void CIRES2View::OnButtonzoomwin()
 void CIRES2View::OnButtonzoomall()
 {
 	FitWorld();
-	mOSG->OnViewIso();
 }
 
 
@@ -4205,4 +4335,46 @@ void CIRES2View::OnLButtonUp(UINT nFlags, CPoint point)
 	}
 
 	CView::OnLButtonUp(nFlags, point);
+}
+
+void CIRES2View::BeginProgress()
+{
+	m_DlgProgress->ShowWindow(SW_SHOW);
+	time(&start_time);
+}
+
+void CIRES2View::EndProgress()
+{
+	m_DlgProgress->ShowWindow(SW_HIDE);
+}
+
+void CIRES2View::UpdateProgress()
+{
+	CString temp_string;
+	int tm_hour;
+	int tm_min;
+	int tm_sec;
+	time(&end_time);
+	double d_diff = difftime(end_time, start_time);
+	tm_hour = d_diff / (60 * 60);
+	d_diff = d_diff - (tm_hour * 60 * 60);
+
+	tm_min = d_diff / 60;
+	d_diff = d_diff - (tm_min * 60);
+
+	tm_sec = d_diff;
+	int percent = 0;
+	if (m_iTotal > 0)
+		percent = m_iStatus * 100 / m_iTotal;
+	temp_string.Format("%s : %d%% [%d / %d] [%d : %d : %d]", m_strStatus, percent, m_iStatus, m_iTotal, tm_hour, tm_min, tm_sec);
+	m_DlgProgress->m_stStatus.SetWindowText(temp_string);
+	m_DlgProgress->m_progressBar.SetPos(percent);
+	m_DlgProgress->RedrawWindow();
+
+	MSG msg;
+	while (::PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE))
+	{
+		::TranslateMessage(&msg);
+		::DispatchMessage(&msg);
+	}
 }

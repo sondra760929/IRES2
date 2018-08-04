@@ -830,7 +830,7 @@ osg::Camera* cOSG2::createHUD()
 	return camera;
 }
 
-osgText::Text* cOSG2::createAxisLabel(const std::string& iLabel, const osg::Vec3& iPosition)
+osgText::Text* cOSG2::createAxisLabel(const std::string& iLabel, const osg::Vec3& iPosition, const osg::Vec4& color)
 {
 	osgText::Text* text = new  osgText::Text;
 	osgText::Font* normal_font = osgText::readFontFile("fonts/arial.ttf");
@@ -840,7 +840,7 @@ osgText::Text* cOSG2::createAxisLabel(const std::string& iLabel, const osg::Vec3
 	text->setCharacterSize(15.0f);
 	text->setFontResolution(20, 20);
 	text->setAutoRotateToScreen(true);
-	text->setColor(osg::Vec4(0, 0, 0, 1));
+	text->setColor(color);
 	text->setCharacterSizeMode(osgText::Text::SCREEN_COORDS);
 	text->setAlignment(osgText::Text::CENTER_CENTER);
 	return text;
@@ -898,24 +898,39 @@ osg::Geometry* cOSG2::createArrow(const osg::Matrixd& iTransform, const osg::Vec
 
 osg::Geometry* cOSG2::createXAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius)
 {
-	osg::Matrixd transform = osg::Matrix::rotate(osg::inDegrees(90.0f), 0.0f, 1.0f, 0.0f);
 	osg::Vec4 color(1.0f, 0.0f, 0.0f, 1.0f);
-	osg::Geometry* geometry = createArrow(transform, color, iHeight, pyramidBaseZ, outerBaseRadius);
-	return geometry;
+	return createXAxis(iHeight, pyramidBaseZ, outerBaseRadius, color);
 }
 
 osg::Geometry* cOSG2::createYAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius)
 {
-	osg::Matrixd transform = osg::Matrix::rotate(osg::inDegrees(-90.0f), 1.0f, 0.0f, 0.0f);
 	osg::Vec4 color(0.0f, 1.0f, 0.0f, 1.0f);
-	osg::Geometry* geometry = createArrow(transform, color, iHeight, pyramidBaseZ, outerBaseRadius);
-	return geometry;
+	return createYAxis(iHeight, pyramidBaseZ, outerBaseRadius, color);
 }
 
 osg::Geometry* cOSG2::createZAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius)
 {
-	osg::Matrixd transform = osg::Matrix::identity();
 	osg::Vec4 color(0.0f, 0.0f, 1.0f, 1.0f);
+	return createZAxis(iHeight, pyramidBaseZ, outerBaseRadius, color);
+}
+
+osg::Geometry* cOSG2::createXAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius, const osg::Vec4& color)
+{
+	osg::Matrixd transform = osg::Matrix::rotate(osg::inDegrees(90.0f), 0.0f, 1.0f, 0.0f);
+	osg::Geometry* geometry = createArrow(transform, color, iHeight, pyramidBaseZ, outerBaseRadius);
+	return geometry;
+}
+
+osg::Geometry* cOSG2::createYAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius, const osg::Vec4& color)
+{
+	osg::Matrixd transform = osg::Matrix::rotate(osg::inDegrees(-90.0f), 1.0f, 0.0f, 0.0f);
+	osg::Geometry* geometry = createArrow(transform, color, iHeight, pyramidBaseZ, outerBaseRadius);
+	return geometry;
+}
+
+osg::Geometry* cOSG2::createZAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius, const osg::Vec4& color)
+{
+	osg::Matrixd transform = osg::Matrix::identity();
 	osg::Geometry* geometry = createArrow(transform, color, iHeight, pyramidBaseZ, outerBaseRadius);
 	return geometry;
 }
@@ -957,9 +972,10 @@ osg::Geode* cOSG2::createAxesGeometry()
 	geode->addDrawable(shape);
 	geode->addDrawable(createZAxis(length, pyramidBaseZ, outerBaseRadius));
 
-	geode->addDrawable(createAxisLabel("X", osg::Vec3(length + 10, 0, 0)));
-	geode->addDrawable(createAxisLabel("Y", osg::Vec3(0, length + 10, 0)));
-	geode->addDrawable(createAxisLabel("Z", osg::Vec3(0, 0, length + 10)));
+	osg::Vec4 color(0, 0, 0, 1);
+	geode->addDrawable(createAxisLabel("X", osg::Vec3(length + 10, 0, 0), color));
+	geode->addDrawable(createAxisLabel("Y", osg::Vec3(0, length + 10, 0), color));
+	geode->addDrawable(createAxisLabel("Z", osg::Vec3(0, 0, length + 10), color));
 
 	return geode;
 }

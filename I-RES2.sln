@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "I-RES2", "I-RES2\I-RES2.vcxproj", "{0E4024EE-CE86-4F7E-9C97-B1B124BD83F3}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SetupIRES", "SetupIRES\SetupIRES.vdproj", "{552377D5-58E7-4039-B2B6-F841EE95E499}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +23,15 @@ Global
 		{0E4024EE-CE86-4F7E-9C97-B1B124BD83F3}.Release|Win32.Build.0 = Release|Win32
 		{0E4024EE-CE86-4F7E-9C97-B1B124BD83F3}.Release|x64.ActiveCfg = Release|x64
 		{0E4024EE-CE86-4F7E-9C97-B1B124BD83F3}.Release|x64.Build.0 = Release|x64
+		{552377D5-58E7-4039-B2B6-F841EE95E499}.Debug|Win32.ActiveCfg = Debug
+		{552377D5-58E7-4039-B2B6-F841EE95E499}.Debug|x64.ActiveCfg = Debug
+		{552377D5-58E7-4039-B2B6-F841EE95E499}.Release|Win32.ActiveCfg = Release
+		{552377D5-58E7-4039-B2B6-F841EE95E499}.Release|x64.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1601B6B8-4AEC-4D2E-8400-108CDFF862CC}
 	EndGlobalSection
 EndGlobal

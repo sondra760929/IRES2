@@ -67,6 +67,7 @@ using namespace std;
 #pragma comment(lib, "winmm")
 #include <mmsystem.h>
 #include <afxwin.h>
+#include <afxwin.h>
 
 #define WM_RETURN_FROM_UI WM_USER+10
 #define WM_OK_FROM_UI WM_USER+11
@@ -79,7 +80,6 @@ using namespace std;
 #define WM_GRD_DELETE_KEY WM_USER + 18
 #define WM_GRD_EDITE_VERIFY WM_USER + 19
 #define WM_GRD_EDITE_FINISH WM_USER + 20
-//#define OCC_VIEW
 
 
 //#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")

@@ -15,6 +15,7 @@
 #pragma once
 #include "I-RES2Doc.h"
 #include "MFC_OSG2.h"
+#include "CDlgProgress.h"
 class PointData
 {
 public:
@@ -90,6 +91,7 @@ public:
 	vector< osg::ref_ptr<osg::MatrixTransform> > osgSectionsData;
 	vector< osg::Vec3 > osgSectionPosList;
 	vector< bool > osgSectionEnable;
+	osg::Quat osgSectionRotation;
 	int m_iCurrentStep;
 	void FitWorld();
 	osg::BoundingBox bbHull;
@@ -133,6 +135,16 @@ public:
 	osg::ref_ptr< osg::Geode > m_goedeRectangle;
 	void SetSelectionWindow(CPoint start, CPoint end);
 	bool m_bInitialize;
+	//FILE* FileLog;
+	bool m_bProgressing;
+	CString m_strStatus;
+	int m_iStatus;
+	int m_iTotal;
+	CDlgProgress* m_DlgProgress;
+	void BeginProgress();
+	void EndProgress();
+	time_t start_time, end_time;
+	void UpdateProgress();
 
 	CMFCRibbonEdit* m_pEditStart;
 	CMFCRibbonEdit* m_pEditEnd;

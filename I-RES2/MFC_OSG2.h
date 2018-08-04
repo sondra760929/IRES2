@@ -62,8 +62,11 @@ public:
 	void setVerticalAxisFixed(bool b_fixed);
 	void SetCruise(bool set_on);
 	osg::Camera* createHUD();
-	osgText::Text* createAxisLabel(const std::string& iLabel, const osg::Vec3& iPosition);
+	osgText::Text* createAxisLabel(const std::string& iLabel, const osg::Vec3& iPosition, const osg::Vec4& color);
 	osg::Geometry* createArrow(const osg::Matrixd& iTransform, const osg::Vec4& iColor, double iHeight, double pyramidBaseZ, double outerBaseRadius);
+	osg::Geometry* createXAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius, const osg::Vec4& color);
+	osg::Geometry* createYAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius, const osg::Vec4& color);
+	osg::Geometry* createZAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius, const osg::Vec4& color);
 	osg::Geometry* createXAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius);
 	osg::Geometry* createYAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius);
 	osg::Geometry* createZAxis(double iHeight, double pyramidBaseZ, double outerBaseRadius);
