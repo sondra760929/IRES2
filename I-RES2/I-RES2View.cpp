@@ -2887,18 +2887,23 @@ void CIRES2View::READ_HULL(int ID)
 		if (ifp.ReadOneLineFromFile() > 0)
 		{
 			N_FRAME = atoi(ifp.m_array_strOutput[0]);
-			while (ifp.ReadOneLineFromFile() > 7)
+			for(int i=0; i<N_FRAME; i++)
 			{
-				X_COOR.push_back(atof(ifp.m_array_strOutput[0]));
-				Y.push_back(atof(ifp.m_array_strOutput[1]));
-				Z_COOR.push_back(atof(ifp.m_array_strOutput[2]));
-				X_NORM.push_back(atof(ifp.m_array_strOutput[3]));
-				Y_NORM.push_back(atof(ifp.m_array_strOutput[4]));
-				Z_NORM.push_back(atof(ifp.m_array_strOutput[5]));
-				ALPHA.push_back(atof(ifp.m_array_strOutput[6]));
-				BETA.push_back(atof(ifp.m_array_strOutput[7]));
-				GAMMA.push_back(atof(ifp.m_array_strOutput[8]));
+				if (ifp.ReadOneLineFromFile() > 7)
+				{
+					X_COOR.push_back(atof(ifp.m_array_strOutput[0]));
+					Y.push_back(atof(ifp.m_array_strOutput[1]));
+					Z_COOR.push_back(atof(ifp.m_array_strOutput[2]));
+					X_NORM.push_back(atof(ifp.m_array_strOutput[3]));
+					Y_NORM.push_back(atof(ifp.m_array_strOutput[4]));
+					Z_NORM.push_back(atof(ifp.m_array_strOutput[5]));
+					ALPHA.push_back(atof(ifp.m_array_strOutput[6]));
+					BETA.push_back(atof(ifp.m_array_strOutput[7]));
+					GAMMA.push_back(atof(ifp.m_array_strOutput[8]));
+				}
 			}
+
+			N_FRAME = X_COOR.size();
 		}
 		ifp.m_fp_input = NULL;
 	}
@@ -3061,7 +3066,7 @@ void CIRES2View::BREAKING1()
 	Sum_Y = 0;
 	Sum_Z = 0;
 	float X_TEM, Y_TEM, Z_TEM;
-	for (int IA = 1; IA <= N_FRAME - 1; IA++)
+	for (int IA = 1; IA <= N_FRAME; IA++)
 	{
 		X_TEM = GAUS(IA, 1);
 		Y_TEM = GAUS(IA, 2);
@@ -3103,7 +3108,7 @@ void CIRES2View::CLEARING1()
 	float B14 = 0.0;
 	float B15 = 0.0;
 
-	for (int IA = 1; IA <= N_FRAME - 1; IA++)
+	for (int IA = 1; IA < N_FRAME; IA++)
 	{
 		float P = 1.0f;
 		if (IA == 1)
@@ -3165,7 +3170,10 @@ void CIRES2View::BOUYANCY1()
 		R_SF.push_back(i6);
 		for (int I6 = 1; I6 <= N_BETA[KK - 1]; I6++)
 		{
-			DEPTH_BUOY[KK - 1][I6 - 1] = (DRAFT - Z_VAL_ST[KK - 1][I6 - 1]) + (Z_VAL_ST[KK - 1][I6 - 1] - Z_VAL_ST[KK - 1][I6 - 1]) / 2.0;
+			if(I6 == N_BETA[KK - 1])
+				DEPTH_BUOY[KK - 1][I6 - 1] = (DRAFT - Z_VAL_ST[KK - 1][I6 - 1]) + (Z_VAL_ST[KK - 1][I6 - 1]) / 2.0;
+			else
+				DEPTH_BUOY[KK - 1][I6 - 1] = (DRAFT - Z_VAL_ST[KK - 1][I6 - 1]) + (Z_VAL_ST[KK - 1][I6 - 1] - Z_VAL_ST[KK - 1][I6]) / 2.0;
 		}
 	}
 
@@ -3220,8 +3228,16 @@ void CIRES2View::BOUYANCY1()
 			I_FINISH = 5;
 			for (int I3 = 1; I3 <= N_BETA[KK - 1]; I3++)
 			{
-				Z_BUOY[KK - 1][I3 - 1] = abs(Z_VAL_ST[KK - 1][I3-1] - Z_VAL_ST[KK - 1][I3 - 1]);
-				Y_BUOY[KK - 1][I3 - 1] = abs(Y_VAL_ST[KK - 1][I3-1] - Y_VAL_ST[KK - 1][I3 - 1]);
+				if (I3 == N_BETA[KK - 1])
+				{
+					Z_BUOY[KK - 1][I3 - 1] = abs(Z_VAL_ST[KK - 1][I3 - 1]);
+					Y_BUOY[KK - 1][I3 - 1] = abs(Y_VAL_ST[KK - 1][I3 - 1]);
+				}
+				else
+				{
+					Z_BUOY[KK - 1][I3 - 1] = abs(Z_VAL_ST[KK - 1][I3] - Z_VAL_ST[KK - 1][I3 - 1]);
+					Y_BUOY[KK - 1][I3 - 1] = abs(Y_VAL_ST[KK - 1][I3] - Y_VAL_ST[KK - 1][I3 - 1]);
+				}
 
 				if (Y_BUOY[KK - 1][I3 - 1] == 0)
 				{
@@ -3646,11 +3662,11 @@ void CIRES2View::PreFrameUpdate()
 			v_array->push_back(osg::Vec3(bbLength[0], bbLength[1], 0));
 			v_array->push_back(osg::Vec3(-bbLength[0], bbLength[1], 0));
 
-			m_iWaterLinePos = bbHull.center();
+			m_iWaterLinePos.set(bbHull.center().x(), bbHull.center().y(), 10000.0f);
 			//UpdateWaterlinePos();
 
 			osg::Matrix tr;
-			tr.setTrans(bbHull.center());
+			tr.setTrans(m_iWaterLinePos);
 			osgWaterline->setMatrix(tr);
 
 			osg::ref_ptr<osg::Vec3Array> n_array = new osg::Vec3Array;
