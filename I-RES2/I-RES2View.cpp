@@ -110,42 +110,44 @@ BEGIN_MESSAGE_MAP(CIRES2View, CView)
 	ON_COMMAND(ID_BUTTONZoomWin, &CIRES2View::OnButtonzoomwin)
 	ON_COMMAND(ID_BUTTONZoomAll, &CIRES2View::OnButtonzoomall)
 	ON_WM_LBUTTONUP()
+	ON_COMMAND(ID_CHECK_DISTANCE_FOR_AXIS, &CIRES2View::OnCheckDistanceForAxis)
+	ON_UPDATE_COMMAND_UI(ID_CHECK_DISTANCE_FOR_AXIS, &CIRES2View::OnUpdateCheckDistanceForAxis)
 END_MESSAGE_MAP()
 
 int N_FRAME;
 int NS_S;
-vector< float > S_N;
-vector< int > N_BETA;
-vector< vector< float > > Y_VAL_ST;
-vector< vector< float > > Z_VAL_ST;
-vector< vector< float > > BETA_ST;
-vector< vector< float > > Sin_Beta;
-vector< vector< float > > SLOPE_Y;
-vector< vector< float > > SLOPE_Z;
-vector< vector< float > > SLOPE;
-vector< vector< float > > SLOPE_BETA_DEG;
-vector< vector< float > > R_SP;
-vector< vector< float > > Z_BUOY;
-vector< vector< float > > Y_BUOY;
-vector< vector< float > > DIST_ICE;
-vector< vector< float > > R_SF;
-vector< vector< float > > R_total;
+float S_N[500] = { 0 };
+int N_BETA[500] = { 0 };
+float Y_VAL_ST[500][500] = { 0 };
+float Z_VAL_ST[500][500] = { 0 };
+float BETA_ST[500][500] = { 0 };
+float Sin_Beta[500][500] = { 0 };
+float SLOPE_Y[500][500] = { 0 };
+float SLOPE_Z[500][500] = { 0 };
+float SLOPE[500][500] = { 0 };
+float SLOPE_BETA_DEG[500][500] = { 0 };
+float R_SP[500][500] = { 0 };
+float Z_BUOY[500][500] = { 0 };
+float Y_BUOY[500][500] = { 0 };
+float DIST_ICE[500][500] = { 0 };
+float R_SF[500][500] = { 0 };
+float R_total[500][500] = { 0 };
 
-vector< int > N_BUOY;
-vector< float > Staion_length_Buoy;
-vector< float > GIRTH_LENGTH;
-vector< float > N_END_GIRTH;
-vector< float > R_BO;
+int N_BUOY[500] = { 0 };
+float Staion_length_Buoy[500] = { 0 };
+float GIRTH_LENGTH[500] = { 0 };
+float N_END_GIRTH[500] = { 0 };
+float R_BO[500] = { 0 };
 
-vector< float > X_COOR;
-vector< float > Y;
-vector< float > Z_COOR;
-vector< float > X_NORM;
-vector< float > Y_NORM;
-vector< float > Z_NORM;
-vector< float > ALPHA;
-vector< float > BETA;
-vector< float > GAMMA;
+float X_COOR[500] = { 0 };
+float Y[500] = { 0 };
+float Z_COOR[500] = { 0 };
+float X_NORM[500] = { 0 };
+float Y_NORM[500] = { 0 };
+float Z_NORM[500] = { 0 };
+float ALPHA[500] = { 0 };
+float BETA[500] = { 0 };
+float GAMMA[500] = { 0 };
 float max_y;
 float PI3;
 int MBR = 1;
@@ -166,18 +168,30 @@ float HH, HK, SH;
 float DRAFT, BREADTH;
 float VS, VE, VI;
 float GG, XK1H1, XK1H2, XK2H1, XK2H2, XK3H1, XK3H2, RHO, RHOL, E_young;
-vector< float > VSP;
-vector< float > VELOCI;
-vector< float > FROUD;
-vector< float > SIGMA;
-vector< float > THCK;
-vector< vector< float > > R_BR;
-vector< vector< float > > R_CL;
-vector< vector< float > > R_CLEAR;
-vector< vector< float > > R_BREAK;
-vector< float > R_BOUYA;
-vector< vector< float > > DEPTH_BUOY;
-vector< float > YH;
+//vector< float > VSP;
+//vector< float > VELOCI;
+//vector< float > FROUD;
+//vector< float > SIGMA;
+//vector< float > THCK;
+//vector< vector< float > > R_BR;
+//vector< vector< float > > R_CL;
+//vector< vector< float > > R_CLEAR;
+//vector< vector< float > > R_BREAK;
+//vector< float > R_BOUYA;
+//vector< vector< float > > DEPTH_BUOY;
+//vector< float > YH;
+float VSP[500] = { 0 };
+float VELOCI[500] = { 0 };
+float FROUD[500] = { 0 };
+float SIGMA[500] = { 0 };
+float THCK[500] = { 0 };
+float R_BR[500][500] = { 0 };
+float R_CL[500][500] = { 0 };
+float R_CLEAR[500][500] = { 0 };
+float R_BREAK[500][500] = { 0 };
+float R_BOUYA[500] = { 0 };
+float DEPTH_BUOY[500][500] = { 0 };
+float YH[500] = { 0 };
 FILE* fp_4 = NULL;
 FILE* fp_5 = NULL;
 FILE* fp_6 = NULL;
@@ -216,6 +230,7 @@ CIRES2View::CIRES2View()
 	, m_bSetFlipNormal(false)
 	, m_bSelectWindow(false)
 	, m_bInitialize(false)
+	, m_bUseDistanceForAxis(false)
 {
 	//m_iHULLPos[0] = 0;
 	//m_iHULLPos[1] = 0;
@@ -1779,12 +1794,12 @@ void CIRES2View::OnEditPointGap()
 
 bool sort_curves_x(vector< osg::Vec3 > i, vector< osg::Vec3 > j)
 {
-	return (i[0].x() < j[0].x());
+	return (i[0].x() > j[0].x());
 }
 
 bool sort_curves_y(vector< osg::Vec3 > i, vector< osg::Vec3 > j)
 {
-	return (i[0].y() < j[0].y());
+	return (i[0].y() > j[0].y());
 }
 
 bool sort_curves_z(vector< osg::Vec3 > i, vector< osg::Vec3 > j)
@@ -2030,13 +2045,13 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 			{
 			case 0:
 			{
-				if (temp_loop[0].x() > temp_loop[temp_loop.size() - 1].x()) std::reverse(temp_loop.begin(), temp_loop.end());
+				if (temp_loop[0].x() < temp_loop[temp_loop.size() - 1].x()) std::reverse(temp_loop.begin(), temp_loop.end());
 				loop_geo[temp_loop[0].x()] = intersection.drawable.get();
 			}
 			break;
 			case 1:
 			{
-				if (temp_loop[0].y() > temp_loop[temp_loop.size() - 1].y()) std::reverse(temp_loop.begin(), temp_loop.end());
+				if (temp_loop[0].y() < temp_loop[temp_loop.size() - 1].y()) std::reverse(temp_loop.begin(), temp_loop.end());
 				loop_geo[temp_loop[0].y()] = intersection.drawable.get();
 			}
 			break;
@@ -2093,6 +2108,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 			}
 			else
 			{
+				//	waterline
 				for (int j = 0; j < section_line.size(); j++)
 				{
 					current_count++;
@@ -2101,15 +2117,15 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
-						float current_x = floor(section_line[j][0].x() / 1000.0f) * 1000.0f - point_distance;
-						while (current_x < section_line[j][0].x())
+						float current_x = floor(section_line[j][0].x() / 1000.0f) * 1000.0f + point_distance;
+						while (current_x > section_line[j][0].x())
 						{
-							current_x += point_distance;
+							current_x -= point_distance;
 						}
 
 						for (int i = 1; i < section_line[j].size(); i++)
 						{
-							while (section_line[j][i].x() >= current_x)
+							while (section_line[j][i].x() <= current_x)
 							{
 								PointData pd;
 								float ratio = (current_x - section_line[j][i - 1].x()) / (section_line[j][i].x() - section_line[j][i - 1].x());
@@ -2121,7 +2137,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 									GetNormal(geo, pd);
 									section_point_data.push_back(pd);
 								}
-								current_x += point_distance;
+								current_x -= point_distance;
 							}
 						}
 					}
@@ -2134,6 +2150,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 			sort(section_line.begin(), section_line.end(), sort_curves_y);
 			if (check_point_distance)
 			{
+				//	sections
 				float remain_length = 0;
 				for (int j = 0; j < section_line.size(); j++)
 				{
@@ -2182,15 +2199,17 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].y()];
-						float current_y = floor(section_line[j][0].y() / 1000.0f) * 1000.0f - point_distance;
-						while (current_y < section_line[j][0].y())
+						int temp_count = section_line[j][0].y() / point_distance;
+						float current_y = (float)(temp_count + 1) * point_distance;
+						//float current_y = floor(section_line[j][0].y() / 100.0f) * 100.0f + point_distance;
+						while (current_y > section_line[j][0].y())
 						{
-							current_y += point_distance;
+							current_y -= point_distance;
 						}
 
 						for (int i = 1; i < section_line[j].size(); i++)
 						{
-							while (section_line[j][i].y() >= current_y)
+							while (section_line[j][i].y() <= current_y)
 							{
 								PointData pd;
 								float ratio = (current_y - section_line[j][i - 1].y()) / (section_line[j][i].y() - section_line[j][i - 1].y());
@@ -2202,7 +2221,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 									GetNormal(geo, pd);
 									section_point_data.push_back(pd);
 								}
-								current_y += point_distance;
+								current_y -= point_distance;
 							}
 						}
 					}
@@ -2489,7 +2508,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 			vector< PointData > section_point_data;
 			vector< vector< osg::Vec3 > > section_line;
 			//float m_iSectionRot[3];
-			CalculateSectionWaterline(normal, osgSectionPosList[i], 1, section_point_data, true, points_gap, section_line);
+			CalculateSectionWaterline(normal, osgSectionPosList[i], 1, section_point_data, !m_bUseDistanceForAxis, points_gap, section_line);
 			if (section_point_data.size() > 0)
 			{
 				m_aSectionLine.push_back(section_line);
@@ -2510,20 +2529,20 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 
 void CIRES2View::CalculateOutputResult(bool refresh)
 {
-	S_N.clear();
-	N_BETA.clear();
-	Y_VAL_ST.clear();
-	Z_VAL_ST.clear();
-	BETA_ST.clear();
-	X_COOR.clear();
-	Y.clear();
-	Z_COOR.clear();
-	X_NORM.clear();
-	Y_NORM.clear();
-	Z_NORM.clear();
-	ALPHA.clear();
-	BETA.clear();
-	GAMMA.clear();
+	//S_N.clear();
+	//N_BETA.clear();
+	//Y_VAL_ST.clear();
+	//Z_VAL_ST.clear();
+	//BETA_ST.clear();
+	//X_COOR.clear();
+	//Y.clear();
+	//Z_COOR.clear();
+	//X_NORM.clear();
+	//Y_NORM.clear();
+	//Z_NORM.clear();
+	//ALPHA.clear();
+	//BETA.clear();
+	//GAMMA.clear();
 
 	if (refresh)
 	{
@@ -2537,7 +2556,7 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 				fprintf_s(save_file, "%d\n", m_aWaterLinePointData.size());
 				for (int i = 0; i < m_aWaterLinePointData.size(); i++)
 				{
-					fprintf_s(save_file, "   %lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",
+					fprintf_s(save_file, "   %.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\n",
 						m_aWaterLinePointData[i].pnt.x() / 1000.0f,
 						m_aWaterLinePointData[i].pnt.y() / 1000.0f,
 						m_aWaterLinePointData[i].pnt.z() / 1000.0f,
@@ -2584,23 +2603,23 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 				for (int i = 0; i < m_aSectionPointDataList.size(); i++)
 				{
 					fprintf_s(save_file, "\n");
-					fprintf_s(save_file, "   %lf   %d\n", m_aSectionPointDataList[i][0].pnt.x() / 1000.0f, m_aSectionPointDataList[i].size());
+					fprintf_s(save_file, "   %.3lf   %d\n", m_aSectionPointDataList[i][0].pnt.x() / 1000.0f, m_aSectionPointDataList[i].size());
 					fprintf_s(save_file, "   ");
 					for (int j = 0; j < m_aSectionPointDataList[i].size(); j++)
 					{
-						fprintf_s(save_file, "   %lf", abs(m_aSectionPointDataList[i][j].pnt.y()) / 1000.0f);
+						fprintf_s(save_file, "   %.3lf", abs(m_aSectionPointDataList[i][j].pnt.y()) / 1000.0f);
 					}
 					fprintf_s(save_file, "\n");
 					fprintf_s(save_file, "   ");
 					for (int j = 0; j < m_aSectionPointDataList[i].size(); j++)
 					{
-						fprintf_s(save_file, "   %lf", m_aSectionPointDataList[i][j].pnt.z() / 1000.0f);
+						fprintf_s(save_file, "   %.3lf", m_aSectionPointDataList[i][j].pnt.z() / 1000.0f);
 					}
 					fprintf_s(save_file, "\n");
 					fprintf_s(save_file, "   ");
 					for (int j = 0; j < m_aSectionPointDataList[i].size(); j++)
 					{
-						fprintf_s(save_file, "   %lf", m_aSectionPointDataList[i][j].angle_beta);
+						fprintf_s(save_file, "   %.3lf", m_aSectionPointDataList[i][j].angle_beta);
 					}
 					fprintf_s(save_file, "\n");
 				}
@@ -2622,53 +2641,68 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 	CAL_COND();
 	READ_HULL(1);
 	SEL_MODE1();
-	R_CLEAR.assign(R_CL.begin(), R_CL.end());
-	R_BREAK.assign(R_BR.begin(), R_BR.end());
-	R_BOUYA.assign(R_BO.begin(), R_BO.end());
-
-	if (HULL_TYPE == 2)
+	for (int IH = 1; IH <= NH; IH++)
 	{
-		R_CL.clear();
-		R_BR.clear();
-		READ_HULL(2);
-		//SEL_MODE2();
-		for (int i = 0; i < R_CLEAR.size(); i++)
+		R_BOUYA[IH] = R_BO[IH];
+		for (int IVS = 1; IVS <= NV; IVS++)
 		{
-			for (int j = 0; j < R_CLEAR[i].size(); j++)
-			{
-				R_CLEAR[i][j] = R_CLEAR[i][j] + R_CL[i][j];
-			}
+			R_CLEAR[IH][IVS] = R_CL[IH][IVS];
 		}
-		for (int i = 0; i < R_BREAK.size(); i++)
+		for (int IS = 1; IS <= NSIGMA; IS++)
 		{
-			for (int j = 0; j < R_BREAK[i].size(); j++)
-			{
-				R_BREAK[i][j] = R_BREAK[i][j] + R_BR[i][j];
-			}
+			R_BREAK[IH][IS] = R_BR[IH][IS];
 		}
 	}
 
-	if (HULL_TYPE == 3)
-	{
-		R_CL.clear();
-		R_BR.clear();
-		READ_HULL(3);
-		//SEL_MODE2();
-		for (int i = 0; i < R_CLEAR.size(); i++)
-		{
-			for (int j = 0; j < R_CLEAR[i].size(); j++)
-			{
-				R_CLEAR[i][j] = R_CLEAR[i][j] + R_CL[i][j];
-			}
-		}
-		for (int i = 0; i < R_BREAK.size(); i++)
-		{
-			for (int j = 0; j < R_BREAK[i].size(); j++)
-			{
-				R_BREAK[i][j] = R_BREAK[i][j] + R_BR[i][j];
-			}
-		}
-	}
+
+
+	//R_CLEAR.assign(R_CL.begin(), R_CL.end());
+	//R_BREAK.assign(R_BR.begin(), R_BR.end());
+	//R_BOUYA.assign(R_BO.begin(), R_BO.end());
+
+	//if (HULL_TYPE == 2)
+	//{
+	//	R_CL.clear();
+	//	R_BR.clear();
+	//	READ_HULL(2);
+	//	//SEL_MODE2();
+	//	for (int i = 0; i < R_CLEAR.size(); i++)
+	//	{
+	//		for (int j = 0; j < R_CLEAR[i].size(); j++)
+	//		{
+	//			R_CLEAR[i][j] = R_CLEAR[i][j] + R_CL[i][j];
+	//		}
+	//	}
+	//	for (int i = 0; i < R_BREAK.size(); i++)
+	//	{
+	//		for (int j = 0; j < R_BREAK[i].size(); j++)
+	//		{
+	//			R_BREAK[i][j] = R_BREAK[i][j] + R_BR[i][j];
+	//		}
+	//	}
+	//}
+
+	//if (HULL_TYPE == 3)
+	//{
+	//	R_CL.clear();
+	//	R_BR.clear();
+	//	READ_HULL(3);
+	//	//SEL_MODE2();
+	//	for (int i = 0; i < R_CLEAR.size(); i++)
+	//	{
+	//		for (int j = 0; j < R_CLEAR[i].size(); j++)
+	//		{
+	//			R_CLEAR[i][j] = R_CLEAR[i][j] + R_CL[i][j];
+	//		}
+	//	}
+	//	for (int i = 0; i < R_BREAK.size(); i++)
+	//	{
+	//		for (int j = 0; j < R_BREAK[i].size(); j++)
+	//		{
+	//			R_BREAK[i][j] = R_BREAK[i][j] + R_BR[i][j];
+	//		}
+	//	}
+	//}
 
 	WRITE_OUT();
 
@@ -2822,31 +2856,31 @@ void CIRES2View::CAL_COND()
 	if (HH == HK) DH = 1.0f;
 	NH = int(DH);
 
-	VSP.resize(NV);
-	VELOCI.resize(NV);
-	FROUD.resize(NV);
+	//VSP.resize(NV + 10);
+	//VELOCI.resize(NV + 10);
+	//FROUD.resize(NV + 10);
 	for (int IVS = 1; IVS <= NV; IVS++)
 	{
-		VSP[IVS-1] = VS + VI*(IVS - 1);
-		VELOCI[IVS-1] = VSP[IVS-1] * 0.5144f;
-		FROUD[IVS-1] = VELOCI[IVS-1] / sqrt(GG * BREADTH);
+		VSP[IVS] = VS + VI*(IVS - 1);
+		VELOCI[IVS] = VSP[IVS] * 0.5144f;
+		FROUD[IVS] = VELOCI[IVS] / sqrt(GG * BREADTH);
 		//fprintf(stderr, "%lf, %lf\n", VSP[IVS], FROUD[IVS]);
 		if (fp_8)
 		{
-			fprintf_s(fp_8, " VSP =   %lf     FROUD =   %lf\n", VSP[IVS-1], FROUD[IVS-1]);
+			fprintf_s(fp_8, " VSP =   %lf     FROUD =   %lf\n", VSP[IVS], FROUD[IVS]);
 		}
 	}
 
-	SIGMA.resize(NSIGMA);
+	//SIGMA.resize(NSIGMA + 10);
 	for (int ISIG = 1; ISIG <= NSIGMA; ISIG++)
 	{
-		SIGMA[ISIG - 1] = SIGMAP + SSIGMA*(ISIG - 1);
+		SIGMA[ISIG] = SIGMAP + SSIGMA*(ISIG - 1);
 	}
 
-	THCK.resize(NH);
+	//THCK.resize(NH + 10);
 	for (int IH = 1; IH <= NH; IH++)
 	{
-		THCK[IH - 1] = HH + SH*(IH - 1);
+		THCK[IH] = HH + SH*(IH - 1);
 	}
 
 
@@ -2887,23 +2921,33 @@ void CIRES2View::READ_HULL(int ID)
 		if (ifp.ReadOneLineFromFile() > 0)
 		{
 			N_FRAME = atoi(ifp.m_array_strOutput[0]);
+			//X_COOR.resize(N_FRAME + 10);
+			//Y.resize(N_FRAME + 10);
+			//Z_COOR.resize(N_FRAME + 10);
+			//X_NORM.resize(N_FRAME + 10);
+			//Y_NORM.resize(N_FRAME + 10);
+			//Z_NORM.resize(N_FRAME + 10);
+			//ALPHA.resize(N_FRAME + 10);
+			//BETA.resize(N_FRAME + 10);
+			//GAMMA.resize(N_FRAME + 10);
+
 			for(int i=0; i<N_FRAME; i++)
 			{
 				if (ifp.ReadOneLineFromFile() > 7)
 				{
-					X_COOR.push_back(atof(ifp.m_array_strOutput[0]));
-					Y.push_back(atof(ifp.m_array_strOutput[1]));
-					Z_COOR.push_back(atof(ifp.m_array_strOutput[2]));
-					X_NORM.push_back(atof(ifp.m_array_strOutput[3]));
-					Y_NORM.push_back(atof(ifp.m_array_strOutput[4]));
-					Z_NORM.push_back(atof(ifp.m_array_strOutput[5]));
-					ALPHA.push_back(atof(ifp.m_array_strOutput[6]));
-					BETA.push_back(atof(ifp.m_array_strOutput[7]));
-					GAMMA.push_back(atof(ifp.m_array_strOutput[8]));
+					X_COOR[i+1] = (atof(ifp.m_array_strOutput[0]));
+					Y[i+1] = (atof(ifp.m_array_strOutput[1]));
+					Z_COOR[i+1] = (atof(ifp.m_array_strOutput[2]));
+					X_NORM[i+1] = (atof(ifp.m_array_strOutput[3]));
+					Y_NORM[i+1] = (atof(ifp.m_array_strOutput[4]));
+					Z_NORM[i+1] = (atof(ifp.m_array_strOutput[5]));
+					ALPHA[i+1] = (atof(ifp.m_array_strOutput[6]));
+					BETA[i+1] = (atof(ifp.m_array_strOutput[7]));
+					GAMMA[i+1] = (atof(ifp.m_array_strOutput[8]));
 				}
 			}
 
-			N_FRAME = X_COOR.size();
+			//N_FRAME = X_COOR.size();
 		}
 		ifp.m_fp_input = NULL;
 	}
@@ -2913,33 +2957,33 @@ void CIRES2View::READ_HULL(int ID)
 	for (int I = 1; I <= N_FRAME; I++)
 	{
 		fprintf_s(fp_6, "%lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf\n",
-			X_COOR[I - 1], Y[I - 1], Z_COOR[I - 1], X_NORM[I - 1], Y_NORM[I - 1], Z_NORM[I - 1], ALPHA[I - 1], BETA[I - 1], GAMMA[I - 1]);
+			X_COOR[I], Y[I], Z_COOR[I], X_NORM[I], Y_NORM[I], Z_NORM[I], ALPHA[I], BETA[I], GAMMA[I]);
 
-		ALPHA[I - 1] = ALPHA[I - 1] / (180 / PI3);
-		BETA[I - 1] = BETA[I - 1] / (180 / PI3);
-		GAMMA[I - 1] = GAMMA[I - 1] / (180 / PI3);
+		ALPHA[I] = ALPHA[I] / (180 / PI3);
+		BETA[I] = BETA[I] / (180 / PI3);
+		GAMMA[I] = GAMMA[I] / (180 / PI3);
 	}
-	if(N_FRAME > 1)
-		X_COOR.push_back(2.0f * X_COOR[N_FRAME - 1] - X_COOR[N_FRAME - 2]);
-	else
-		X_COOR.push_back(2.0f * X_COOR[N_FRAME - 1]);
-	Y.push_back(Y[N_FRAME - 1]);
-	Z_COOR.push_back(Z_COOR[N_FRAME - 1]);
-	X_NORM.push_back(X_NORM[N_FRAME - 1]);
-	Y_NORM.push_back(Y_NORM[N_FRAME - 1]);
-	Z_NORM.push_back(Z_NORM[N_FRAME - 1]);
-	ALPHA.push_back(ALPHA[N_FRAME - 1]);
-	BETA.push_back(BETA[N_FRAME - 1]);
-	GAMMA.push_back(GAMMA[N_FRAME - 1]);
+
+	X_COOR[N_FRAME + 1] = 2.0f * X_COOR[N_FRAME] - X_COOR[N_FRAME - 1];
+	Y[N_FRAME + 1] = Y[N_FRAME];
+	Z_COOR[N_FRAME + 1] = Z_COOR[N_FRAME];
+	X_NORM[N_FRAME + 1] = X_NORM[N_FRAME];
+	Y_NORM[N_FRAME + 1] = Y_NORM[N_FRAME];
+	Z_NORM[N_FRAME + 1] = Z_NORM[N_FRAME];
+	ALPHA[N_FRAME + 1] = ALPHA[N_FRAME];
+	BETA[N_FRAME + 1] = BETA[N_FRAME];
+	GAMMA[N_FRAME + 1] = GAMMA[N_FRAME];
+
 	fclose(fp_5);
 	fp_5 = NULL;
+	vector< float > element(10);
 
-	for (int II = 0; II < N_FRAME; II++)
+	for (int II = 1; II <= N_FRAME; II++)
 	{
 		float TEM_I = min(1.0f, max(-1.0f, (Z_NORM[II] * Z_NORM[II] + Y_NORM[II] * Y_NORM[II])));
 		float TEM_J = min(1.0f, max(-1.0f, (X_NORM[II] * Y_NORM[II])));
 		ALPHA[II] = abs(acos(TEM_I));
-		fprintf_s(fp_6, "   %d   %lf   %lf\n", II + 1, ALPHA[II] * 180 / PI3, BETA[II] * 180 / PI3);
+		fprintf_s(fp_6, "   %d   %lf   %lf\n", II, ALPHA[II] * 180 / PI3, BETA[II] * 180 / PI3);
 	}
 
 	if (ID == 1)
@@ -2954,62 +2998,67 @@ void CIRES2View::READ_HULL(int ID)
 			if (ifp.ReadOneLineFromFile() > 0)
 			{
 				NS_S = atoi(ifp.m_array_strOutput[0]);
-				for (int i = 0; i < NS_S; i++)
+				//vector< float > element(10);
+				//S_N.resize(NS_S + 10);
+				//N_BETA.resize(NS_S + 10);
+				//Y_VAL_ST.resize(NS_S + 10, element);
+				//Z_VAL_ST.resize(NS_S + 10, element);
+				//BETA_ST.resize(NS_S + 10, element);
+				for (int kk = 1; kk <= NS_S; kk++)
 				{
 					ifp.ReadOneLineFromFile();
 					if (ifp.ReadOneLineFromFile() > 1)
 					{
-						S_N.push_back(atof(ifp.m_array_strOutput[0]));
-						N_BETA.push_back(atoi(ifp.m_array_strOutput[1]));
+						S_N[kk] = (atof(ifp.m_array_strOutput[0]));
+						N_BETA[kk] = (atoi(ifp.m_array_strOutput[1]));
 						ifp.ReadOneLineFromFile();
-						vector< float > temp_array;
-						for (int j = 0; j < N_BETA[i]; j++)
+						//Y_VAL_ST[kk].resize(N_BETA[kk] + 10);
+						//Z_VAL_ST[kk].resize(N_BETA[kk] + 10);
+						//BETA_ST[kk].resize(N_BETA[kk] + 10);
+						for (int j = 1; j <= N_BETA[kk]; j++)
 						{
-							temp_array.push_back(atof(ifp.m_array_strOutput[j]));
+							Y_VAL_ST[kk][j] = (atof(ifp.m_array_strOutput[j-1]));
 						}
-						Y_VAL_ST.push_back(temp_array);
-						temp_array.clear();
+
 						ifp.ReadOneLineFromFile();
-						for (int j = 0; j < N_BETA[i]; j++)
+						for (int j = 1; j <= N_BETA[kk]; j++)
 						{
-							temp_array.push_back(atof(ifp.m_array_strOutput[j]));
+							Z_VAL_ST[kk][j] = (atof(ifp.m_array_strOutput[j-1]));
 						}
-						Z_VAL_ST.push_back(temp_array);
-						temp_array.clear();
+
 						ifp.ReadOneLineFromFile();
-						for (int j = 0; j < N_BETA[i]; j++)
+						for (int j = 1; j <= N_BETA[kk]; j++)
 						{
-							temp_array.push_back(atof(ifp.m_array_strOutput[j]));
+							BETA_ST[kk][j] = (atof(ifp.m_array_strOutput[j - 1]));
 						}
-						BETA_ST.push_back(temp_array);
 					}
 				}
 			}
 			ifp.m_fp_input = NULL;
 		}
 
-		Sin_Beta.resize(NS_S);
-		for (int KK = 0; KK < NS_S; KK++)
+		//Sin_Beta.resize(NS_S + 10, element);
+		for (int KK = 1; KK <= NS_S; KK++)
 		{
 			fprintf_s(fp_6, "   %lf,   %d\n", S_N[KK], N_BETA[KK]);
-			for (int I = 0; I < N_BETA[KK]; I++)
+			for (int I = 1; I <= N_BETA[KK]; I++)
 			{
 				fprintf_s(fp_6, "   %lf", Y_VAL_ST[KK][I]);
 			}
 			fprintf_s(fp_6, "\n");
-			for (int I = 0; I < N_BETA[KK]; I++)
+			for (int I = 1; I <= N_BETA[KK]; I++)
 			{
 				fprintf_s(fp_6, "   %lf", Z_VAL_ST[KK][I]);
 			}
 			fprintf_s(fp_6, "\n");
-			for (int I = 0; I < N_BETA[KK]; I++)
+			for (int I = 1; I <= N_BETA[KK]; I++)
 			{
 				fprintf_s(fp_6, "   %lf", BETA_ST[KK][I]);
 			}
 			fprintf_s(fp_6, "\n");
 
-			Sin_Beta[KK].resize(N_BETA[KK]);
-			for (int I = 0; I < N_BETA[KK]; I++)
+			//Sin_Beta[KK].resize(N_BETA[KK] + 10);
+			for (int I = 1; I <= N_BETA[KK]; I++)
 			{
 				Sin_Beta[KK][I] = sin(BETA_ST[KK][I] * PI3 / 180.0);
 			}
@@ -3066,7 +3115,7 @@ void CIRES2View::BREAKING1()
 	Sum_Y = 0;
 	Sum_Z = 0;
 	float X_TEM, Y_TEM, Z_TEM;
-	for (int IA = 1; IA <= N_FRAME; IA++)
+	for (int IA = 1; IA <= N_FRAME-1; IA++)
 	{
 		X_TEM = GAUS(IA, 1);
 		Y_TEM = GAUS(IA, 2);
@@ -3077,28 +3126,29 @@ void CIRES2View::BREAKING1()
 	}
 
 	float Eta_1 = Sum_Z / Sum_X;
-	R_BR.clear();
-	vector< float > sigmas(NSIGMA);
-	R_BR.resize(NH, sigmas);
+	//R_BR.clear();
+	//vector< float > sigmas(NSIGMA + 10);
+	//R_BR.resize(NH + 10, sigmas);
 	for (int I = 1; I <= N_FRAME; I++)
 	{
-		for (int IH = 1; IH <= NH; IH++)
+		for (int IS = 1; IS <= NSIGMA; IS++)
 		{
-			for (int IS = 1; IS <= NSIGMA; IS++)
+			for (int IH = 1; IH <= NH; IH++)
 			{
-				float R_Lamda = pow(((3.0 * RHO * GG) / (E_young * pow(THCK[IH - 1], 3.0))), (1.0 / 4.0));
-				R_BR[IH - 1][IS - 1] = (R_Lamda * SIGMA[IS - 1] * THCK[IH - 1] * THCK[IH - 1] / (1.93 * Eta_1)) * Y[I - 1];
+				float R_Lamda = pow(((3.0 * RHO * GG) / (E_young * pow(THCK[IH], 3.0))), (1.0 / 4.0));
+				R_BR[IH][IS] = (R_Lamda * SIGMA[IS] * THCK[IH] * THCK[IH] / (1.93 * Eta_1)) * Y[I];
 			}
 		}
 	}
 }
 void CIRES2View::CLEARING1()
 {
-	YH.clear();
+	//YH.resize(N_FRAME + 10);
 	for (int I = 1; I <= N_FRAME; I++)
 	{
-		YH.push_back(tan(ALPHA[I - 1]));
+		YH[I] = tan(ALPHA[I]);
 	}
+
 	float B5 = 0.0;
 	float B6 = 0.0;
 	float B5_TEM = 0.0;
@@ -3108,7 +3158,7 @@ void CIRES2View::CLEARING1()
 	float B14 = 0.0;
 	float B15 = 0.0;
 
-	for (int IA = 1; IA < N_FRAME; IA++)
+	for (int IA = 1; IA <= N_FRAME-1; IA++)
 	{
 		float P = 1.0f;
 		if (IA == 1)
@@ -3123,83 +3173,85 @@ void CIRES2View::CLEARING1()
 	}
 	B5 = B5_TEM;
 	B6 = B6_TEM;
-	R_CL.clear();
-	vector< float > sigmas(NV);
-	R_CL.resize(NH, sigmas);
+
+	//vector< float > sigmas(NV + 10);
+	//R_CL.resize(NH + 10, sigmas);
 	for (int IVS = 1; IVS <= NV; IVS++)
 	{
 		for (int IH = 1; IH <= NH; IH++)
 		{
-			B13 = 2.0 * RHOL * GG * THCK[IH - 1] * BREADTH * FROUD[IVS - 1];
+			B13 = 2.0 * RHOL * GG * THCK[IH] * BREADTH * FROUD[IVS];
 			B14 = B13 * XK3H1;
 			B15 = B13 * XK3H2 *FG;
 			float RV = B5 * B14;
 			float RFV = B6 * B15;
-			R_CL[IH - 1][IVS - 1] = RV + RFV;
+			R_CL[IH][IVS] = RV + RFV;
 		}
 	}
 }
 
 void CIRES2View::BOUYANCY1()
 {
-	DEPTH_BUOY.clear();
-	SLOPE_Y.clear();
-	SLOPE_Z.clear();
-	SLOPE.clear();
-	SLOPE_BETA_DEG.clear();
-	Z_BUOY.clear();
-	Y_BUOY.clear();
-	DIST_ICE.clear();
-	R_SP.clear();
-	R_SF.clear();
-	Staion_length_Buoy.resize(NS_S);
-	GIRTH_LENGTH.resize(NS_S);
-	N_END_GIRTH.resize(NS_S);
+	//vector< float > element(10);
+	//DEPTH_BUOY.resize(NS_S + 10, element);
+	//SLOPE_Y.resize(NS_S + 10, element);
+	//SLOPE_Z.resize(NS_S + 10, element);
+	//SLOPE.resize(NS_S + 10, element);
+	//SLOPE_BETA_DEG.resize(NS_S + 10, element);
+	//Z_BUOY.resize(NS_S + 10, element);
+	//Y_BUOY.resize(NS_S + 10, element);
+	//DIST_ICE.resize(NS_S + 10, element);
+	//R_SP.resize(NS_S + 10, element);
+	//R_SF.resize(NS_S + 10, element);
+	//Staion_length_Buoy.resize(NS_S + 10);
+	//GIRTH_LENGTH.resize(NS_S + 10);
+	//N_END_GIRTH.resize(NS_S + 10);
 	for (int KK = 1; KK <= NS_S; KK++)
 	{
-		vector< float > i6(N_BETA[KK - 1]);
-		DEPTH_BUOY.push_back(i6);
-		SLOPE_Y.push_back(i6);
-		SLOPE_Z.push_back(i6);
-		SLOPE.push_back(i6);
-		SLOPE_BETA_DEG.push_back(i6);
-		Z_BUOY.push_back(i6);
-		Y_BUOY.push_back(i6);
-		DIST_ICE.push_back(i6);
-		R_SP.push_back(i6);
-		R_SF.push_back(i6);
-		for (int I6 = 1; I6 <= N_BETA[KK - 1]; I6++)
+		//DEPTH_BUOY[KK].resize(N_BETA[KK] + 10);
+
+		//SLOPE_Y[KK].resize(N_BETA[KK] + 10);
+		//SLOPE_Z[KK].resize(N_BETA[KK] + 10);
+		//SLOPE[KK].resize(N_BETA[KK] + 10);
+		//SLOPE_BETA_DEG[KK].resize(N_BETA[KK] + 10);
+		//Z_BUOY[KK].resize(N_BETA[KK] + 10);
+		//Y_BUOY[KK].resize(N_BETA[KK] + 10);
+		//DIST_ICE[KK].resize(N_BETA[KK] + 10);
+		//R_SP[KK].resize(N_BETA[KK] + 10);
+		//R_SF[KK].resize(N_BETA[KK] + 10);
+
+		for (int I6 = 1; I6 <= N_BETA[KK]; I6++)
 		{
-			if(I6 == N_BETA[KK - 1])
-				DEPTH_BUOY[KK - 1][I6 - 1] = (DRAFT - Z_VAL_ST[KK - 1][I6 - 1]) + (Z_VAL_ST[KK - 1][I6 - 1]) / 2.0;
-			else
-				DEPTH_BUOY[KK - 1][I6 - 1] = (DRAFT - Z_VAL_ST[KK - 1][I6 - 1]) + (Z_VAL_ST[KK - 1][I6 - 1] - Z_VAL_ST[KK - 1][I6]) / 2.0;
+			//if(I6 == N_BETA[KK - 1])
+			//	DEPTH_BUOY[KK - 1][I6 - 1] = (DRAFT - Z_VAL_ST[KK - 1][I6 - 1]) + (Z_VAL_ST[KK - 1][I6 - 1]) / 2.0;
+			//else
+			DEPTH_BUOY[KK][I6] = (DRAFT - Z_VAL_ST[KK][I6]) + (Z_VAL_ST[KK][I6] - Z_VAL_ST[KK][I6 + 1]) / 2.0;
 		}
 	}
 
 	int NO_BUOY;
-	N_BUOY.resize(NS_S);
+	//N_BUOY.resize(NS_S + 10);
 	for (int KK = 1; KK <= NS_S; KK++)
 	{
 		NO_BUOY = 6;
-		for (int I5 = 2; I5 <= N_BETA[KK - 1]; I5++)
+		for (int I5 = 2; I5 <= N_BETA[KK]; I5++)
 		{
-			SLOPE_Y[KK - 1][I5 - 2] = abs(abs(Y_VAL_ST[KK - 1][I5 - 1]) - abs(Y_VAL_ST[KK - 1][I5 - 2]));
-			SLOPE_Z[KK - 1][I5 - 2] = abs(Z_VAL_ST[KK - 1][I5 - 1] - Z_VAL_ST[KK - 1][I5 - 2]);
-			if (SLOPE_Z[KK - 1][I5 - 2] == 0.0f)
+			SLOPE_Y[KK][I5 - 1] = abs(abs(Y_VAL_ST[KK][I5]) - abs(Y_VAL_ST[KK][I5 - 1]));
+			SLOPE_Z[KK][I5 - 1] = abs(Z_VAL_ST[KK][I5] - Z_VAL_ST[KK][I5 - 1]);
+			//if (SLOPE_Z[KK][I5 - 1] == 0.0f)
+			//{
+			//	SLOPE[KK - 1][I5 - 2] = 0.0f;
+			//}
+			//else
 			{
-				SLOPE[KK - 1][I5 - 2] = 0.0f;
-			}
-			else
-			{
-				SLOPE[KK - 1][I5 - 2] = SLOPE_Y[KK - 1][I5 - 2] / SLOPE_Z[KK - 1][I5 - 2];
+				SLOPE[KK][I5 - 1] = SLOPE_Y[KK][I5 - 1] / SLOPE_Z[KK][I5 - 1];
 			}
 
-			SLOPE_BETA_DEG[KK - 1][I5 - 2] = atan(SLOPE[KK - 1][I5 - 2]) * (180 / PI3);
+			SLOPE_BETA_DEG[KK][I5 - 1] = atan(SLOPE[KK][I5 - 1]) * (180 / PI3);
 			if (NO_BUOY == 6)
 			{
-				N_BUOY[KK - 1] = I5 - 1;
-				if (SLOPE_BETA_DEG[KK - 1][I5 - 2] >= 80.0f)
+				N_BUOY[KK] = I5 - 1;
+				if (SLOPE_BETA_DEG[KK][I5 - 1] >= 80.0f)
 				{
 					NO_BUOY = 5;
 				}
@@ -3207,12 +3259,12 @@ void CIRES2View::BOUYANCY1()
 		}
 	}
 
-	R_BO.resize(NH);
+	//R_BO.resize(NH + 10);
 	for (int IH = 1; IH <= NH; IH++)
 	{
 		float R_sf = 0.;
 		float R_sf_Tem = 0.;
-		R_SP[0][0] = 0.;
+		R_SP[1][1] = 0.;
 		float R_sp_Tem = 0.;
 
 		float B_STATION = 0.;
@@ -3223,46 +3275,46 @@ void CIRES2View::BOUYANCY1()
 		int I_FINISH;
 		for (int KK = 1; KK <= NS_S - 1; KK++)
 		{
-			Staion_length_Buoy[KK - 1] = abs(S_N[KK] - S_N[KK - 1]);
-			GIRTH_LENGTH[KK - 1] = 0.;
+			Staion_length_Buoy[KK] = abs(S_N[KK + 1] - S_N[KK]);
+			GIRTH_LENGTH[KK] = 0.;
 			I_FINISH = 5;
-			for (int I3 = 1; I3 <= N_BETA[KK - 1]; I3++)
+			for (int I3 = 1; I3 <= N_BETA[KK]; I3++)
 			{
-				if (I3 == N_BETA[KK - 1])
+				//if (I3 == N_BETA[KK - 1])
+				//{
+				//	Z_BUOY[KK][I3] = abs(Z_VAL_ST[KK][I3]);
+				//	Y_BUOY[KK][I3] = abs(Y_VAL_ST[KK][I3]);
+				//}
+				//else
 				{
-					Z_BUOY[KK - 1][I3 - 1] = abs(Z_VAL_ST[KK - 1][I3 - 1]);
-					Y_BUOY[KK - 1][I3 - 1] = abs(Y_VAL_ST[KK - 1][I3 - 1]);
-				}
-				else
-				{
-					Z_BUOY[KK - 1][I3 - 1] = abs(Z_VAL_ST[KK - 1][I3] - Z_VAL_ST[KK - 1][I3 - 1]);
-					Y_BUOY[KK - 1][I3 - 1] = abs(Y_VAL_ST[KK - 1][I3] - Y_VAL_ST[KK - 1][I3 - 1]);
+					Z_BUOY[KK][I3] = abs(Z_VAL_ST[KK][I3 + 1] - Z_VAL_ST[KK][I3]);
+					Y_BUOY[KK][I3] = abs(Y_VAL_ST[KK][I3 + 1] - Y_VAL_ST[KK][I3]);
 				}
 
-				if (Y_BUOY[KK - 1][I3 - 1] == 0)
+				if (Y_BUOY[KK][I3] == 0)
 				{
-					DIST_ICE[KK - 1][I3 - 1] = 0;
+					DIST_ICE[KK][I3] = 0;
 
 					if (I_FINISH == 5)
 					{
-						N_END_GIRTH[KK - 1] = I3 - 1;
+						N_END_GIRTH[KK] = I3 - 1;
 						I_FINISH = 3;
 					}
 				}
-				else if (Y_BUOY[KK - 1][I3 - 1] > 0)
+				else if (Y_BUOY[KK][I3] > 0)
 				{
-					DIST_ICE[KK - 1][I3 - 1] = sqrt(pow(Y_BUOY[KK - 1][I3 - 1], 2.0) + pow(Z_BUOY[KK - 1][I3 - 1], 2.0));
-					if (Y_VAL_ST[KK - 1][I3 - 1] >= BREADTH / 2.)
+					DIST_ICE[KK][I3] = sqrt(pow(Y_BUOY[KK][I3], 2.0) + pow(Z_BUOY[KK][I3], 2.0));
+					if (Y_VAL_ST[KK][I3] >= BREADTH / 2.)
 					{
-						DIST_ICE[KK - 1][I3 - 1] = 0.;
+						DIST_ICE[KK][I3] = 0.;
 					}
 				}
-				GIRTH_LENGTH[KK - 1] = GIRTH_LENGTH[KK - 1] + DIST_ICE[KK - 1][I3 - 1];
-				N_END_GIRTH[KK - 1] = I3 - 1;
-				if (GIRTH_LENGTH[KK - 1] >= BREADTH / 2.)
+				GIRTH_LENGTH[KK] = GIRTH_LENGTH[KK] + DIST_ICE[KK][I3];
+				N_END_GIRTH[KK] = I3 - 1;
+				if (GIRTH_LENGTH[KK] >= BREADTH / 2.)
 				{
-					N_END_GIRTH[KK - 1] = I3 - 1;
-					break;
+					N_END_GIRTH[KK] = I3 - 1;
+					//break;
 				}
 			}
 		}
@@ -3275,56 +3327,56 @@ void CIRES2View::BOUYANCY1()
 			float R_SP_ST = 0.;
 			float R_SF_ST = 0.;
 
-			for (int I4 = 1; I4 <= N_END_GIRTH[KK - 1]; I4++)
+			for (int I4 = 1; I4 <= N_END_GIRTH[KK]; I4++)
 			{
-				R_SP[KK - 1][I4 - 1] = GG * RHO0 * DIST_ICE[KK - 1][I4 - 1] * THCK[IH - 1] * DEPTH_BUOY[KK - 1][I4 - 1] * Staion_length_Buoy[KK - 1];
-				R_SF[KK - 1][I4 - 1] = GG * RHO0 * Staion_length_Buoy[KK - 1] * DIST_ICE[KK - 1][I4 - 1] * THCK[IH - 1] * Sin_Beta[KK - 1][I4 - 1] * FG;
-				R_SF_ST = R_SF_ST + R_SF[KK - 1][I4 - 1];
-				R_SP_ST = R_SP_ST + R_SP[KK - 1][I4 - 1];
+				R_SP[KK][I4] = GG * RHO0 * DIST_ICE[KK][I4] * THCK[IH] * DEPTH_BUOY[KK][I4] * Staion_length_Buoy[KK];
+				R_SF[KK][I4] = GG * RHO0 * Staion_length_Buoy[KK] * DIST_ICE[KK][I4] * THCK[IH] * Sin_Beta[KK][I4] * FG;
+				R_SF_ST = R_SF_ST + R_SF[KK][I4];
+				R_SP_ST = R_SP_ST + R_SP[KK][I4];
 			}
 			R_SF_TOTAL = R_SF_TOTAL + R_SF_ST;
 			R_SP_TOTAL = R_SP_TOTAL + R_SP_ST;
 		}
 
-		if (NS_S > 1)
-			R_SP_TOTAL = R_SP_TOTAL / (S_N[0] - S_N[NS_S - 1]);
-		else if (NS_S > 0)
-			R_SP_TOTAL = R_SP_TOTAL / S_N[0];
+		//if (NS_S > 1)
+			R_SP_TOTAL = R_SP_TOTAL / (S_N[1] - S_N[NS_S]);
+		//else if (NS_S > 0)
+		//	R_SP_TOTAL = R_SP_TOTAL / S_N[0];
 
-		R_BO[IH - 1] = (R_SP_TOTAL + R_SF_TOTAL) * 2;
+		R_BO[IH] = (R_SP_TOTAL + R_SF_TOTAL) * 2;
 	}
 }
 
 float ALP(float X, int II)
 {
-	float A = X_COOR[0] - X_COOR[II - 1];
-	float B = X_COOR[0] - X_COOR[II];
-	float DXX = X_COOR[II - 1] - X_COOR[II];
-	return (ALPHA[II - 1] * (B - X) + ALPHA[II] * (X - A)) / DXX;
+	float A = X_COOR[1] - X_COOR[II];
+	float B = X_COOR[1] - X_COOR[II+1];
+	float DXX = X_COOR[II] - X_COOR[II + 1];
+	return (ALPHA[II] * (B - X) + ALPHA[II + 1] * (X - A)) / DXX;
 }
 
 float BT(float X, int II)
 {
-	float A = X_COOR[0] - X_COOR[II - 1];
-	float B = X_COOR[0] - X_COOR[II];
-	float DXX = X_COOR[II - 1] - X_COOR[II];
-	return (BETA[II - 1] * (B - X) + BETA[II] * (X - A)) / DXX;
+	float A = X_COOR[1] - X_COOR[II];
+	float B = X_COOR[1] - X_COOR[II+1];
+	float DXX = X_COOR[II] - X_COOR[II+1];
+	return (BETA[II] * (B - X) + BETA[II + 1] * (X - A)) / DXX;
 }
 
 float YY(float X, int II)
 {
-	float A = X_COOR[0] - X_COOR[II - 1];
-	float B = X_COOR[0] - X_COOR[II];
-	float DXX = X_COOR[II - 1] - X_COOR[II];
-	return (Y[II - 1] * (B - X) + Y[II] * (X - A)) / DXX;
+	float A = X_COOR[1] - X_COOR[II];
+	float B = X_COOR[1] - X_COOR[II + 1];
+	float DXX = X_COOR[II] - X_COOR[II + 1];
+	return (Y[II] * (B - X) + Y[II + 1] * (X - A)) / DXX;
 }
 
 float YYH(float X, int II)
 {
-	float A = X_COOR[0] - X_COOR[II - 1];
-	float B = X_COOR[0] - X_COOR[II];
-	float DXX = X_COOR[II - 1] - X_COOR[II];
-	return (YH[II - 1] * (B - X) + YH[II] * (X - A)) / DXX;
+	float A = X_COOR[1] - X_COOR[II];
+	float B = X_COOR[1] - X_COOR[II + 1];
+	float DXX = X_COOR[II] - X_COOR[II + 1];
+	return (YH[II] * (B - X) + YH[II + 1] * (X - A)) / DXX;
 }
 
 float FFX(float X, int II)
@@ -3357,11 +3409,11 @@ float FB6(float X, int II)
 
 float CIRES2View::GAUS(int II, int IOP)
 {
-	float W[] = { .2955242247, .2692667193, .2190863625, .1494513491, .0666713443 };
-	float X[] = { .1488743389, .4333953941, .6794095682, .8650633666, .9739065285 };
+	float W[] = {0,  .2955242247, .2692667193, .2190863625, .1494513491, .0666713443 };
+	float X[] = {0,  .1488743389, .4333953941, .6794095682, .8650633666, .9739065285 };
 
-	float A = X_COOR[0] - X_COOR[II - 1];
-	float B = X_COOR[0] - X_COOR[II];
+	float A = X_COOR[1] - X_COOR[II];
+	float B = X_COOR[1] - X_COOR[II+1];
 	float XM = 0.5*(B + A);
 	float XR = 0.5*(B - A);
 	float SS = 0;
@@ -3372,8 +3424,8 @@ float CIRES2View::GAUS(int II, int IOP)
 	{
 			  for (int J = 1; J <= 5; J++)
 			  {
-				  DX = XR*X[J - 1];
-				  SS = SS + W[J - 1] * (FFX(XM + DX, II) + FFX(XM - DX, II));
+				  DX = XR*X[J];
+				  SS = SS + W[J] * (FFX(XM + DX, II) + FFX(XM - DX, II));
 			  }
 	}
 		break;
@@ -3381,8 +3433,8 @@ float CIRES2View::GAUS(int II, int IOP)
 	{
 			  for (int J = 1; J <= 5; J++)
 			  {
-				  DX = XR*X[J - 1];
-				  SS = SS + W[J - 1] * (FY(XM + DX, II) + FY(XM - DX, II));
+				  DX = XR*X[J];
+				  SS = SS + W[J] * (FY(XM + DX, II) + FY(XM - DX, II));
 			  }
 	}
 		break;
@@ -3390,8 +3442,8 @@ float CIRES2View::GAUS(int II, int IOP)
 	{
 			  for (int J = 1; J <= 5; J++)
 			  {
-				  DX = XR*X[J - 1];
-				  SS = SS + W[J - 1] * (FFZ(XM + DX, II) + FFZ(XM - DX, II));
+				  DX = XR*X[J];
+				  SS = SS + W[J] * (FFZ(XM + DX, II) + FFZ(XM - DX, II));
 			  }
 	}
 		break;
@@ -3399,8 +3451,8 @@ float CIRES2View::GAUS(int II, int IOP)
 	{
 			   for (int J = 1; J <= 5; J++)
 			   {
-				   DX = XR*X[J - 1];
-				   SS = SS + W[J - 1] * (FB5(XM + DX, II) + FB5(XM - DX, II));
+				   DX = XR*X[J];
+				   SS = SS + W[J] * (FB5(XM + DX, II) + FB5(XM - DX, II));
 			   }
 	}
 		break;
@@ -3408,8 +3460,8 @@ float CIRES2View::GAUS(int II, int IOP)
 	{
 			   for (int J = 1; J <= 5; J++)
 			   {
-				   DX = XR*X[J - 1];
-				   SS = SS + W[J - 1] * (FB6(XM + DX, II) + FB6(XM - DX, II));
+				   DX = XR*X[J];
+				   SS = SS + W[J] * (FB6(XM + DX, II) + FB6(XM - DX, II));
 			   }
 	}
 		break;
@@ -3422,7 +3474,7 @@ float CIRES2View::GAUS(int II, int IOP)
 void CIRES2View::WRITE_OUT()
 {
 	float R_TOTAL;
-	fprintf_s(fp_7, "   Vs(kts)\t  Hi(m)\t\t sigf(kPa)\t R_br(kN)\tR_cl(kN)\tR_bu(kN)\t  R_i(kN)\n");
+	fprintf_s(fp_7, "   Vs(kts)     Hi(m) sigf(kPa)  R_br(kN)  R_cl(kN)  R_bu(kN)   R_i(kN)\n");
 	for (int IV = 1; IV <= NV; IV++)
 	{
 		for (int IS = 1; IS <= NSIGMA; IS++)
@@ -3430,9 +3482,9 @@ void CIRES2View::WRITE_OUT()
 			for (int IH = 1; IH <= NH; IH++)
 			{
 				fprintf_s(fp_8, " IV = %d   SIGMA = %d   THICK = %d\n", IV, IS, IH);
-				R_TOTAL = R_BREAK[IH - 1][IS - 1] + R_CLEAR[IH - 1][IV - 1] + R_BOUYA[IH - 1];
-				fprintf_s(fp_7, " %lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",
-					VSP[IV - 1], THCK[IH - 1], SIGMA[IS - 1] / 1000.0f, R_BREAK[IH - 1][IS - 1] / 1000.0f, R_CLEAR[IH - 1][IV - 1] / 1000.0f, R_BOUYA[IH - 1] / 1000.0f, R_TOTAL / 1000.0f);
+				R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
+				fprintf_s(fp_7, "%9.2lf%10.2lf%10.2lf%10.1lf%10.1lf%10.1lf%10.1lf\n",
+					VSP[IV], THCK[IH], SIGMA[IS] / 1000.0f, R_BREAK[IH][IS] / 1000.0f, R_CLEAR[IH][IV] / 1000.0f, R_BOUYA[IH] / 1000.0f, R_TOTAL / 1000.0f);
 			}
 		}
 	}
@@ -3767,6 +3819,7 @@ void CIRES2View::OnButtonAnalysis()
 	if (m_iCurrentStep < 3)
 	{
 		AfxMessageBox("Calculate Section Points first.");
+		CalculateOutputResult(false);
 		return;
 	}
 
@@ -4393,4 +4446,16 @@ void CIRES2View::UpdateProgress()
 		::TranslateMessage(&msg);
 		::DispatchMessage(&msg);
 	}
+}
+
+
+void CIRES2View::OnCheckDistanceForAxis()
+{
+	m_bUseDistanceForAxis = !m_bUseDistanceForAxis;
+}
+
+
+void CIRES2View::OnUpdateCheckDistanceForAxis(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(m_bUseDistanceForAxis);
 }

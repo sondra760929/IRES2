@@ -184,6 +184,7 @@ public:
 	bool m_bShowSectionData;
 	bool m_bShowWaterline;
 	bool m_bShowWaterlineData;
+	bool m_bUseDistanceForAxis;
 
 	int screen_width;
 	int screen_height;
@@ -280,6 +281,8 @@ public:
 	afx_msg void OnButtonzoomwin();
 	afx_msg void OnButtonzoomall();
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnCheckDistanceForAxis();
+	afx_msg void OnUpdateCheckDistanceForAxis(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // I-RES2View.cpp의 디버그 버전
