@@ -3863,7 +3863,7 @@ void CIRES2View::OnSpinHullXPos()
 {
 	CString str_x = m_pHULLSpinXPos->GetEditText();
 	str_x.Replace(",", "");
-	m_iHULLPos[0] = atof(str_x);
+	m_iHULLPos[0] = atof(str_x) * 1000.0f;
 	osg::Matrix m;
 	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
 	m.setTrans(m_iHULLPos);
@@ -3876,7 +3876,7 @@ void CIRES2View::OnSpinHullYPos()
 {
 	CString str_x = m_pHULLSpinYPos->GetEditText();
 	str_x.Replace(",", "");
-	m_iHULLPos[1] = atof(str_x);
+	m_iHULLPos[1] = atof(str_x) * 1000.0f;
 	osg::Matrix m;
 	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
 	m.setTrans(m_iHULLPos);
@@ -3889,7 +3889,7 @@ void CIRES2View::OnSpinHullZPos()
 {
 	CString str_x = m_pHULLSpinZPos->GetEditText();
 	str_x.Replace(",", "");
-	m_iHULLPos[2] = atof(str_x);
+	m_iHULLPos[2] = atof(str_x) * 1000.0f;
 	osg::Matrix m;
 	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
 	m.setTrans(m_iHULLPos);
@@ -3998,7 +3998,7 @@ void CIRES2View::OnSpinWaterlineZ()
 {
 	CString str_z = m_pWaterlineSpinZPos->GetEditText();
 	str_z.Replace(",", "");
-	m_iWaterLinePos[2] = atof(str_z);
+	m_iWaterLinePos[2] = atof(str_z) * 1000.0f;
 
 	osg::Matrix m;
 	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
@@ -4222,11 +4222,11 @@ void CIRES2View::UpdateHullPos()
 	if (m_pHULLSpinXPos)
 	{
 		CString temp_string;
-		temp_string.Format("%.2lf", m_iHULLPos[0]);
+		temp_string.Format("%.2lf", m_iHULLPos[0] / 1000.0f);
 		m_pHULLSpinXPos->SetEditText(temp_string);
-		temp_string.Format("%.2lf", m_iHULLPos[1]);
+		temp_string.Format("%.2lf", m_iHULLPos[1] / 1000.0f);
 		m_pHULLSpinYPos->SetEditText(temp_string);
-		temp_string.Format("%.2lf", m_iHULLPos[2]);
+		temp_string.Format("%.2lf", m_iHULLPos[2] / 1000.0f);
 		m_pHULLSpinZPos->SetEditText(temp_string);
 	}
 }
@@ -4236,7 +4236,7 @@ void CIRES2View::UpdateWaterlinePos()
 	if (m_pWaterlineSpinZPos)
 	{
 		CString temp_string;
-		temp_string.Format("%.2lf", m_iWaterLinePos[2]);
+		temp_string.Format("%.2lf", m_iWaterLinePos[2] / 1000.0f);
 		m_pWaterlineSpinZPos->SetEditText(temp_string);
 	}
 }
