@@ -117,7 +117,7 @@ public:
 	float GAUS(int II, int IOP);
 	void CalculateOutputResult(bool refresh = true);
 	void CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 plane_point, int align_axis, vector< PointData >& section_point_data, bool check_point_distance, float point_distance, vector< vector< osg::Vec3 > >& section_line, bool use_start_end = false, float start_pos = 0, float end_pos = 0);
-	void GetNormal(osg::Drawable* geo, PointData& pd);
+	bool GetNormal(osg::Drawable* geo, PointData& pd);
 	void AddSectionDataGeo(vector< PointData >& pt_list, osg::Group* group);
 	void AddSectionGeo(vector< vector< osg::Vec3 > >& pt_list, osg::Group* group);
 	void ClearSections();

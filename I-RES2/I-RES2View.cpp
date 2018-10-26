@@ -1851,7 +1851,7 @@ bool same_side(osg::Vec3& p1, osg::Vec3& p2, osg::Vec3& a, osg::Vec3& b)
 }
 
 //vector< osg::Vec3 > temp_pt_list;
-void CIRES2View::GetNormal(osg::Drawable* geo, PointData& pd)
+bool CIRES2View::GetNormal(osg::Drawable* geo, PointData& pd)
 {
 	osg::Geometry* geom = geo->asGeometry();
 	if (geom)
@@ -1995,13 +1995,14 @@ void CIRES2View::GetNormal(osg::Drawable* geo, PointData& pd)
 						{
 							//AfxMessageBox(e.GetMessageString());
 						}
-						return;
+						return true;
 					}
 				}
 			}
 		}
 	}
 	pd.normal = osg::Vec3(0, 0, 0);
+	return false;
 }
 
 void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 plane_point, int align_axis, vector< PointData >& section_point_data, bool check_point_distance, float point_distance, vector< vector< osg::Vec3 > >& section_line, bool use_start_end, float start_pos, float end_pos)
@@ -2132,8 +2133,8 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
 								if ((pd.pnt.z() / 1000.0f <= m_fDraftValue) && ((use_start_end == false) || (pd.pnt.x() <= start_pos && pd.pnt.x() >= end_pos)))
 								{
-									GetNormal(geo, pd);
-									section_point_data.push_back(pd);
+									if(GetNormal(geo, pd))
+										section_point_data.push_back(pd);
 								}
 								remain_length = point_distance;
 								//fprintf(stderr, "in while current_length : %lf, step_length : %lf, remain_length : %lf (%.2lf, %.2lf, %.2lf)\n", current_length, step_length, remain_length, pd.pnt.x(), pd.pnt.y(), pd.pnt.z());
@@ -2178,8 +2179,8 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
 								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
 								{
-									GetNormal(geo, pd);
-									section_point_data.push_back(pd);
+									if (GetNormal(geo, pd))
+										section_point_data.push_back(pd);
 								}
 								current_x -= point_distance;
 							}
@@ -2221,9 +2222,8 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
 								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
 								{
-									GetNormal(geo, pd);
-									//fprintf(FileLog, "\tp: %lf, %lf, %lf \tn: %lf, %lf, %lf\n", pd.pnt.x(), pd.pnt.y(), pd.pnt.z(), pd.normal.x(), pd.normal.y(), pd.normal.z());
-									section_point_data.push_back(pd);
+									if (GetNormal(geo, pd))
+										section_point_data.push_back(pd);
 								}
 								remain_length = point_distance;
 							}
@@ -2262,8 +2262,8 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
 								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
 								{
-									GetNormal(geo, pd);
-									section_point_data.push_back(pd);
+									if (GetNormal(geo, pd))
+										section_point_data.push_back(pd);
 								}
 								current_y -= point_distance;
 							}
@@ -2301,8 +2301,8 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
 								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
 								{
-									GetNormal(geo, pd);
-									section_point_data.push_back(pd);
+									if (GetNormal(geo, pd))
+										section_point_data.push_back(pd);
 								}
 								remain_length = point_distance;
 							}
@@ -2339,8 +2339,8 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
 								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
 								{
-									GetNormal(geo, pd);
-									section_point_data.push_back(pd);
+									if (GetNormal(geo, pd))
+										section_point_data.push_back(pd);
 								}
 								current_z += point_distance;
 							}
