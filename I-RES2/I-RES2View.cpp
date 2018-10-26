@@ -1544,7 +1544,7 @@ void CIRES2View::DefineSections()
 		{
 			center_x = m_aSectionStart[i];
 			float prev_x = center_x;
-			while (center_x > m_aSectionEnd[i])
+			while (center_x >= m_aSectionEnd[i])
 			{
 				osg::Vec3 center_pnt(center_x, center_y, center_z);
 				osgSectionPosList.push_back(center_pnt);
