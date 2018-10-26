@@ -146,13 +146,24 @@
 #define ID_BUTTON_SELECT_SECTION        32836
 #define ID_SPIN_SECTION_X               32837
 #define ID_CHECK_DISTANCE_FOR_AXIS      32838
+#define ID_CHECK_DISTANCE               32840
+#define ID_CHECK_NUMBER                 32841
+#define ID_EDIT_DISTANCE                32843
+#define ID_EDIT_NUMBER                  32844
+#define ID_EDIT_START_WATERLINE         32845
+#define ID_EDIT_END_WATERLINE           32846
+#define ID_EDIT_SPACE_WATERLINE         32847
+#define ID_CHECK_DISTANCE_WATERLINE     32848
+#define ID_CHECK_NUMBER_WATERLINE       32849
+#define ID_EDIT_DISTANCE_WATERLINE      32850
+#define ID_EDIT_NUMBER_WATERLINE        32851
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        316
-#define _APS_NEXT_COMMAND_VALUE         32840
+#define _APS_NEXT_COMMAND_VALUE         32853
 #define _APS_NEXT_CONTROL_VALUE         1003
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

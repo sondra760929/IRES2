@@ -112,6 +112,25 @@ BEGIN_MESSAGE_MAP(CIRES2View, CView)
 	ON_WM_LBUTTONUP()
 	ON_COMMAND(ID_CHECK_DISTANCE_FOR_AXIS, &CIRES2View::OnCheckDistanceForAxis)
 	ON_UPDATE_COMMAND_UI(ID_CHECK_DISTANCE_FOR_AXIS, &CIRES2View::OnUpdateCheckDistanceForAxis)
+	ON_COMMAND(ID_CHECK_DISTANCE, &CIRES2View::OnCheckDistance)
+	ON_UPDATE_COMMAND_UI(ID_CHECK_DISTANCE, &CIRES2View::OnUpdateCheckDistance)
+	ON_COMMAND(ID_CHECK_NUMBER, &CIRES2View::OnCheckNumber)
+	ON_UPDATE_COMMAND_UI(ID_CHECK_NUMBER, &CIRES2View::OnUpdateCheckNumber)
+	ON_COMMAND(ID_EDIT_DISTANCE, &CIRES2View::OnEditDistance)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_DISTANCE, &CIRES2View::OnUpdateEditDistance)
+	ON_COMMAND(ID_EDIT_NUMBER, &CIRES2View::OnEditNumber)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_NUMBER, &CIRES2View::OnUpdateEditNumber)
+	ON_COMMAND(ID_EDIT_START_WATERLINE, &CIRES2View::OnEditStartWaterline)
+	ON_COMMAND(ID_EDIT_END_WATERLINE, &CIRES2View::OnEditEndWaterline)
+	ON_COMMAND(ID_EDIT_SPACE_WATERLINE, &CIRES2View::OnEditSpaceWaterline)
+	ON_COMMAND(ID_CHECK_DISTANCE_WATERLINE, &CIRES2View::OnCheckDistanceWaterline)
+	ON_UPDATE_COMMAND_UI(ID_CHECK_DISTANCE_WATERLINE, &CIRES2View::OnUpdateCheckDistanceWaterline)
+	ON_COMMAND(ID_CHECK_NUMBER_WATERLINE, &CIRES2View::OnCheckNumberWaterline)
+	ON_UPDATE_COMMAND_UI(ID_CHECK_NUMBER_WATERLINE, &CIRES2View::OnUpdateCheckNumberWaterline)
+	ON_COMMAND(ID_EDIT_DISTANCE_WATERLINE, &CIRES2View::OnEditDistanceWaterline)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_DISTANCE_WATERLINE, &CIRES2View::OnUpdateEditDistanceWaterline)
+	ON_COMMAND(ID_EDIT_NUMBER_WATERLINE, &CIRES2View::OnEditNumberWaterline)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_NUMBER_WATERLINE, &CIRES2View::OnUpdateEditNumberWaterline)
 END_MESSAGE_MAP()
 
 int N_FRAME;
@@ -231,6 +250,7 @@ CIRES2View::CIRES2View()
 	, m_bSelectWindow(false)
 	, m_bInitialize(false)
 	, m_bUseDistanceForAxis(false)
+	, m_bUseDistanceForAxisWaterline(false)
 {
 	//m_iHULLPos[0] = 0;
 	//m_iHULLPos[1] = 0;
@@ -501,7 +521,15 @@ void CIRES2View::OnInitialUpdate()
 		m_pEditStart = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START));
 		m_pEditEnd = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END));
 		m_pEditSpace = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE));
-		m_pEditPointsGap = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_POINT_GAP));
+		//m_pEditPointsGap = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_POINT_GAP));
+		m_pEditPointsDistance = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE));
+		m_pEditPointsNumber = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER));
+
+		m_pEditStartWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START_WATERLINE));
+		m_pEditEndWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END_WATERLINE));
+		m_pEditSpaceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE_WATERLINE));
+		m_pEditPointsDistanceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE_WATERLINE));
+		m_pEditPointsNumberWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER_WATERLINE));
 
 		m_pHULLSpinXPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_X_POS));
 		m_pHULLSpinXPos->EnableSpinButtons(-100000000, 100000000);
@@ -1446,7 +1474,15 @@ void CIRES2View::OnButtonDefineSections()
 			m_pEditStart = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START));
 			m_pEditEnd = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END));
 			m_pEditSpace = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE));
-			m_pEditPointsGap = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_POINT_GAP));
+			//m_pEditPointsGap = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_POINT_GAP));
+			m_pEditPointsDistance = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE));
+			m_pEditPointsNumber = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER));
+
+			m_pEditStartWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START_WATERLINE));
+			m_pEditEndWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END_WATERLINE));
+			m_pEditSpaceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE_WATERLINE));
+			m_pEditPointsDistanceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE_WATERLINE));
+			m_pEditPointsNumberWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER_WATERLINE));
 		}
 	}
 
@@ -1508,17 +1544,17 @@ void CIRES2View::DefineSections()
 		{
 			center_x = m_aSectionStart[i];
 			float prev_x = center_x;
-			while (center_x < m_aSectionEnd[i])
+			while (center_x > m_aSectionEnd[i])
 			{
 				osg::Vec3 center_pnt(center_x, center_y, center_z);
 				osgSectionPosList.push_back(center_pnt);
 				osgSectionEnable.push_back(true);
 
 				prev_x = center_x;
-				center_x += m_aSectionOffset[i];
+				center_x -= m_aSectionOffset[i];
 			}
 
-			reverse(osgSectionPosList.begin(), osgSectionPosList.end());
+			//reverse(osgSectionPosList.begin(), osgSectionPosList.end());
 
 			for each(auto center_pnt in osgSectionPosList)
 			{
@@ -1605,17 +1641,17 @@ void CIRES2View::DefineSections()
 		{
 			center_y = m_aSectionStart[i];
 			float prev_y = center_y;
-			while (center_y < m_aSectionEnd[i])
+			while (center_y > m_aSectionEnd[i])
 			{
 				osg::Vec3 center_pnt(center_x, center_y, center_z);
 				osgSectionPosList.push_back(center_pnt);
 				osgSectionEnable.push_back(true);
 
 				prev_y = center_y;
-				center_y += m_aSectionOffset[i];
+				center_y -= m_aSectionOffset[i];
 			}
 
-			reverse(osgSectionPosList.begin(), osgSectionPosList.end());
+			//reverse(osgSectionPosList.begin(), osgSectionPosList.end());
 
 			for each(auto center_pnt in osgSectionPosList)
 			{
@@ -1968,7 +2004,7 @@ void CIRES2View::GetNormal(osg::Drawable* geo, PointData& pd)
 	pd.normal = osg::Vec3(0, 0, 0);
 }
 
-void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 plane_point, int align_axis, vector< PointData >& section_point_data, bool check_point_distance, float point_distance, vector< vector< osg::Vec3 > >& section_line)
+void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 plane_point, int align_axis, vector< PointData >& section_point_data, bool check_point_distance, float point_distance, vector< vector< osg::Vec3 > >& section_line, bool use_start_end, float start_pos, float end_pos)
 {
 	map< double, osg::Drawable* > loop_geo;
 	osg::Plane water_plane(plane_normal, plane_point);
@@ -2072,6 +2108,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 			sort(section_line.begin(), section_line.end(), sort_curves_x);
 			if (check_point_distance)
 			{
+				float remain_length = 0;
 				for (int j = 0; j < section_line.size(); j++)
 				{
 					current_count++;
@@ -2081,27 +2118,28 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
 
-						float remain_length = 0;
 						for (int i = 1; i < section_line[j].size(); i++)
 						{
 							osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
 							float current_length = dir.length();
-							float step_length = remain_length;
+							float step_length = 0;
 							dir.normalize();
-							while (current_length - step_length < remain_length)
+							//fprintf(stderr, "before while current_length : %lf, step_length : %lf, remain_length : %lf\n", current_length, step_length, remain_length);
+							while (current_length - step_length > remain_length)
 							{
 								PointData pd;
 								step_length += remain_length;
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								if ((pd.pnt.z() / 1000.0f <= m_fDraftValue) && ((use_start_end == false) || (pd.pnt.x() <= start_pos && pd.pnt.x() >= end_pos)))
 								{
 									GetNormal(geo, pd);
 									section_point_data.push_back(pd);
 								}
 								remain_length = point_distance;
+								//fprintf(stderr, "in while current_length : %lf, step_length : %lf, remain_length : %lf (%.2lf, %.2lf, %.2lf)\n", current_length, step_length, remain_length, pd.pnt.x(), pd.pnt.y(), pd.pnt.z());
 							}
 
-							remain_length = point_distance - (current_length - step_length);
+							remain_length = remain_length - (current_length - step_length);
 						}
 					}
 				}
@@ -2123,16 +2161,22 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 							current_x -= point_distance;
 						}
 
+						if (use_start_end)
+						{
+							if (current_x > start_pos)
+								current_x = start_pos;
+						}
+
 						for (int i = 1; i < section_line[j].size(); i++)
 						{
-							while (section_line[j][i].x() <= current_x)
+							while (section_line[j][i].x() <= current_x && ((use_start_end==false) || (current_x >= end_pos)))
 							{
 								PointData pd;
 								float ratio = (current_x - section_line[j][i - 1].x()) / (section_line[j][i].x() - section_line[j][i - 1].x());
 								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
 								vec *= ratio;
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
 								{
 									GetNormal(geo, pd);
 									section_point_data.push_back(pd);
@@ -2175,7 +2219,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								step_length += remain_length;
 								//fprintf(FileLog, "add > \tcl : %lf, \tsl : %lf, \trl : %lf ", current_length, step_length, remain_length);
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
 								{
 									GetNormal(geo, pd);
 									//fprintf(FileLog, "\tp: %lf, %lf, %lf \tn: %lf, %lf, %lf\n", pd.pnt.x(), pd.pnt.y(), pd.pnt.z(), pd.normal.x(), pd.normal.y(), pd.normal.z());
@@ -2216,7 +2260,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
 								vec *= ratio;
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
 								{
 									GetNormal(geo, pd);
 									section_point_data.push_back(pd);
@@ -2255,7 +2299,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								PointData pd;
 								step_length += remain_length;
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
 								{
 									GetNormal(geo, pd);
 									section_point_data.push_back(pd);
@@ -2293,7 +2337,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
 								vec *= ratio;
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z() / 1000.0f <= DRAFT)
+								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
 								{
 									GetNormal(geo, pd);
 									section_point_data.push_back(pd);
@@ -2400,12 +2444,71 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	}
 
 	float points_gap = 500.0f;
-	if (m_pEditPointsGap)
+	float points_gap_waterline = 500.0f;
+	if (m_bUseDistanceForAxis)
+	{
+		if (m_pEditPointsDistance)
+		{
+			CString temp_string;
+			temp_string = m_pEditPointsDistance->GetEditText();
+			points_gap = atof(temp_string) * 1000.0f;
+		}
+	}
+	else
+	{
+		if (m_pEditPointsNumber)
+		{
+			CString temp_string;
+			temp_string = m_pEditPointsNumber->GetEditText();
+			points_gap = atof(temp_string) * 1000.0f;
+		}
+	}
+
+	if (m_bUseDistanceForAxisWaterline)
+	{
+		if (m_pEditPointsDistanceWaterline)
+		{
+			CString temp_string;
+			temp_string = m_pEditPointsDistanceWaterline->GetEditText();
+			points_gap_waterline = atof(temp_string) * 1000.0f;
+		}
+	}
+	else
+	{
+		if (m_pEditPointsNumberWaterline)
+		{
+			CString temp_string;
+			temp_string = m_pEditPointsNumberWaterline->GetEditText();
+			points_gap_waterline = atof(temp_string) * 1000.0f;
+		}
+	}
+
+	if (m_pEditStartWaterline)
 	{
 		CString temp_string;
-		temp_string = m_pEditPointsGap->GetEditText();
-		points_gap = atof(temp_string) * 1000.0f;
+		temp_string = m_pEditStartWaterline->GetEditText();
+		m_fWaterlineStartPos = atof(temp_string) * 1000.0f;
 	}
+	if (m_pEditEndWaterline)
+	{
+		CString temp_string;
+		temp_string = m_pEditEndWaterline->GetEditText();
+		m_fWaterlineEndPos = atof(temp_string) * 1000.0f;
+	}
+
+	if (m_pEditSpaceWaterline)
+	{
+		CString temp_string;
+		temp_string = m_pEditSpaceWaterline->GetEditText();
+		m_fDraftValue = atof(temp_string);
+	}
+
+	//if (m_pEditPointsGap)
+	//{
+	//	CString temp_string;
+	//	temp_string = m_pEditPointsGap->GetEditText();
+	//	points_gap = atof(temp_string) * 1000.0f;
+	//}
 
 	if (osgHull->getNumChildren() < 1)
 	{
@@ -2478,7 +2581,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	osg::Vec3 n(0, 0, 1);
 	n = m.preMult(n) - m_iWaterLinePos;
 
-	CalculateSectionWaterline(n, m_iWaterLinePos, 0, m_aWaterLinePointData, false, 500.0f, m_aWaterLine);
+	CalculateSectionWaterline(n, m_iWaterLinePos, 0, m_aWaterLinePointData, m_bUseDistanceForAxisWaterline, points_gap_waterline, m_aWaterLine, true, m_fWaterlineStartPos, m_fWaterlineEndPos);
 	AddSectionDataGeo(m_aWaterLinePointData, osgWaterlineSection);
 	AddSectionGeo(m_aWaterLine, osgWaterlineSection);
 
@@ -2508,7 +2611,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 			vector< PointData > section_point_data;
 			vector< vector< osg::Vec3 > > section_line;
 			//float m_iSectionRot[3];
-			CalculateSectionWaterline(normal, osgSectionPosList[i], 1, section_point_data, !m_bUseDistanceForAxis, points_gap, section_line);
+			CalculateSectionWaterline(normal, osgSectionPosList[i], 1, section_point_data, m_bUseDistanceForAxis, points_gap, section_line);
 			if (section_point_data.size() > 0)
 			{
 				m_aSectionLine.push_back(section_line);
@@ -3714,7 +3817,7 @@ void CIRES2View::PreFrameUpdate()
 			v_array->push_back(osg::Vec3(bbLength[0], bbLength[1], 0));
 			v_array->push_back(osg::Vec3(-bbLength[0], bbLength[1], 0));
 
-			m_iWaterLinePos.set(bbHull.center().x(), bbHull.center().y(), 10000.0f);
+			m_iWaterLinePos.set(bbHull.center().x(), bbHull.center().y(), bbHull.center().z());
 			//UpdateWaterlinePos();
 
 			osg::Matrix tr;
@@ -3790,11 +3893,13 @@ void CIRES2View::OnTimer(UINT_PTR nIDEvent)
 		if (m_pEditStart)
 		{
 			CString temp_string;
-			temp_string.Format("%g", bbHull.xMin() / 1000.0f);
-			m_pEditStart->SetEditText(temp_string);
-
 			temp_string.Format("%g", bbHull.xMax() / 1000.0f);
+			m_pEditStart->SetEditText(temp_string);
+			m_pEditStartWaterline->SetEditText(temp_string);
+
+			temp_string.Format("%g", bbHull.xMin() / 1000.0f);
 			m_pEditEnd->SetEditText(temp_string);
+			m_pEditEndWaterline->SetEditText(temp_string);
 
 			//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 / 1000.0f);
 			m_pEditSpace->SetEditText("0.5");
@@ -4238,6 +4343,7 @@ void CIRES2View::UpdateWaterlinePos()
 		CString temp_string;
 		temp_string.Format("%.2lf", m_iWaterLinePos[2] / 1000.0f);
 		m_pWaterlineSpinZPos->SetEditText(temp_string);
+		m_pEditSpaceWaterline->SetEditText(temp_string);
 	}
 }
 
@@ -4458,4 +4564,132 @@ void CIRES2View::OnCheckDistanceForAxis()
 void CIRES2View::OnUpdateCheckDistanceForAxis(CCmdUI *pCmdUI)
 {
 	pCmdUI->SetCheck(m_bUseDistanceForAxis);
+}
+
+
+void CIRES2View::OnCheckDistance()
+{
+	m_bUseDistanceForAxis = true;
+}
+
+
+void CIRES2View::OnUpdateCheckDistance(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(m_bUseDistanceForAxis);
+}
+
+
+void CIRES2View::OnCheckNumber()
+{
+	m_bUseDistanceForAxis = false;
+}
+
+
+void CIRES2View::OnUpdateCheckNumber(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(!m_bUseDistanceForAxis);
+}
+
+
+void CIRES2View::OnEditDistance()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+}
+
+
+void CIRES2View::OnUpdateEditDistance(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable(m_bUseDistanceForAxis);
+}
+
+
+void CIRES2View::OnEditNumber()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+}
+
+
+void CIRES2View::OnUpdateEditNumber(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable(!m_bUseDistanceForAxis);
+}
+
+
+void CIRES2View::OnEditStartWaterline()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+}
+
+
+void CIRES2View::OnEditEndWaterline()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+}
+
+
+void CIRES2View::OnEditSpaceWaterline()
+{
+	CString str_z = m_pEditSpaceWaterline->GetEditText();
+	str_z.Replace(",", "");
+	m_iWaterLinePos[2] = atof(str_z) * 1000.0f;
+
+	osg::Matrix m;
+	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iWaterLinePos);
+	m.setRotate(q);
+	osgWaterline->setMatrix(m);
+}
+
+
+void CIRES2View::OnCheckDistanceWaterline()
+{
+	m_bUseDistanceForAxisWaterline = true;
+}
+
+
+void CIRES2View::OnUpdateCheckDistanceWaterline(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(m_bUseDistanceForAxisWaterline);
+}
+
+
+void CIRES2View::OnCheckNumberWaterline()
+{
+	m_bUseDistanceForAxisWaterline = false;
+}
+
+
+void CIRES2View::OnUpdateCheckNumberWaterline(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(!m_bUseDistanceForAxisWaterline);
+}
+
+
+void CIRES2View::OnEditDistanceWaterline()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+}
+
+
+void CIRES2View::OnUpdateEditDistanceWaterline(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable(m_bUseDistanceForAxisWaterline);
+}
+
+
+void CIRES2View::OnEditNumberWaterline()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+}
+
+
+void CIRES2View::OnUpdateEditNumberWaterline(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable(!m_bUseDistanceForAxisWaterline);
+}
+
+
+void CIRES2View::OnButtonDefineSectionsWaterline()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 }

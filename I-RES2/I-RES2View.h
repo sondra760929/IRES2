@@ -116,7 +116,7 @@ public:
 	void WRITE_OUT();
 	float GAUS(int II, int IOP);
 	void CalculateOutputResult(bool refresh = true);
-	void CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 plane_point, int align_axis, vector< PointData >& section_point_data, bool check_point_distance, float point_distance, vector< vector< osg::Vec3 > >& section_line);
+	void CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 plane_point, int align_axis, vector< PointData >& section_point_data, bool check_point_distance, float point_distance, vector< vector< osg::Vec3 > >& section_line, bool use_start_end = false, float start_pos = 0, float end_pos = 0);
 	void GetNormal(osg::Drawable* geo, PointData& pd);
 	void AddSectionDataGeo(vector< PointData >& pt_list, osg::Group* group);
 	void AddSectionGeo(vector< vector< osg::Vec3 > >& pt_list, osg::Group* group);
@@ -145,11 +145,22 @@ public:
 	void EndProgress();
 	time_t start_time, end_time;
 	void UpdateProgress();
+	float m_fWaterlineStartPos;
+	float m_fWaterlineEndPos;
+	float m_fDraftValue;
 
 	CMFCRibbonEdit* m_pEditStart;
 	CMFCRibbonEdit* m_pEditEnd;
 	CMFCRibbonEdit* m_pEditSpace;
-	CMFCRibbonEdit* m_pEditPointsGap;
+	//CMFCRibbonEdit* m_pEditPointsGap;
+	CMFCRibbonEdit* m_pEditPointsDistance;
+	CMFCRibbonEdit* m_pEditPointsNumber;
+
+	CMFCRibbonEdit* m_pEditStartWaterline;
+	CMFCRibbonEdit* m_pEditEndWaterline;
+	CMFCRibbonEdit* m_pEditSpaceWaterline;
+	CMFCRibbonEdit* m_pEditPointsDistanceWaterline;
+	CMFCRibbonEdit* m_pEditPointsNumberWaterline;
 
 	CMFCRibbonEdit* m_pHULLSpinXPos;
 	CMFCRibbonEdit* m_pHULLSpinYPos;
@@ -185,6 +196,7 @@ public:
 	bool m_bShowWaterline;
 	bool m_bShowWaterlineData;
 	bool m_bUseDistanceForAxis;
+	bool m_bUseDistanceForAxisWaterline;
 
 	int screen_width;
 	int screen_height;
@@ -283,6 +295,26 @@ public:
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnCheckDistanceForAxis();
 	afx_msg void OnUpdateCheckDistanceForAxis(CCmdUI *pCmdUI);
+	afx_msg void OnCheckDistance();
+	afx_msg void OnUpdateCheckDistance(CCmdUI *pCmdUI);
+	afx_msg void OnCheckNumber();
+	afx_msg void OnUpdateCheckNumber(CCmdUI *pCmdUI);
+	afx_msg void OnEditDistance();
+	afx_msg void OnUpdateEditDistance(CCmdUI *pCmdUI);
+	afx_msg void OnEditNumber();
+	afx_msg void OnUpdateEditNumber(CCmdUI *pCmdUI);
+	afx_msg void OnEditStartWaterline();
+	afx_msg void OnEditEndWaterline();
+	afx_msg void OnEditSpaceWaterline();
+	afx_msg void OnCheckDistanceWaterline();
+	afx_msg void OnUpdateCheckDistanceWaterline(CCmdUI *pCmdUI);
+	afx_msg void OnCheckNumberWaterline();
+	afx_msg void OnUpdateCheckNumberWaterline(CCmdUI *pCmdUI);
+	afx_msg void OnEditDistanceWaterline();
+	afx_msg void OnUpdateEditDistanceWaterline(CCmdUI *pCmdUI);
+	afx_msg void OnEditNumberWaterline();
+	afx_msg void OnUpdateEditNumberWaterline(CCmdUI *pCmdUI);
+	afx_msg void OnButtonDefineSectionsWaterline();
 };
 
 #ifndef _DEBUG  // I-RES2View.cpp의 디버그 버전
