@@ -68,6 +68,9 @@ using namespace std;
 #include <mmsystem.h>
 #include <afxwin.h>
 #include <afxwin.h>
+#include <afxwin.h>
+#include <afxwin.h>
+#include <afxwin.h>
 
 #define WM_RETURN_FROM_UI WM_USER+10
 #define WM_OK_FROM_UI WM_USER+11

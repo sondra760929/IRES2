@@ -197,6 +197,9 @@
     <ClInclude Include="CDlgProgress.h" />
     <ClInclude Include="CDlgSelectSections.h" />
     <ClInclude Include="ClassView.h" />
+    <ClInclude Include="Dlg1.h" />
+    <ClInclude Include="Dlg2.h" />
+    <ClInclude Include="DlgDefineInp.h" />
     <ClInclude Include="FileView.h" />
     <ClInclude Include="I-RES2.h" />
     <ClInclude Include="I-RES2Doc.h" />
@@ -216,6 +219,9 @@
     <ClCompile Include="CDlgProgress.cpp" />
     <ClCompile Include="CDlgSelectSections.cpp" />
     <ClCompile Include="ClassView.cpp" />
+    <ClCompile Include="Dlg1.cpp" />
+    <ClCompile Include="Dlg2.cpp" />
+    <ClCompile Include="DlgDefineInp.cpp" />
     <ClCompile Include="FileView.cpp" />
     <ClCompile Include="I-RES2.cpp" />
     <ClCompile Include="I-RES2Doc.cpp" />

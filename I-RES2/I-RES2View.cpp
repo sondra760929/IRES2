@@ -38,7 +38,7 @@
 #include "OptImportExportBase.h"
 #include <osg/BlendFunc>
 #include "CDlgSelectSections.h"
-
+#include "DlgDefineInp.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -131,6 +131,7 @@ BEGIN_MESSAGE_MAP(CIRES2View, CView)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_DISTANCE_WATERLINE, &CIRES2View::OnUpdateEditDistanceWaterline)
 	ON_COMMAND(ID_EDIT_NUMBER_WATERLINE, &CIRES2View::OnEditNumberWaterline)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_NUMBER_WATERLINE, &CIRES2View::OnUpdateEditNumberWaterline)
+	ON_COMMAND(ID_BUTTON_DEFINE, &CIRES2View::OnButtonDefine)
 END_MESSAGE_MAP()
 
 int N_FRAME;
@@ -4692,4 +4693,14 @@ void CIRES2View::OnUpdateEditNumberWaterline(CCmdUI *pCmdUI)
 void CIRES2View::OnButtonDefineSectionsWaterline()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+}
+
+
+void CIRES2View::OnButtonDefine()
+{
+	CDlgDefineInp pDlg;
+	if (pDlg.DoModal() == IDOK)
+	{
+
+	}
 }

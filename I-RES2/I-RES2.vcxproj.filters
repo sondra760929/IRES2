@@ -69,6 +69,15 @@
     <ClInclude Include="CDlgProgress.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Dlg1.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgDefineInp.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Dlg2.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="I-RES2.cpp">
@@ -114,6 +123,15 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="CDlgProgress.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Dlg1.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgDefineInp.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Dlg2.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

@@ -82,9 +82,40 @@
 #define IDD_DIALOG1                     312
 #define IDD_DIALOG_SELECT_SECTIONS      312
 #define IDD_DIALOG_PROGRESS             314
+#define IDD_DIALOG_DEFINE_INP           316
+#define IDD_DIALOG_1                    318
+#define IDD_DIALOG_2                    320
 #define IDC_LIST1                       1000
 #define IDC_PROGRESS1                   1001
 #define IDC_STATIC_STATUS               1002
+#define IDC_TAB1                        1003
+#define IDC_SPIN1                       1004
+#define IDC_EDIT_INITIAL_STRENGTH       1005
+#define IDC_SPIN2                       1006
+#define IDC_EDIT_MAXIMUM_STRENGTH       1007
+#define IDC_SPIN3                       1008
+#define IDC_EDIT_STRENGTH_INCREMENTS    1009
+#define IDC_SPIN4                       1010
+#define IDC_EDIT_FRICTION_COEFF         1011
+#define IDC_SPIN5                       1012
+#define IDC_EDIT_INITIAL_THICKNESS      1013
+#define IDC_SPIN6                       1014
+#define IDC_EDIT_MAXIMUM_THICKNESS      1015
+#define IDC_SPIN7                       1016
+#define IDC_EDIT_THICKNESS_INCREMENTS   1017
+#define IDC_SPIN8                       1018
+#define IDC_EDIT_LENGTH                 1019
+#define IDC_EDIT_E_SIGMA                1019
+#define IDC_SPIN9                       1020
+#define IDC_EDIT_MODELED_DEPTH          1020
+#define IDC_EDIT_MODELED_BREADTH        1021
+#define IDC_EDIT_ICE_DENSITY            1021
+#define IDC_SPIN10                      1022
+#define IDC_EDIT_DESIGN_DRAFT           1022
+#define IDC_EDIT_INITIAL_SPEED          1023
+#define IDC_EDIT_WATER_DENSITY          1023
+#define IDC_EDIT_MAXIMUM_SPEED          1024
+#define IDC_EDIT_SPEED_INCREMENTS       1025
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_BUTTONZoomProg               32771
 #define ID_BUTTONZoomWin                32772
@@ -157,14 +188,15 @@
 #define ID_CHECK_NUMBER_WATERLINE       32849
 #define ID_EDIT_DISTANCE_WATERLINE      32850
 #define ID_EDIT_NUMBER_WATERLINE        32851
+#define ID_BUTTON_DEFINE                32853
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        316
-#define _APS_NEXT_COMMAND_VALUE         32853
-#define _APS_NEXT_CONTROL_VALUE         1003
+#define _APS_NEXT_RESOURCE_VALUE        322
+#define _APS_NEXT_COMMAND_VALUE         32854
+#define _APS_NEXT_CONTROL_VALUE         1026
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

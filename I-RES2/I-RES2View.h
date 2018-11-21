@@ -315,6 +315,7 @@ public:
 	afx_msg void OnEditNumberWaterline();
 	afx_msg void OnUpdateEditNumberWaterline(CCmdUI *pCmdUI);
 	afx_msg void OnButtonDefineSectionsWaterline();
+	afx_msg void OnButtonDefine();
 };
 
 #ifndef _DEBUG  // I-RES2View.cpp의 디버그 버전
