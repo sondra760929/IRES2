@@ -13,6 +13,7 @@ IMPLEMENT_DYNAMIC(CDlgMainToolbar, CDialog)
 
 CDlgMainToolbar::CDlgMainToolbar(CWnd* pParent /*=nullptr*/)
 	: CDialog(IDD_DIALOG_MAIN_TOOLBAR, pParent)
+	, m_pView(0)
 {
 
 }
@@ -33,6 +34,7 @@ void CDlgMainToolbar::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CDlgMainToolbar, CDialog)
+	ON_BN_CLICKED(IDC_MFCBUTTON_CLEAR, &CDlgMainToolbar::OnBnClickedMfcbuttonClear)
 END_MESSAGE_MAP()
 
 
@@ -83,4 +85,13 @@ BOOL CDlgMainToolbar::OnInitDialog()
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
+}
+
+
+void CDlgMainToolbar::OnBnClickedMfcbuttonClear()
+{
+	if (m_pView)
+	{
+		m_pView->OnImportModel();
+	}
 }

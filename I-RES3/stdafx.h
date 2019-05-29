@@ -37,14 +37,42 @@
 #include <afxwin.h>
 
 
+#pragma warning(  disable : 4244 )        // Issue warning 4244
+#include "Standard_ShortReal.hxx"
+#pragma warning(  default : 4244 )        // Issue warning 4244
 
+///=> for OCC
+#include <TopoDS.hxx>
+#include <TopoDS_Vertex.hxx>
+#include <TopoDS_Edge.hxx>
+#include <TopoDS_Face.hxx>
+#include <TopoDS_Wire.hxx>
+#include <TopoDS_Shape.hxx>
+#include <TopoDS_Compound.hxx>
+#include <Adaptor3d_Curve.hxx>
+#include <BRepAdaptor_Curve.hxx>
+#include <TColgp_Array1OfPnt2d.hxx>
+#include <TCollection_AsciiString.hxx>
+#include <TopExp_Explorer.hxx>
+
+extern CString m_strAppPath;
+extern bool m_bUseOutline;
+extern bool m_bUseShadow;
+extern bool m_bUseVBO;
+extern COLORREF m_colorUp;
+extern COLORREF m_colorDown;
+extern float m_fFaceDeflection;
+extern float m_fEdgeDeflection;
 
 
 #define XHTMLXML
 #define XHTMLHTML
 
 
-#define vtkRenderingCore_AUTOINIT 2(vtkInteractionStyle,vtkRenderingOpenGL2)
+#include "vtkAutoInit.h"		//
+VTK_MODULE_INIT(vtkRenderingOpenGL2)
+VTK_MODULE_INIT(vtkRenderingFreeType)
+VTK_MODULE_INIT(vtkInteractionStyle)
 
 #include <map>
 using namespace std;
