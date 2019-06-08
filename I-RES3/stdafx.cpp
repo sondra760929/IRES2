@@ -6,3 +6,11 @@
 #include "stdafx.h"
 
 
+CString m_strAppPath;
+bool m_bUseOutline = false;
+bool m_bUseVBO = false;
+bool m_bUseShadow = false;
+COLORREF m_colorUp = RGB(171, 255, 255);
+COLORREF m_colorDown = RGB(5, 9, 100);
+float m_fFaceDeflection = 10.0f;
+float m_fEdgeDeflection = 10.0f;

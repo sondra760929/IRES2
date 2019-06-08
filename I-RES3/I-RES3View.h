@@ -7,6 +7,8 @@
 #include "vtkMFCWindow.h"
 #include "vtkRenderer.h"
 #include "vtkAssembly.h"
+class CMainFrame;
+class CIRES3Doc;
 
 class CIRES3View : public CView
 {
@@ -19,9 +21,17 @@ public:
 	CIRES3Doc* GetDocument() const;
 	vtkMFCWindow* m_pvtkMFCWindow;
 	vtkRenderer* m_pvtkRenderer;
-
+	CMainFrame* m_pMainFrame;
 // 작업입니다.
 public:
+	bool LoadShapesGeo(const TopoDS_Shape& aShape, vtkAssembly* goede);
+	vtkAssembly* FaceToGeometry(const TopoDS_Face& aFace, float face_deflection);
+	//vtkAssembly* CurveToGeometry(const TopoDS_Edge& s, const TopoDS_Face& f);
+	//vtkAssembly* CurveToGeometry(const TopoDS_Edge& s, float edge_deflection);
+	void FindLimits(const Adaptor3d_Curve& aCurve,
+		const Standard_Real  aLimit,
+		Standard_Real&       First,
+		Standard_Real&       Last);
 
 // 재정의입니다.
 public:
@@ -35,6 +45,8 @@ protected:
 // 구현입니다.
 public:
 	virtual ~CIRES3View();
+	void OnImportModel();
+
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;

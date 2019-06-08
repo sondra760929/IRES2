@@ -1,5 +1,5 @@
 ﻿#pragma once
-
+#include "I-RES3View.h"
 
 // CDlgMainToolbar 대화 상자
 
@@ -10,6 +10,7 @@ class CDlgMainToolbar : public CDialog
 public:
 	CDlgMainToolbar(CWnd* pParent = nullptr);   // 표준 생성자입니다.
 	virtual ~CDlgMainToolbar();
+	CIRES3View* m_pView;
 
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
@@ -27,4 +28,5 @@ public:
 	CMFCButton m_btnDatum;
 	CMFCButton m_btnNormal;
 	virtual BOOL OnInitDialog();
+	afx_msg void OnBnClickedMfcbuttonClear();
 };
