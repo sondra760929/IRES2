@@ -68,6 +68,15 @@ public:
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	virtual void OnInitialUpdate();
+	afx_msg void OnViewFront();
+	afx_msg void OnViewRear();
+	afx_msg void OnViewLeft();
+	afx_msg void OnViewRight();
+	afx_msg void OnViewTop();
+	afx_msg void OnViewBottom();
+	afx_msg void OnViewISO();
+	afx_msg void OnViewPerspective();
+	afx_msg void OnViewOrtho();
 };
 
 #ifndef _DEBUG  // I-RES3View.cpp의 디버그 버전

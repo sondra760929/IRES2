@@ -2191,6 +2191,126 @@ void CVTKEngine::ESC()
 	}
 }
 
+void CVTKEngine::OnViewFront()
+{
+	vtkCamera* camera = m_pvtkRenderer->GetActiveCamera();
+	double focal_point[3];
+	double camera_point[3];
+	camera->GetFocalPoint(focal_point);
+	camera->GetPosition(camera_point);
+	double squaredDistance = vtkMath::Distance2BetweenPoints(focal_point, camera_point);
+	// Take the square root to get the Euclidean distance between the points.
+	double distance = sqrt(squaredDistance);
+	camera->SetPosition(focal_point[0] + distance, focal_point[1], focal_point[2]);
+	camera->SetViewUp(0, 0, 1);
+	iren->Render();
+}
+
+void CVTKEngine::OnViewRear()
+{
+	vtkCamera* camera = m_pvtkRenderer->GetActiveCamera();
+	double focal_point[3];
+	double camera_point[3];
+	camera->GetFocalPoint(focal_point);
+	camera->GetPosition(camera_point);
+	double squaredDistance = vtkMath::Distance2BetweenPoints(focal_point, camera_point);
+	// Take the square root to get the Euclidean distance between the points.
+	double distance = sqrt(squaredDistance);
+	camera->SetPosition(focal_point[0] - distance, focal_point[1], focal_point[2]);
+	camera->SetViewUp(0, 0, 1);
+	iren->Render();
+}
+
+void CVTKEngine::OnViewLeft()
+{
+	vtkCamera* camera = m_pvtkRenderer->GetActiveCamera();
+	double focal_point[3];
+	double camera_point[3];
+	camera->GetFocalPoint(focal_point);
+	camera->GetPosition(camera_point);
+	double squaredDistance = vtkMath::Distance2BetweenPoints(focal_point, camera_point);
+	// Take the square root to get the Euclidean distance between the points.
+	double distance = sqrt(squaredDistance);
+	camera->SetPosition(focal_point[0], focal_point[1] - distance, focal_point[2]);
+	camera->SetViewUp(0, 0, 1);
+	iren->Render();
+}
+
+void CVTKEngine::OnViewRight()
+{
+	vtkCamera* camera = m_pvtkRenderer->GetActiveCamera();
+	double focal_point[3];
+	double camera_point[3];
+	camera->GetFocalPoint(focal_point);
+	camera->GetPosition(camera_point);
+	double squaredDistance = vtkMath::Distance2BetweenPoints(focal_point, camera_point);
+	// Take the square root to get the Euclidean distance between the points.
+	double distance = sqrt(squaredDistance);
+	camera->SetPosition(focal_point[0], focal_point[1] + distance, focal_point[2]);
+	camera->SetViewUp(0, 0, 1);
+	iren->Render();
+}
+
+void CVTKEngine::OnViewTop()
+{
+	vtkCamera* camera = m_pvtkRenderer->GetActiveCamera();
+	double focal_point[3];
+	double camera_point[3];
+	camera->GetFocalPoint(focal_point);
+	camera->GetPosition(camera_point);
+	double squaredDistance = vtkMath::Distance2BetweenPoints(focal_point, camera_point);
+	// Take the square root to get the Euclidean distance between the points.
+	double distance = sqrt(squaredDistance);
+	camera->SetPosition(focal_point[0], focal_point[1], focal_point[2] + distance);
+	camera->SetViewUp(1, 0, 0);
+	iren->Render();
+}
+
+void CVTKEngine::OnViewBottom()
+{
+	vtkCamera* camera = m_pvtkRenderer->GetActiveCamera();
+	double focal_point[3];
+	double camera_point[3];
+	camera->GetFocalPoint(focal_point);
+	camera->GetPosition(camera_point);
+	double squaredDistance = vtkMath::Distance2BetweenPoints(focal_point, camera_point);
+	// Take the square root to get the Euclidean distance between the points.
+	double distance = sqrt(squaredDistance);
+	camera->SetPosition(focal_point[0], focal_point[1], focal_point[2] - distance);
+	camera->SetViewUp(1, 0, 0);
+	iren->Render();
+}
+
+void CVTKEngine::OnViewISO()
+{
+	vtkCamera* camera = m_pvtkRenderer->GetActiveCamera();
+	double focal_point[3];
+	double camera_point[3];
+	camera->GetFocalPoint(focal_point);
+	camera->GetPosition(camera_point);
+	double squaredDistance = vtkMath::Distance2BetweenPoints(focal_point, camera_point);
+	// Take the square root to get the Euclidean distance between the points.
+	double distance = sqrt(squaredDistance) / sqrt(3.0);
+	camera->SetPosition(focal_point[0] + distance, focal_point[1] + distance, focal_point[2] + distance);
+	camera->SetViewUp(-1, -1, 1);
+	iren->Render();
+}
+
+void CVTKEngine::OnViewPerspective()
+{
+	vtkCamera* camera = m_pvtkRenderer->GetActiveCamera();
+	camera->SetParallelProjection(false);
+	iren->Render();
+}
+
+void CVTKEngine::OnViewOrtho()
+{
+	vtkCamera* camera = m_pvtkRenderer->GetActiveCamera();
+	camera->SetParallelProjection(true);
+	iren->Render();
+}
+
+
 void CVTKEngine::OnLeftButtonDown(CPoint point)
 {
 	vtkSmartPointer<vtkCellPicker> picker =

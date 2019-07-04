@@ -141,6 +141,16 @@ public:
 	void ShowAllFrames(bool is_show);
 	//void ShowFrames(COptGeometry* geo);
 	void ClearSelection();
+	void OnViewFront();
+	void OnViewRear();
+	void OnViewLeft();
+	void OnViewRight();
+	void OnViewTop();
+	void OnViewBottom();
+	void OnViewISO();
+	void OnViewPerspective();
+	void OnViewOrtho();
+
 	//vector< COptGeometry* > m_aSelectedGeo;
 	//vtkSmartPointer<vtkDataSetMapper> selectedMapper;
 	//vtkSmartPointer<vtkActor> selectedActor;

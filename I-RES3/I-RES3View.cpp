@@ -51,6 +51,10 @@
 #include <GCPnts_UniformDeflection.hxx>
 #include <IntAna2d_AnaIntersection.hxx>
 #include <gp_Lin2d.hxx>
+#include "vtkPolyDataNormals.h"
+#include "vtkArrowSource.h"
+#include "vtkGlyph3D.h"
+//#include "vtkMaskedGlyph3D.h"
 
 // CIRES3View
 
@@ -61,6 +65,15 @@ BEGIN_MESSAGE_MAP(CIRES3View, CView)
 	ON_COMMAND(ID_FILE_PRINT, &CView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_DIRECT, &CView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CIRES3View::OnFilePrintPreview)
+	ON_COMMAND(ID_BUTTON_VIEW_FRONT, &CIRES3View::OnViewFront)
+	ON_COMMAND(ID_BUTTON_VIEW_REAR, &CIRES3View::OnViewRear)
+	ON_COMMAND(ID_BUTTON_VIEW_LEFT, &CIRES3View::OnViewLeft)
+	ON_COMMAND(ID_BUTTON_VIEW_RIGHT, &CIRES3View::OnViewRight)
+	ON_COMMAND(ID_BUTTON_VIEW_TOP, &CIRES3View::OnViewTop)
+	ON_COMMAND(ID_BUTTON_VIEW_BOTTOM, &CIRES3View::OnViewBottom)
+	ON_COMMAND(ID_BUTTON_VIEW_ISO, &CIRES3View::OnViewISO)
+	ON_COMMAND(ID_BUTTON_VIEW_PERSPECTIVE, &CIRES3View::OnViewPerspective)
+	ON_COMMAND(ID_BUTTON_VIEW_ORTHO, &CIRES3View::OnViewOrtho)
 	ON_WM_CONTEXTMENU()
 	ON_WM_RBUTTONUP()
 	ON_WM_DESTROY()
@@ -320,6 +333,7 @@ void CIRES3View::OnImportModel()
 				LoadShapesGeo(aShape, current_tr);
 
 				vtk_engine->m_pvtkRenderer->AddActor(current_tr);
+
 				vtk_engine->m_pvtkRenderer->ResetCamera();
 				//if (geode->getNumChildren() > 0)
 				//{
@@ -791,9 +805,38 @@ vtkAssembly* CIRES3View::FaceToGeometry(const TopoDS_Face& aFace, float face_def
 		//cubeActor->DeferLODConstructionOn();
 		//cubeActor->StaticOn();
 		cubeActor->SetMapper(cubeMapper);
-		cubeActor->GetProperty()->SetInterpolationToFlat();
+
+		vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+		normalGenerator->SetInputData(cube);
+		normalGenerator->ComputePointNormalsOn();
+		normalGenerator->ComputeCellNormalsOff();
+		normalGenerator->SetSplitting(0); //I want exactly one normal per vertex
+		normalGenerator->Update();
+
+		vtkSmartPointer<vtkPolyDataMapper> mapperNormals =
+			vtkSmartPointer<vtkPolyDataMapper>::New();
+
+		//I chose arrows as representation
+		vtkSmartPointer<vtkArrowSource> arrow = vtkSmartPointer<vtkArrowSource>::New();
+		arrow->Update();
+
+		//use the output of vtkPolyDataNormals as input for the glyph3d
+		vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+		glyph->SetInputData(normalGenerator->GetOutput());
+		glyph->SetSourceConnection(arrow->GetOutputPort());
+		glyph->OrientOn();
+		glyph->SetVectorModeToUseNormal();
+		glyph->Update();
+
+		mapperNormals->SetInputConnection(glyph->GetOutputPort());
+
+		//now follows standard code which could be taken from almost any example…
+		vtkSmartPointer<vtkActor> actorNormals =
+			vtkSmartPointer<vtkActor>::New();
+		actorNormals->SetMapper(mapperNormals);
 
 		sub_geo->AddPart(cubeActor);
+		vtk_engine->m_pvtkRenderer->AddActor(actorNormals);
 	}
 	catch (Standard_Failure e)
 	{
@@ -958,4 +1001,49 @@ void CIRES3View::FindLimits(const Adaptor3d_Curve& aCurve,
 	catch (...)
 	{
 	}
+}
+
+void CIRES3View::OnViewFront()
+{
+	vtk_engine->OnViewFront();
+}
+
+void CIRES3View::OnViewRear()
+{
+	vtk_engine->OnViewRear();
+}
+
+void CIRES3View::OnViewLeft()
+{
+	vtk_engine->OnViewLeft();
+}
+
+void CIRES3View::OnViewRight()
+{
+	vtk_engine->OnViewRight();
+}
+
+void CIRES3View::OnViewTop()
+{
+	vtk_engine->OnViewTop();
+}
+
+void CIRES3View::OnViewBottom()
+{
+	vtk_engine->OnViewBottom();
+}
+
+void CIRES3View::OnViewISO()
+{
+	vtk_engine->OnViewISO();
+}
+
+void CIRES3View::OnViewPerspective()
+{
+	vtk_engine->OnViewPerspective();
+}
+
+void CIRES3View::OnViewOrtho()
+{
+	vtk_engine->OnViewOrtho();
 }
