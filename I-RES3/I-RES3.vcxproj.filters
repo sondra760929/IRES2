@@ -270,6 +270,33 @@
     <Image Include="C:\Users\user\Pictures\calc.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
+    <Image Include="res\new_toolbar.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\New.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\datum.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\normal.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\Rot.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\Trans.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\calc.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\toolbar1.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\toolbar2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\IRES3.rc2">

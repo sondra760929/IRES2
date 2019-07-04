@@ -81,6 +81,10 @@
 #define IDD_DIALOG_DRAFTSECTION         322
 #define IDD_DIALOG_CROSSSECTION         323
 #define IDB_BITMAP_CALC                 325
+#define IDB_BITMAP_TOOLBAR              326
+#define IDR_TOOLBAR1                    329
+#define IDB_BITMAP1                     330
+#define IDR_TOOLBAR2                    331
 #define IDC_MFCBUTTON_CLEAR             1000
 #define ID_VIEW_TOOLBAR1                1001
 #define IDC_MFCBUTTON_TRANS             1001
@@ -95,13 +99,25 @@
 #define IDC_MFCBUTTON_CALCULATE         1006
 #define IDC_EDIT_DRAFT2                 1007
 #define IDC_EDIT_DRAFT3                 1008
+#define ID_BUTTON_OPEN                  32771
+#define ID_BUTTON_SAVE                  32772
+#define ID_BUTTON_SAVE_IMAGE            32773
+#define ID_BUTTON_VIEW_FRONT            32774
+#define ID_BUTTON_VIEW_REAR             32775
+#define ID_BUTTON_VIEW_LEFT             32776
+#define ID_BUTTON_VIEW_RIGHT            32777
+#define ID_BUTTON_VIEW_TOP              32778
+#define ID_BUTTON_VIEW_BOTTOM           32779
+#define ID_BUTTON_VIEW_ISO              32780
+#define ID_BUTTON_VIEW_PERSPECTIVE      32781
+#define ID_BUTTON_VIEW_ORTHO            32782
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        326
-#define _APS_NEXT_COMMAND_VALUE         32771
+#define _APS_NEXT_RESOURCE_VALUE        333
+#define _APS_NEXT_COMMAND_VALUE         32783
 #define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           310
 #endif

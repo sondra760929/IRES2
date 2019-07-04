@@ -584,7 +584,6 @@ public:
 	{
 		int pickPosition[2];
 		this->GetInteractor()->GetEventPosition(pickPosition);
-
 		int xdist = pickPosition[0] - this->PreviousPosition[0];
 		int ydist = pickPosition[1] - this->PreviousPosition[1];
 
@@ -593,8 +592,15 @@ public:
 		// Reset numClicks - If mouse moved further than resetPixelDistance
 		if (moveDistance <= this->ResetPixelDistance)
 		{
+			vtkSmartPointer<vtkPropPicker> picker =
+				vtkSmartPointer<vtkPropPicker>::New();
+			picker->Pick(pickPosition[0], pickPosition[1], 0, this->GetDefaultRenderer());
+			// Get the world coordinates
+			picker->GetPickPosition(WorldPosition);
 			vtkCamera* camera = this->CurrentRenderer->GetActiveCamera();
-			camera->SetPosition(WorldPosition);
+			//camera->SetWindowCenter(pickPosition[0] / this->GetInteractor()->GetRenderWindow()->GetScreenSize()[0], pickPosition[1] / this->GetInteractor()->GetRenderWindow()->GetScreenSize()[1]);
+			//camera->SetFreezeFocalPoint(true);
+			camera->SetFocalPoint(WorldPosition);
 			this->Interactor->Render();
 		}
 		// Forward events
