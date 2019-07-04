@@ -314,35 +314,35 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 
 		if (m_pFrame)
 		{
-			if (item_text.Find(_T("Model")) > -1)
+			if (item_text.Find(_T("Hull")) > -1)
 			{
-				m_pFrame->m_wndToolbar.SetToolbar(0);
+				m_pFrame->m_wndDlgToolbar.SetToolbar(0);
 				CRect rect;
-				m_pFrame->m_wndToolbar.GetWindowRect(&rect);
-				m_pFrame->m_wndToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
-				m_pFrame->m_wndToolbar.ShowPane(TRUE, FALSE, TRUE);
-				m_pFrame->m_wndToolbar.SetFocus();
+				m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
+				m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
+				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
+				m_pFrame->m_wndDlgToolbar.SetFocus();
 			}
 			else if (item_text.Find(_T("Draft")) > -1)
 			{
-				m_pFrame->m_wndToolbar.SetToolbar(1);
+				m_pFrame->m_wndDlgToolbar.SetToolbar(1);
 				CRect rect;
-				m_pFrame->m_wndToolbar.GetWindowRect(&rect);
-				m_pFrame->m_wndToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
-				m_pFrame->m_wndToolbar.ShowPane(TRUE, FALSE, TRUE);
-				m_pFrame->m_wndToolbar.SetFocus();
+				m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
+				m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
+				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
+				m_pFrame->m_wndDlgToolbar.SetFocus();
 
 				CDlgDraftSection pDlg;
 				pDlg.DoModal();
 			}
 			else if (item_text.Find(_T("Cross")) > -1)
 			{
-				m_pFrame->m_wndToolbar.SetToolbar(1);
+				m_pFrame->m_wndDlgToolbar.SetToolbar(1);
 				CRect rect;
-				m_pFrame->m_wndToolbar.GetWindowRect(&rect);
-				m_pFrame->m_wndToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
-				m_pFrame->m_wndToolbar.ShowPane(TRUE, FALSE, TRUE);
-				m_pFrame->m_wndToolbar.SetFocus();
+				m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
+				m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
+				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
+				m_pFrame->m_wndDlgToolbar.SetFocus();
 
 				CDlgCrossSection pDlg;
 				pDlg.DoModal();
@@ -361,7 +361,7 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 			//}
 			else
 			{
-				m_pFrame->m_wndToolbar.ShowPane(FALSE, FALSE, FALSE);
+				m_pFrame->m_wndDlgToolbar.ShowPane(FALSE, FALSE, FALSE);
 			}
 		}
 		//HTREEITEM parent_item = m_wndClassView.GetParentItem(current_item);

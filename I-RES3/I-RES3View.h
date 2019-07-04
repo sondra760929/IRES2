@@ -7,6 +7,8 @@
 #include "vtkMFCWindow.h"
 #include "vtkRenderer.h"
 #include "vtkAssembly.h"
+#include "VTKEngine.h"
+
 class CMainFrame;
 class CIRES3Doc;
 
@@ -19,9 +21,10 @@ protected: // serialization에서만 만들어집니다.
 // 특성입니다.
 public:
 	CIRES3Doc* GetDocument() const;
-	vtkMFCWindow* m_pvtkMFCWindow;
-	vtkRenderer* m_pvtkRenderer;
+	//vtkMFCWindow* m_pvtkMFCWindow;
+	//vtkRenderer* m_pvtkRenderer;
 	CMainFrame* m_pMainFrame;
+	CVTKEngine* vtk_engine;
 // 작업입니다.
 public:
 	bool LoadShapesGeo(const TopoDS_Shape& aShape, vtkAssembly* goede);

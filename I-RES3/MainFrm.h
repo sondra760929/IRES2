@@ -21,7 +21,7 @@ public:
 
 // 작업입니다.
 public:
-	CToolbarWnd m_wndToolbar;
+	CToolbarWnd m_wndDlgToolbar;
 
 // 재정의입니다.
 public:

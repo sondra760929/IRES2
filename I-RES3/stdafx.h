@@ -41,6 +41,7 @@
 #include "Standard_ShortReal.hxx"
 #pragma warning(  default : 4244 )        // Issue warning 4244
 
+#define VTK
 ///=> for OCC
 #include <TopoDS.hxx>
 #include <TopoDS_Vertex.hxx>

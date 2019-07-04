@@ -160,14 +160,12 @@ FILE* fp_15 = NULL;
 
 CIRES3View::CIRES3View() noexcept
 {
-	m_pvtkMFCWindow = NULL;
-	m_pvtkRenderer = vtkRenderer::New();
+	vtk_engine = new CVTKEngine();
 }
 
 CIRES3View::~CIRES3View()
 {
-	if (NULL != m_pvtkMFCWindow)
-		delete m_pvtkMFCWindow;
+	delete vtk_engine;
 }
 
 BOOL CIRES3View::PreCreateWindow(CREATESTRUCT& cs)
@@ -257,8 +255,6 @@ CIRES3Doc* CIRES3View::GetDocument() const // 디버그되지 않은 버전은 �
 
 void CIRES3View::OnDestroy()
 {
-	if (NULL != m_pvtkRenderer)
-		m_pvtkRenderer->Delete();
 
 	CView::OnDestroy();
 }
@@ -276,8 +272,7 @@ void CIRES3View::OnSize(UINT nType, int cx, int cy)
 {
 	CView::OnSize(nType, cx, cy);
 
-	if (NULL != m_pvtkMFCWindow)
-		m_pvtkMFCWindow->MoveWindow(0, 0, cx, cy);
+	vtk_engine->OnSize(nType, cx, cy);
 }
 
 
@@ -286,39 +281,9 @@ void CIRES3View::OnInitialUpdate()
 	CView::OnInitialUpdate();
 
 	m_pMainFrame = (CMainFrame*)AfxGetMainWnd();
-	m_pMainFrame->m_wndToolbar.m_MainToolbar.m_pView = this;
+	m_pMainFrame->m_wndDlgToolbar.m_MainToolbar.m_pView = this;
 
-	m_pvtkMFCWindow = new vtkMFCWindow(this);
-	m_pvtkMFCWindow->GetRenderWindow()->AddRenderer(m_pvtkRenderer);
-	m_pvtkRenderer->SetBackground(0.0, 0.0, 0.0);
-	m_pvtkRenderer->SetUseShadows(true);
-	//vtkInformation* rendererInfo = m_pvtkRenderer->GetInformation();
-	//rendererInfo->Set(vtkOSPRayRendererNode::SAMPLES_PER_PIXEL(), 4);
-	//rendererInfo->Set(vtkOSPRayRendererNode::AMBIENT_SAMPLES(), 4);
-	//rendererInfo->Set(vtkOSPRayRendererNode::RENDERER_TYPE(), "pathtracer");
-
-	vtkRenderWindowInteractor *iren = vtkRenderWindowInteractor::New();
-	iren->SetRenderWindow(m_pvtkMFCWindow->GetRenderWindow());
-
-	vtkInteractorStyleTrackballCamera *style =
-	vtkInteractorStyleTrackballCamera::New();
-	iren->SetInteractorStyle(style);
-	iren->Initialize();
-
-	vtkSmartPointer<vtkAxesActor> axes =
-		vtkSmartPointer<vtkAxesActor>::New();
-
-	vtkSmartPointer<vtkOrientationMarkerWidget> widget =
-		vtkSmartPointer<vtkOrientationMarkerWidget>::New();
-	widget->SetOutlineColor(0.9300, 0.5700, 0.1300);
-	widget->SetOrientationMarker(axes);
-	widget->SetInteractor(iren);
-	//widget->SetViewport(0.0, 0.0, 0.4, 0.4);
-	widget->SetEnabled(1);
-	widget->InteractiveOff();
-
-	iren->Start();
-
+	vtk_engine->Init(this);
 }
 
 void CIRES3View::OnImportModel()
@@ -354,8 +319,8 @@ void CIRES3View::OnImportModel()
 				vtkAssembly* current_tr = vtkAssembly::New();
 				LoadShapesGeo(aShape, current_tr);
 
-				m_pvtkRenderer->AddActor(current_tr);
-				m_pvtkRenderer->ResetCamera();
+				vtk_engine->m_pvtkRenderer->AddActor(current_tr);
+				vtk_engine->m_pvtkRenderer->ResetCamera();
 				//if (geode->getNumChildren() > 0)
 				//{
 				//	osgUtil::Optimizer optimizer;
@@ -821,9 +786,10 @@ vtkAssembly* CIRES3View::FaceToGeometry(const TopoDS_Face& aFace, float face_def
 		cubeMapper->SetInputData(cube);
 		cubeMapper->StaticOn();
 
-		vtkQuadricLODActor *cubeActor = vtkQuadricLODActor::New();
+		//vtkQuadricLODActor *cubeActor = vtkQuadricLODActor::New();
+		vtkActor *cubeActor = vtkActor::New();
 		//cubeActor->DeferLODConstructionOn();
-		cubeActor->StaticOn();
+		//cubeActor->StaticOn();
 		cubeActor->SetMapper(cubeMapper);
 		cubeActor->GetProperty()->SetInterpolationToFlat();
 
