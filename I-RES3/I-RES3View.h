@@ -8,6 +8,7 @@
 #include "vtkRenderer.h"
 #include "vtkAssembly.h"
 #include "VTKEngine.h"
+#include "vtkTextActor.h"
 
 class CMainFrame;
 class CIRES3Doc;
@@ -35,7 +36,25 @@ public:
 		const Standard_Real  aLimit,
 		Standard_Real&       First,
 		Standard_Real&       Last);
+	vtkSmartPointer<vtkTextActor> txtHullSize;
+	double m_dHullSize[6];
+	vtkAssembly* actHull;
+	int m_iClientWidth, m_iClientHeight;
 
+	vector< float > m_aSectionStart;
+	vector< float > m_aSectionEnd;
+	vector< float > m_aSectionOffset;
+	bool m_bBowBreaking;
+	bool m_bShowSection;
+	bool m_bShowSectionData;
+	bool m_bShowWaterline;
+	bool m_bShowWaterlineData;
+	bool m_bUseDistanceForAxis;
+	bool m_bUseDistanceForAxisWaterline;
+	float m_fDraftValue;
+	float points_gap_waterline;
+
+	void CalculateWaterSectionPoint();
 // 재정의입니다.
 public:
 	virtual void OnDraw(CDC* pDC);  // 이 뷰를 그리기 위해 재정의되었습니다.

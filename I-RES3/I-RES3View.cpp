@@ -54,6 +54,8 @@
 #include "vtkPolyDataNormals.h"
 #include "vtkArrowSource.h"
 #include "vtkGlyph3D.h"
+#include "vtkCubeAxesActor.h"
+#include "vtktextproperty.h"
 //#include "vtkMaskedGlyph3D.h"
 
 // CIRES3View
@@ -172,6 +174,14 @@ FILE* fp_10 = NULL;
 FILE* fp_15 = NULL;
 
 CIRES3View::CIRES3View() noexcept
+	: m_bBowBreaking(true)
+	, m_bShowSection(true)
+	, m_bShowSectionData(true)
+	, m_bShowWaterline(true)
+	, m_bShowWaterlineData(true)
+	, m_bUseDistanceForAxis(false)
+	, m_bUseDistanceForAxisWaterline(false)
+	, points_gap_waterline(500.0f)
 {
 	vtk_engine = new CVTKEngine();
 }
@@ -284,7 +294,15 @@ BOOL CIRES3View::OnEraseBkgnd(CDC* pDC)
 void CIRES3View::OnSize(UINT nType, int cx, int cy)
 {
 	CView::OnSize(nType, cx, cy);
-
+	m_iClientWidth = cx;
+	m_iClientHeight = cy;
+	if (txtHullSize.Get())
+	{
+		if (txtHullSize->GetBounds())
+			txtHullSize->SetDisplayPosition(m_iClientWidth - txtHullSize->GetBounds()[1], m_iClientHeight - txtHullSize->GetBounds()[3]);
+		else
+			txtHullSize->SetDisplayPosition(m_iClientWidth - 250, m_iClientHeight - 55);
+	}
 	vtk_engine->OnSize(nType, cx, cy);
 }
 
@@ -295,7 +313,7 @@ void CIRES3View::OnInitialUpdate()
 
 	m_pMainFrame = (CMainFrame*)AfxGetMainWnd();
 	m_pMainFrame->m_wndDlgToolbar.m_MainToolbar.m_pView = this;
-
+	m_pMainFrame->m_wndClassView.m_pView = this;
 	vtk_engine->Init(this);
 }
 
@@ -305,7 +323,7 @@ void CIRES3View::OnImportModel()
 		NULL,
 		NULL,
 		OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-		_T("IGES Files (*.iges , *.igs)|*.iges; *.igs|I-RES2 Files (*.osgb)|*.osgb|All Files (*.*)|*.*||"),
+		_T("IGES Files (*.iges , *.igs)|*.iges; *.igs|I-RES2 Files (*.geo)|*.osgb|All Files (*.*)|*.*||"),
 		NULL);
 
 	if (dlg.DoModal() == IDOK)
@@ -329,11 +347,62 @@ void CIRES3View::OnImportModel()
 				time(&end_time);
 				diff_time1 = difftime(end_time, start_time);
 
-				vtkAssembly* current_tr = vtkAssembly::New();
-				LoadShapesGeo(aShape, current_tr);
+				actHull = vtkAssembly::New();
+				LoadShapesGeo(aShape, actHull);
+				vtk_engine->m_pvtkRenderer->AddActor(actHull);
+				actHull->GetBounds(m_dHullSize);
+				//	set water line
+				m_fDraftValue = (m_dHullSize[5] - m_dHullSize[4]) / 2.0;
 
-				vtk_engine->m_pvtkRenderer->AddActor(current_tr);
+				// Create a text actor.
+				txtHullSize = vtkSmartPointer<vtkTextActor>::New();
+				char output_chrs[1024];
+				sprintf_s(output_chrs, "Hull Size\nX : Max %.2lfm    Min %.2lfm\nY : Max %.2lfm    Min %.2lfm\nZ : Max %.2lfm    Min %.2lfm",
+					m_dHullSize[1], m_dHullSize[0], m_dHullSize[3], m_dHullSize[2], m_dHullSize[5], m_dHullSize[4]);
+				txtHullSize->SetInput(output_chrs);
+				vtkTextProperty *txtprop = txtHullSize->GetTextProperty();
+				txtprop->SetFontFamilyToArial();
+				txtprop->BoldOn();
+				txtprop->SetFontSize(16);
+				txtprop->ShadowOn();
+				txtprop->SetShadowOffset(1, 1);
+				txtprop->SetColor(1, 1, 1);
+				vtk_engine->m_pvtkRenderer->AddActor(txtHullSize);
+				if(txtHullSize->GetBounds())
+					txtHullSize->SetDisplayPosition(m_iClientWidth - txtHullSize->GetBounds()[1], m_iClientHeight - txtHullSize->GetBounds()[3]);
+				else
+					txtHullSize->SetDisplayPosition(m_iClientWidth - 250, m_iClientHeight - 55);
 
+				m_pMainFrame->m_wndClassView.SetHulllStatus(true);
+				// Assign actor to the renderer.
+
+				//vtkSmartPointer<vtkCubeAxesActor> cubeAxesActor =
+				//	vtkSmartPointer<vtkCubeAxesActor>::New();
+				//cubeAxesActor->SetUseTextActor3D(1);
+				//cubeAxesActor->SetBounds(current_tr->GetBounds());
+				//cubeAxesActor->SetCamera(vtk_engine->m_pvtkRenderer->GetActiveCamera());
+				//cubeAxesActor->GetTitleTextProperty(0)->SetColor(1, 0 ,0);
+				//cubeAxesActor->GetTitleTextProperty(0)->SetFontSize(48);
+				//cubeAxesActor->GetLabelTextProperty(0)->SetColor(1, 0, 0);
+
+				//cubeAxesActor->GetTitleTextProperty(1)->SetColor(0 ,1, 0);
+				//cubeAxesActor->GetLabelTextProperty(1)->SetColor(0 ,1, 0);
+
+				//cubeAxesActor->GetTitleTextProperty(2)->SetColor(0, 0 ,1);
+				//cubeAxesActor->GetLabelTextProperty(2)->SetColor(0, 0 ,1);
+
+				//cubeAxesActor->DrawXGridlinesOn();
+				//cubeAxesActor->DrawYGridlinesOn();
+				//cubeAxesActor->DrawZGridlinesOn();
+				//cubeAxesActor->SetGridLineLocation(cubeAxesActor->VTK_GRID_LINES_CLOSEST);
+
+				//cubeAxesActor->XAxisMinorTickVisibilityOff();
+				//cubeAxesActor->YAxisMinorTickVisibilityOff();
+				//cubeAxesActor->ZAxisMinorTickVisibilityOff();
+
+				//cubeAxesActor->SetFlyModeToStaticEdges();
+
+				//vtk_engine->m_pvtkRenderer->AddActor(cubeAxesActor);
 				vtk_engine->m_pvtkRenderer->ResetCamera();
 				//if (geode->getNumChildren() > 0)
 				//{
@@ -668,9 +737,9 @@ vtkAssembly* CIRES3View::FaceToGeometry(const TopoDS_Face& aFace, float face_def
 			if (!identity) {
 				V1.Transform(myTransf);
 			}
-			pt[0] = V1.X();
-			pt[1] = V1.Y();
-			pt[2] = V1.Z();
+			pt[0] = V1.X() / 1000.0;
+			pt[1] = V1.Y() / 1000.0;
+			pt[2] = V1.Z() / 1000.0;
 			points->InsertPoint(i - 1, pt);
 		}
 
@@ -805,38 +874,39 @@ vtkAssembly* CIRES3View::FaceToGeometry(const TopoDS_Face& aFace, float face_def
 		//cubeActor->DeferLODConstructionOn();
 		//cubeActor->StaticOn();
 		cubeActor->SetMapper(cubeMapper);
-
-		vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
-		normalGenerator->SetInputData(cube);
-		normalGenerator->ComputePointNormalsOn();
-		normalGenerator->ComputeCellNormalsOff();
-		normalGenerator->SetSplitting(0); //I want exactly one normal per vertex
-		normalGenerator->Update();
-
-		vtkSmartPointer<vtkPolyDataMapper> mapperNormals =
-			vtkSmartPointer<vtkPolyDataMapper>::New();
-
-		//I chose arrows as representation
-		vtkSmartPointer<vtkArrowSource> arrow = vtkSmartPointer<vtkArrowSource>::New();
-		arrow->Update();
-
-		//use the output of vtkPolyDataNormals as input for the glyph3d
-		vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-		glyph->SetInputData(normalGenerator->GetOutput());
-		glyph->SetSourceConnection(arrow->GetOutputPort());
-		glyph->OrientOn();
-		glyph->SetVectorModeToUseNormal();
-		glyph->Update();
-
-		mapperNormals->SetInputConnection(glyph->GetOutputPort());
-
-		//now follows standard code which could be taken from almost any example…
-		vtkSmartPointer<vtkActor> actorNormals =
-			vtkSmartPointer<vtkActor>::New();
-		actorNormals->SetMapper(mapperNormals);
-
 		sub_geo->AddPart(cubeActor);
-		vtk_engine->m_pvtkRenderer->AddActor(actorNormals);
+
+		//vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+		//normalGenerator->SetInputData(cube);
+		//normalGenerator->ComputePointNormalsOn();
+		//normalGenerator->ComputeCellNormalsOff();
+		//normalGenerator->SetSplitting(0); //I want exactly one normal per vertex
+		//normalGenerator->Update();
+
+		//vtkSmartPointer<vtkPolyDataMapper> mapperNormals =
+		//	vtkSmartPointer<vtkPolyDataMapper>::New();
+
+		////I chose arrows as representation
+		//vtkSmartPointer<vtkArrowSource> arrow = vtkSmartPointer<vtkArrowSource>::New();
+		//arrow->Update();
+
+		////use the output of vtkPolyDataNormals as input for the glyph3d
+		//vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+		//glyph->SetInputData(normalGenerator->GetOutput());
+		//glyph->SetSourceConnection(arrow->GetOutputPort());
+		////glyph->SetScaleFactor(0.2);
+		//glyph->OrientOn();
+		//glyph->SetVectorModeToUseNormal();
+		//glyph->Update();
+
+		//mapperNormals->SetInputConnection(glyph->GetOutputPort());
+
+		////now follows standard code which could be taken from almost any example…
+		//vtkSmartPointer<vtkActor> actorNormals =
+		//	vtkSmartPointer<vtkActor>::New();
+		//actorNormals->SetMapper(mapperNormals);
+
+		//vtk_engine->m_pvtkRenderer->AddActor(actorNormals);
 	}
 	catch (Standard_Failure e)
 	{
@@ -1046,4 +1116,358 @@ void CIRES3View::OnViewPerspective()
 void CIRES3View::OnViewOrtho()
 {
 	vtk_engine->OnViewOrtho();
+}
+
+void CIRES3View::CalculateWaterSectionPoint()
+{
+	map< double, osg::Drawable* > loop_geo;
+	osg::Plane water_plane(plane_normal, plane_point);
+	osg::ref_ptr<osgUtil::PlaneIntersector> intersector = new osgUtil::PlaneIntersector(water_plane, osg::Polytope());
+	//intersector->enter(*dynamic_cast<osg::Node*>(m_mtScan.get()));
+	osgUtil::PlaneIntersector::Intersections& intersections = intersector->getIntersections();
+	osgUtil::IntersectionVisitor            _intersectionVisitor;
+	_intersectionVisitor.reset();
+	_intersectionVisitor.setIntersector(intersector.get());
+
+	osgHull_Center.get()->accept(_intersectionVisitor);
+	int prev_count = m_iStatus;
+	int total_count = 0;
+	int current_count = 0;
+	typedef osgUtil::PlaneIntersector::Intersection::Polyline Polyline;
+	if (!intersections.empty())
+	{
+		total_count = intersections.size() * 3;
+
+		osgUtil::PlaneIntersector::Intersections::iterator itr;
+		for (itr = intersections.begin();
+			itr != intersections.end();
+			++itr)
+		{
+			osgUtil::PlaneIntersector::Intersection& intersection = *itr;
+			current_count++;
+			m_iStatus = prev_count + (current_count / total_count) * 100;
+			UpdateProgress();
+			if (intersection.matrix.valid())
+			{
+				// osg::notify(osg::NOTICE)<<"  transforming "<<std::endl;
+				// transform points on polyline 
+				for (Polyline::iterator pitr = intersection.polyline.begin();
+					pitr != intersection.polyline.end();
+					++pitr)
+				{
+					*pitr = (*pitr) * (*intersection.matrix);
+				}
+
+				// matrix no longer needed.
+				intersection.matrix = 0;
+			}
+		}
+
+		for (itr = intersections.begin();
+			itr != intersections.end();
+			++itr)
+		{
+			current_count++;
+			m_iStatus = prev_count + (current_count / total_count) * 100;
+			UpdateProgress();
+			//	more에서 문제가 있어서 중간 포인트 정리하는 과정을 생략한다.
+			//map< CString, int > temp_exist;
+			CString str_exist;
+			vector< osg::Vec3 > temp_loop;
+			osg::Vec3 temp_pt;
+			osgUtil::PlaneIntersector::Intersection& intersection = *itr;
+			Polyline::iterator pitr = intersection.polyline.begin();
+			for (;
+				pitr != intersection.polyline.end();
+				++pitr)
+			{
+				temp_pt = *pitr;
+				//str_exist.Format("%.0lf-%.0lf-%.0lf", temp_pt.x() * 100.0f, temp_pt.y() * 100.0f, temp_pt.z() * 100.0f);
+				//if (temp_exist.find(str_exist) == temp_exist.end())
+				//{
+				temp_loop.push_back(temp_pt);
+				//	temp_exist[str_exist] = 1;
+				//}
+
+			}
+
+			switch (align_axis)
+			{
+			case 0:
+			{
+				if (temp_loop[0].x() < temp_loop[temp_loop.size() - 1].x()) std::reverse(temp_loop.begin(), temp_loop.end());
+				loop_geo[temp_loop[0].x()] = intersection.drawable.get();
+			}
+			break;
+			case 1:
+			{
+				if (temp_loop[0].y() < temp_loop[temp_loop.size() - 1].y()) std::reverse(temp_loop.begin(), temp_loop.end());
+				loop_geo[temp_loop[0].y()] = intersection.drawable.get();
+			}
+			break;
+			case 2:
+			{
+				if (temp_loop[0].z() > temp_loop[temp_loop.size() - 1].z()) std::reverse(temp_loop.begin(), temp_loop.end());
+				loop_geo[temp_loop[0].z()] = intersection.drawable.get();
+			}
+			break;
+			}
+			section_line.push_back(temp_loop);
+		}
+
+		switch (align_axis)
+		{
+		case 0:
+		{
+			sort(section_line.begin(), section_line.end(), sort_curves_x);
+			if (check_point_distance)
+			{
+				float remain_length = 0;
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
+
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
+							float current_length = dir.length();
+							float step_length = 0;
+							dir.normalize();
+							//fprintf(stderr, "before while current_length : %lf, step_length : %lf, remain_length : %lf\n", current_length, step_length, remain_length);
+							while (current_length - step_length > remain_length)
+							{
+								PointData pd;
+								step_length += remain_length;
+								pd.pnt = section_line[j][i - 1] + (dir * step_length);
+								if ((pd.pnt.z() / 1000.0f <= m_fDraftValue) && ((use_start_end == false) || (pd.pnt.x() <= start_pos && pd.pnt.x() >= end_pos)))
+								{
+									if (GetNormal(geo, pd))
+										section_point_data.push_back(pd);
+								}
+								remain_length = point_distance;
+								//fprintf(stderr, "in while current_length : %lf, step_length : %lf, remain_length : %lf (%.2lf, %.2lf, %.2lf)\n", current_length, step_length, remain_length, pd.pnt.x(), pd.pnt.y(), pd.pnt.z());
+							}
+
+							remain_length = remain_length - (current_length - step_length);
+						}
+					}
+				}
+			}
+			else
+			{
+				//	waterline
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
+						float current_x = floor(section_line[j][0].x() / 1000.0f) * 1000.0f + point_distance;
+						while (current_x > section_line[j][0].x())
+						{
+							current_x -= point_distance;
+						}
+
+						if (use_start_end)
+						{
+							if (current_x > start_pos)
+								current_x = start_pos;
+						}
+
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							while (section_line[j][i].x() <= current_x && ((use_start_end == false) || (current_x >= end_pos)))
+							{
+								PointData pd;
+								float ratio = (current_x - section_line[j][i - 1].x()) / (section_line[j][i].x() - section_line[j][i - 1].x());
+								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
+								vec *= ratio;
+								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
+								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+								{
+									if (GetNormal(geo, pd))
+										section_point_data.push_back(pd);
+								}
+								current_x -= point_distance;
+							}
+						}
+					}
+				}
+			}
+		}
+		break;
+		case 1:
+		{
+			sort(section_line.begin(), section_line.end(), sort_curves_y);
+			if (check_point_distance)
+			{
+				//	sections
+				float remain_length = 0;
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].y()];
+
+						//fprintf(FileLog, "lines %d\n", j);
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
+							float current_length = dir.length();
+							float step_length = 0;
+							dir.normalize();
+							//fprintf(FileLog, "[%d / %d] cl : %lf, sl : %lf, rl : %lf\n", i, section_line[j].size(), current_length, step_length, remain_length);
+							while (current_length - step_length > remain_length)
+							{
+								PointData pd;
+								step_length += remain_length;
+								//fprintf(FileLog, "add > \tcl : %lf, \tsl : %lf, \trl : %lf ", current_length, step_length, remain_length);
+								pd.pnt = section_line[j][i - 1] + (dir * step_length);
+								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+								{
+									if (GetNormal(geo, pd))
+										section_point_data.push_back(pd);
+								}
+								remain_length = point_distance;
+							}
+
+							remain_length -= (current_length - step_length);
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].y()];
+						int temp_count = section_line[j][0].y() / point_distance;
+						float current_y = (float)(temp_count + 1) * point_distance;
+						//float current_y = floor(section_line[j][0].y() / 100.0f) * 100.0f + point_distance;
+						while (current_y > section_line[j][0].y())
+						{
+							current_y -= point_distance;
+						}
+
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							while (section_line[j][i].y() <= current_y)
+							{
+								PointData pd;
+								float ratio = (current_y - section_line[j][i - 1].y()) / (section_line[j][i].y() - section_line[j][i - 1].y());
+								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
+								vec *= ratio;
+								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
+								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+								{
+									if (GetNormal(geo, pd))
+										section_point_data.push_back(pd);
+								}
+								current_y -= point_distance;
+							}
+						}
+					}
+				}
+			}
+		}
+		break;
+		case 2:
+		{
+			sort(section_line.begin(), section_line.end(), sort_curves_z);
+			if (check_point_distance)
+			{
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].z()];
+
+						float remain_length = 0;
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
+							float current_length = dir.length();
+							float step_length = remain_length;
+							dir.normalize();
+							while (current_length - step_length < remain_length)
+							{
+								PointData pd;
+								step_length += remain_length;
+								pd.pnt = section_line[j][i - 1] + (dir * step_length);
+								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+								{
+									if (GetNormal(geo, pd))
+										section_point_data.push_back(pd);
+								}
+								remain_length = point_distance;
+							}
+
+							remain_length = point_distance - (current_length - step_length);
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int j = 0; j < section_line.size(); j++)
+				{
+					current_count++;
+					m_iStatus = prev_count + (current_count / total_count) * 100;
+					UpdateProgress();
+					if (section_line[j].size() > 0)
+					{
+						osg::Drawable* geo = loop_geo[section_line[j][0].z()];
+						float current_z = floor(section_line[j][0].z() / 1000.0f) * 1000.0f - point_distance;
+						while (current_z < section_line[j][0].z())
+						{
+							current_z += point_distance;
+						}
+
+						for (int i = 1; i < section_line[j].size(); i++)
+						{
+							while (section_line[j][i].z() >= current_z)
+							{
+								PointData pd;
+								float ratio = (current_z - section_line[j][i - 1].z()) / (section_line[j][i].z() - section_line[j][i - 1].z());
+								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
+								vec *= ratio;
+								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
+								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+								{
+									if (GetNormal(geo, pd))
+										section_point_data.push_back(pd);
+								}
+								current_z += point_distance;
+							}
+						}
+					}
+				}
+			}
+		}
+		break;
+		}
+	}
+	else
+	{
+		osg::notify(osg::NOTICE) << "No intersections found." << std::endl;
+	}
+	m_iStatus = prev_count + 100;
 }

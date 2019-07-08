@@ -35,13 +35,13 @@ public:
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
+	CFileView         m_wndFileView;
+	CClassView        m_wndClassView;
 
 protected:  // 컨트롤 모음이 포함된 멤버입니다.
 	//CMFCMenuBar       m_wndMenuBar;
 	CMFCToolBar       m_wndToolBar;
 	//CMFCStatusBar     m_wndStatusBar;
-	CFileView         m_wndFileView;
-	CClassView        m_wndClassView;
 	//COutputWnd        m_wndOutput;
 	//CPropertiesWnd    m_wndProperties;
 

@@ -41,6 +41,14 @@ IMPLEMENT_SERIAL(CClassViewMenuButton, CMFCToolBarMenuButton, 1)
 CClassView::CClassView() noexcept
 {
 	m_nCurrSort = ID_SORTING_GROUPBYTYPE;
+	itemModelStatus = false;
+	itemHullStatus = false;
+	itemSectionStatus = false;
+	itemDraftSectionStatus = false;
+	itemCrossSectionStatus = false;
+	itemMaterialStatus = false;
+	itemConditionStatus = false;
+	itemAnalysisStatus = false;
 }
 
 CClassView::~CClassView()
@@ -129,16 +137,16 @@ void CClassView::OnSize(UINT nType, int cx, int cy)
 
 void CClassView::FillClassView()
 {
-    HTREEITEM hRoot = m_wndClassView.InsertItem(_T("Model <font color = \"red\">[?]</font></b>"), 0, 0);
-    m_wndClassView.InsertItem(_T("<b>Hull <font color = \"red\">[?]</font>"), 1, 1, hRoot);
-    HTREEITEM hSection = m_wndClassView.InsertItem(_T("<b>Section Assignments <font color = \"red\">[?]</font>"), 2, 2, hRoot);
-    m_wndClassView.InsertItem(_T("<b>Draft Section <font color = \"red\">[?]</font>"), 5, 5, hSection);
-    m_wndClassView.InsertItem(_T("<b>Cross Section <font color = \"red\">[?]</font>"), 5, 5, hSection);
-    m_wndClassView.InsertItem(_T("<b>Material <font color = \"red\">[?]</font>"), 3, 1, hRoot);
-    m_wndClassView.InsertItem(_T("<b>Condition <font color = \"red\">[?]</font>"), 4, 1, hRoot);
-    m_wndClassView.Expand(hRoot, TVE_EXPAND);
+	itemModel = m_wndClassView.InsertItem(_T("Model <font color = \"red\">[?]</font></b>"), 0, 0);
+	itemHull = m_wndClassView.InsertItem(_T("<b>Hull <font color = \"red\">[?]</font>"), 1, 1, itemModel);
+	itemSection = m_wndClassView.InsertItem(_T("<b>Section Assignments <font color = \"red\">[?]</font>"), 2, 2, itemModel);
+	itemDraftSection = m_wndClassView.InsertItem(_T("<b>Draft Section <font color = \"red\">[?]</font>"), 5, 5, itemSection);
+	itemCrossSection = m_wndClassView.InsertItem(_T("<b>Cross Section <font color = \"red\">[?]</font>"), 5, 5, itemSection);
+	itemMaterial = m_wndClassView.InsertItem(_T("<b>Material <font color = \"red\">[?]</font>"), 3, 1, itemModel);
+	itemCondition = m_wndClassView.InsertItem(_T("<b>Condition <font color = \"red\">[?]</font>"), 4, 1, itemModel);
+	m_wndClassView.Expand(itemModel, TVE_EXPAND);
 
-    hRoot = m_wndClassView.InsertItem(_T("Analysis"), 0, 0);
+	itemAnalysis = m_wndClassView.InsertItem(_T("Analysis"), 0, 0);
 }
 
 void CClassView::OnContextMenu(CWnd* pWnd, CPoint point)
@@ -309,12 +317,12 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 	HTREEITEM current_item = m_wndClassView.GetSelectedItem();
 	if (current_item)
 	{
-		CString item_text = m_wndClassView.GetItemText(current_item);
+		//CString item_text = m_wndClassView.GetItemText(current_item);
 		CMainFrame* m_pFrame = (CMainFrame*)AfxGetMainWnd();
 
 		if (m_pFrame)
 		{
-			if (item_text.Find(_T("Hull")) > -1)
+			if (current_item == itemHull)
 			{
 				m_pFrame->m_wndDlgToolbar.SetToolbar(0);
 				CRect rect;
@@ -323,7 +331,7 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
 				m_pFrame->m_wndDlgToolbar.SetFocus();
 			}
-			else if (item_text.Find(_T("Draft")) > -1)
+			else if (current_item == itemDraftSection || current_item == itemSection)
 			{
 				m_pFrame->m_wndDlgToolbar.SetToolbar(1);
 				CRect rect;
@@ -332,10 +340,10 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
 				m_pFrame->m_wndDlgToolbar.SetFocus();
 
-				CDlgDraftSection pDlg;
+				CDlgDraftSection pDlg(m_pView);
 				pDlg.DoModal();
 			}
-			else if (item_text.Find(_T("Cross")) > -1)
+			else if (current_item == itemCrossSection)
 			{
 				m_pFrame->m_wndDlgToolbar.SetToolbar(1);
 				CRect rect;
@@ -344,21 +352,9 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
 				m_pFrame->m_wndDlgToolbar.SetFocus();
 
-				CDlgCrossSection pDlg;
+				CDlgCrossSection pDlg(m_pView);
 				pDlg.DoModal();
 			}
-			//else if (item_text.Find("Simulation") > -1)
-			//{
-			//	m_pFrame->m_wndSetup.SetMenu(2);
-			//	m_pFrame->m_wndSetup.ShowPane(TRUE, FALSE, TRUE);
-			//	m_pFrame->m_wndSetup.SetFocus();
-			//}
-			//else if (item_text.Find("Transfer") > -1)
-			//{
-			//	m_pFrame->m_wndSetup.SetMenu(3);
-			//	m_pFrame->m_wndSetup.ShowPane(TRUE, FALSE, TRUE);
-			//	m_pFrame->m_wndSetup.SetFocus();
-			//}
 			else
 			{
 				m_pFrame->m_wndDlgToolbar.ShowPane(FALSE, FALSE, FALSE);
@@ -380,4 +376,140 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 		//}
 	}
 	*pResult = 0;
+}
+
+void CClassView::SetModelStatus(bool is_on)
+{
+	itemModelStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemModel, _T("Model <font color = \"green\">[O]</font></b>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemModel, _T("Model <font color = \"red\">[?]</font></b>"));
+	}
+}
+
+void CClassView::SetHulllStatus(bool is_on)
+{
+	itemHullStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemHull, _T("<b>Hull <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemHull, _T("<b>Hull <font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetSectionStatus(bool is_on)
+{
+	itemSectionStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemSection, _T("<b>Section Assignments <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemSection, _T("<b>Section Assignments <font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetDraftStatus(bool is_on)
+{
+	itemDraftSectionStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemDraftSection, _T("<b>Draft Section <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemDraftSection, _T("<b>Draft Section <font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetCrossStatus(bool is_on)
+{
+	itemCrossSectionStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemCrossSection, _T("<b>Cross Section <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemCrossSection, _T("<b>Cross Section <font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetMaterialStatus(bool is_on)
+{
+	itemMaterialStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemMaterial, _T("<b>Material <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemMaterial, _T("<b>Material <font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetConditionStatus(bool is_on)
+{
+	itemConditionStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemCondition, _T("<b>Condition <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemCondition, _T("<b>Condition < font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetAnalysisStatus(bool is_on)
+{
+	itemAnalysisStatus = is_on;
+}
+
+int CClassView::GetModelStatus()
+{
+	return itemModelStatus;
+}
+
+int CClassView::GetHulllStatus()
+{
+	return itemHullStatus;
+}
+
+int CClassView::GetSectionStatus()
+{
+	return itemSectionStatus;
+}
+
+int CClassView::GetDraftStatus()
+{
+	return itemDraftSectionStatus;
+}
+
+int CClassView::GetCrossStatus()
+{
+	return itemCrossSectionStatus;
+}
+
+int CClassView::GetMaterialStatus()
+{
+	return itemMaterialStatus;
+}
+
+int CClassView::GetConditionStatus()
+{
+	return itemConditionStatus;
+}
+
+int CClassView::GetAnalysisStatus()
+{
+	return itemAnalysisStatus;
 }

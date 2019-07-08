@@ -32,6 +32,9 @@
 #include <vtkButtonWidget.h>
 #include <vtkTexturedButtonRepresentation2D.h>
 #include <vtkImageData.h>
+#include "vtkPolyDataNormals.h"
+#include "vtkArrowSource.h"
+#include "vtkGlyph3D.h"
 
 #include "I-RES3View.h"
 
@@ -920,9 +923,37 @@ void CVTKEngine::Init(CWnd* pView)
 	// Setup the background gradient
 	m_pvtkRenderer->GradientBackgroundOn();
 	m_pvtkRenderer->SetBackground(0.7, 0.7, 0.7);
-	m_pvtkRenderer->SetBackground2(1.0, 1.0, 1.0);
+	m_pvtkRenderer->SetBackground2(0.0, 0.0, 0.0);
 	m_pvtkRenderer->SetUseShadows(true);
 
+	//vtkSmartPointer<vtkSphereSource> sphereSource =
+	//	vtkSmartPointer<vtkSphereSource>::New();
+	//sphereSource->Update();
+
+	//vtkSmartPointer<vtkPolyData> input =
+	//	vtkSmartPointer<vtkPolyData>::New();
+	//input->ShallowCopy(sphereSource->GetOutput());
+
+	//vtkSmartPointer<vtkArrowSource> arrowSource =
+	//	vtkSmartPointer<vtkArrowSource>::New();
+
+	//vtkSmartPointer<vtkGlyph3D> glyph3D =
+	//	vtkSmartPointer<vtkGlyph3D>::New();
+	//glyph3D->SetSourceConnection(arrowSource->GetOutputPort());
+	//glyph3D->SetVectorModeToUseNormal();
+	//glyph3D->SetInputData(input);
+	//glyph3D->SetScaleFactor(.2);
+	//glyph3D->Update();
+
+	//// Visualize
+	//vtkSmartPointer<vtkPolyDataMapper> mapper =
+	//	vtkSmartPointer<vtkPolyDataMapper>::New();
+	//mapper->SetInputConnection(glyph3D->GetOutputPort());
+
+	//vtkSmartPointer<vtkActor> actor =
+	//	vtkSmartPointer<vtkActor>::New();
+	//actor->SetMapper(mapper);
+	//m_pvtkRenderer->AddActor(actor);
 	//m_pvtkMFCWindow->GetRenderWindow()->SetMultiSamples(0);
 	//m_pvtkMFCWindow->GetRenderWindow()->SetAlphaBitPlanes(1);
 	//vtkInformation* rendererInfo = m_pvtkRenderer->GetInformation();
@@ -980,6 +1011,8 @@ void CVTKEngine::Init(CWnd* pView)
 	m_widgetAxes->SetEnabled(1);
 	m_widgetAxes->InteractiveOff();
 	
+	OnViewISO();
+
 	m_pView = (CIRES3View*)pView;
 	//iren->Start();
 }
@@ -2291,8 +2324,8 @@ void CVTKEngine::OnViewISO()
 	double squaredDistance = vtkMath::Distance2BetweenPoints(focal_point, camera_point);
 	// Take the square root to get the Euclidean distance between the points.
 	double distance = sqrt(squaredDistance) / sqrt(3.0);
-	camera->SetPosition(focal_point[0] + distance, focal_point[1] + distance, focal_point[2] + distance);
-	camera->SetViewUp(-1, -1, 1);
+	camera->SetPosition(focal_point[0] - distance, focal_point[1] - distance, focal_point[2] + distance);
+	camera->SetViewUp(1, 1, 1);
 	iren->Render();
 }
 
