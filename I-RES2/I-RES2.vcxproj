@@ -197,9 +197,14 @@
     <ClInclude Include="CDlgProgress.h" />
     <ClInclude Include="CDlgSelectSections.h" />
     <ClInclude Include="ClassView.h" />
+    <ClInclude Include="CreateCheckboxImageList.h" />
+    <ClInclude Include="CToolbarWnd.h" />
     <ClInclude Include="Dlg1.h" />
     <ClInclude Include="Dlg2.h" />
+    <ClInclude Include="DlgCrossSection.h" />
     <ClInclude Include="DlgDefineInp.h" />
+    <ClInclude Include="DlgDraftSection.h" />
+    <ClInclude Include="DlgMainToolbar.h" />
     <ClInclude Include="FileView.h" />
     <ClInclude Include="I-RES2.h" />
     <ClInclude Include="I-RES2Doc.h" />
@@ -214,14 +219,27 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="ViewTree.h" />
+    <ClInclude Include="VisualStylesXP.h" />
+    <ClInclude Include="XHtmlDraw.h" />
+    <ClInclude Include="XHtmlDrawLink.h" />
+    <ClInclude Include="XHtmlTree.h" />
+    <ClInclude Include="XmlDocument.h" />
+    <ClInclude Include="XNamedColors.h" />
+    <ClInclude Include="XString.h" />
+    <ClInclude Include="XTrace.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDlgProgress.cpp" />
     <ClCompile Include="CDlgSelectSections.cpp" />
     <ClCompile Include="ClassView.cpp" />
+    <ClCompile Include="CreateCheckboxImageList.cpp" />
+    <ClCompile Include="CToolbarWnd.cpp" />
     <ClCompile Include="Dlg1.cpp" />
     <ClCompile Include="Dlg2.cpp" />
+    <ClCompile Include="DlgCrossSection.cpp" />
     <ClCompile Include="DlgDefineInp.cpp" />
+    <ClCompile Include="DlgDraftSection.cpp" />
+    <ClCompile Include="DlgMainToolbar.cpp" />
     <ClCompile Include="FileView.cpp" />
     <ClCompile Include="I-RES2.cpp" />
     <ClCompile Include="I-RES2Doc.cpp" />
@@ -238,17 +256,42 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="ViewTree.cpp" />
+    <ClCompile Include="ViewTree.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="VisualStylesXP.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="XHtmlDraw.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="XHtmlDrawLink.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="XHtmlTree.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="XmlDocument.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="XNamedColors.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="XString.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="I-RES2.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\buttons.bmp" />
+    <Image Include="res\calc.bmp" />
     <Image Include="res\classview.bmp" />
     <Image Include="res\classview_hc.bmp" />
     <Image Include="res\class_view.ico" />
     <Image Include="res\class_view_hc.ico" />
+    <Image Include="res\datum.bmp" />
     <Image Include="res\explorer.bmp" />
     <Image Include="res\explorer_hc.bmp" />
     <Image Include="res\filelarge.bmp" />
@@ -264,16 +307,22 @@
     <Image Include="res\main.bmp" />
     <Image Include="res\menuimages.bmp" />
     <Image Include="res\menuimages_hc.bmp" />
+    <Image Include="res\New.bmp" />
+    <Image Include="res\new_toolbar.bmp" />
+    <Image Include="res\normal.bmp" />
     <Image Include="res\output_wnd.ico" />
     <Image Include="res\output_wnd_hc.ico" />
     <Image Include="res\properties.bmp" />
     <Image Include="res\properties_hc.bmp" />
     <Image Include="res\properties_wnd.ico" />
     <Image Include="res\properties_wnd_hc.ico" />
+    <Image Include="res\Rot.bmp" />
     <Image Include="res\sort.bmp" />
     <Image Include="res\sort_hc.bmp" />
     <Image Include="res\Toolbar.bmp" />
+    <Image Include="res\toolbar2.bmp" />
     <Image Include="res\Toolbar256.bmp" />
+    <Image Include="res\Trans.bmp" />
     <Image Include="res\writelarge.bmp" />
     <Image Include="res\writesmall.bmp" />
   </ItemGroup>

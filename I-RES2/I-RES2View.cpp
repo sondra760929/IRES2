@@ -82,21 +82,9 @@ BEGIN_MESSAGE_MAP(CIRES2View, CView)
 	ON_COMMAND(ID_BUTTON_SELECT_SECTION, &CIRES2View::OnButtonSelectSection)
 	ON_WM_TIMER()
 	ON_WM_SIZE()
-	ON_COMMAND(ID_SPIN_HULL_X_POS, &CIRES2View::OnSpinHullXPos)
-	ON_COMMAND(ID_SPIN_HULL_Y_POS, &CIRES2View::OnSpinHullYPos)
-	ON_COMMAND(ID_SPIN_HULL_Z_POS, &CIRES2View::OnSpinHullZPos)
-	ON_COMMAND(ID_SPIN_HULL_X_ANGLE, &CIRES2View::OnSpinHullXAngle)
-	ON_COMMAND(ID_SPIN_SECTION_Z, &CIRES2View::OnSpinSectionZ)
-	ON_COMMAND(ID_SPIN_WATERLINE_Z, &CIRES2View::OnSpinWaterlineZ)
-	ON_COMMAND(ID_SPIN_WATERLINE_X, &CIRES2View::OnSpinWaterlineX)
-	ON_COMMAND(ID_SPIN_WATERLINE_Y, &CIRES2View::OnSpinWaterlineY)
-	ON_COMMAND(ID_SPIN_HULL_Y_ANGLE, &CIRES2View::OnSpinHullYAngle)
-	ON_COMMAND(ID_SPIN_HULL_Z_Angle, &CIRES2View::OnSpinHullZAngle)
 	ON_COMMAND(ID_BUTTON_HULL_POINT_TO_POINT, &CIRES2View::OnButtonHullPointToPoint)
 	ON_WM_MOUSEMOVE()
 	ON_WM_LBUTTONDOWN()
-	ON_COMMAND(ID_SPIN_SECTION_X, &CIRES2View::OnSpinSectionX)
-	ON_COMMAND(ID_SPIN_SECTION_Y, &CIRES2View::OnSpinSectionY)
 	ON_COMMAND(ID_BUTTON_Nurbs_Conversion, &CIRES2View::OnButtonNurbsConversion)
 	ON_UPDATE_COMMAND_UI(ID_BUTTON_Nurbs_Conversion, &CIRES2View::OnUpdateButtonNurbsConversion)
 	ON_COMMAND(ID_BUTTONFront, &CIRES2View::OnButtonfront)
@@ -122,7 +110,6 @@ BEGIN_MESSAGE_MAP(CIRES2View, CView)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_NUMBER, &CIRES2View::OnUpdateEditNumber)
 	ON_COMMAND(ID_EDIT_START_WATERLINE, &CIRES2View::OnEditStartWaterline)
 	ON_COMMAND(ID_EDIT_END_WATERLINE, &CIRES2View::OnEditEndWaterline)
-	ON_COMMAND(ID_EDIT_SPACE_WATERLINE, &CIRES2View::OnEditSpaceWaterline)
 	ON_COMMAND(ID_CHECK_DISTANCE_WATERLINE, &CIRES2View::OnCheckDistanceWaterline)
 	ON_UPDATE_COMMAND_UI(ID_CHECK_DISTANCE_WATERLINE, &CIRES2View::OnUpdateCheckDistanceWaterline)
 	ON_COMMAND(ID_CHECK_NUMBER_WATERLINE, &CIRES2View::OnCheckNumberWaterline)
@@ -225,21 +212,6 @@ FILE* fp_15 = NULL;
 
 CIRES2View::CIRES2View()
 	: mOSG(0L)
-	, m_pEditStart(NULL)
-	, m_pEditEnd(NULL)
-	, m_pEditSpace(NULL)
-	, m_pHULLSpinXPos(NULL)
-	, m_pHULLSpinYPos(NULL)
-	, m_pHULLSpinZPos(NULL)
-	, m_pHULLSpinXRot(NULL)
-	, m_pHULLSpinYRot(NULL)
-	, m_pHULLSpinZRot(NULL)
-	, m_pSectionSpinXRot(NULL)
-	, m_pSectionSpinYRot(NULL)
-	, m_pSectionSpinZRot(NULL)
-	, m_pWaterlineSpinZPos(NULL)
-	, m_pWaterlineSpinXRot(NULL)
-	, m_pWaterlineSpinYRot(NULL)
 	, m_bBowBreaking(true)
 	, m_bShowSection(true)
 	, m_bShowSectionData(true)
@@ -252,6 +224,7 @@ CIRES2View::CIRES2View()
 	, m_bInitialize(false)
 	, m_bUseDistanceForAxis(false)
 	, m_bUseDistanceForAxisWaterline(false)
+	, m_fWaterlinePointGap(500.0f)
 {
 	//m_iHULLPos[0] = 0;
 	//m_iHULLPos[1] = 0;
@@ -519,70 +492,70 @@ void CIRES2View::OnInitialUpdate()
 	CMainFrame *pFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
 	if (pFrame)
 	{
-		m_pEditStart = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START));
-		m_pEditEnd = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END));
-		m_pEditSpace = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE));
-		//m_pEditPointsGap = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_POINT_GAP));
-		m_pEditPointsDistance = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE));
-		m_pEditPointsNumber = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER));
+		//m_pEditStart = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START));
+		//m_pEditEnd = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END));
+		//m_pEditSpace = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE));
+		////m_pEditPointsGap = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_POINT_GAP));
+		//m_pEditPointsDistance = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE));
+		//m_pEditPointsNumber = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER));
 
-		m_pEditStartWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START_WATERLINE));
-		m_pEditEndWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END_WATERLINE));
-		m_pEditSpaceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE_WATERLINE));
-		m_pEditPointsDistanceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE_WATERLINE));
-		m_pEditPointsNumberWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER_WATERLINE));
+		//m_pEditStartWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START_WATERLINE));
+		//m_pEditEndWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END_WATERLINE));
+		//m_pEditSpaceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE_WATERLINE));
+		//m_pEditPointsDistanceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE_WATERLINE));
+		//m_pEditPointsNumberWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER_WATERLINE));
 
-		m_pHULLSpinXPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_X_POS));
-		m_pHULLSpinXPos->EnableSpinButtons(-100000000, 100000000);
-		m_pHULLSpinXPos->SetEditText("0");
+		//m_pHULLSpinXPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_X_POS));
+		//m_pHULLSpinXPos->EnableSpinButtons(-100000000, 100000000);
+		//m_pHULLSpinXPos->SetEditText("0");
 		m_iHULLPos[0] = 0;
-		m_pHULLSpinYPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Y_POS));
-		m_pHULLSpinYPos->EnableSpinButtons(-100000000, 100000000);
-		m_pHULLSpinYPos->SetEditText("0");
+		//m_pHULLSpinYPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Y_POS));
+		//m_pHULLSpinYPos->EnableSpinButtons(-100000000, 100000000);
+		//m_pHULLSpinYPos->SetEditText("0");
 		m_iHULLPos[1] = 0;
-		m_pHULLSpinZPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Z_POS));
-		m_pHULLSpinZPos->EnableSpinButtons(-100000000, 100000000);
-		m_pHULLSpinZPos->SetEditText("0");
+		//m_pHULLSpinZPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Z_POS));
+		//m_pHULLSpinZPos->EnableSpinButtons(-100000000, 100000000);
+		//m_pHULLSpinZPos->SetEditText("0");
 		m_iHULLPos[2] = 0;
 
-		m_pHULLSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_X_ANGLE));
-		m_pHULLSpinXRot->EnableSpinButtons(-360, 360);
-		m_pHULLSpinXRot->SetEditText("0");
+		//m_pHULLSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_X_ANGLE));
+		//m_pHULLSpinXRot->EnableSpinButtons(-360, 360);
+		//m_pHULLSpinXRot->SetEditText("0");
 		m_iHULLRot[0] = 0;
-		m_pHULLSpinYRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Y_ANGLE));
-		m_pHULLSpinYRot->EnableSpinButtons(-360, 360);
-		m_pHULLSpinYRot->SetEditText("0");
+		//m_pHULLSpinYRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Y_ANGLE));
+		//m_pHULLSpinYRot->EnableSpinButtons(-360, 360);
+		//m_pHULLSpinYRot->SetEditText("0");
 		m_iHULLRot[1] = 0;
-		m_pHULLSpinZRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Z_Angle));
-		m_pHULLSpinZRot->EnableSpinButtons(-360, 360);
-		m_pHULLSpinZRot->SetEditText("0");
+		//m_pHULLSpinZRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Z_Angle));
+		//m_pHULLSpinZRot->EnableSpinButtons(-360, 360);
+		//m_pHULLSpinZRot->SetEditText("0");
 		m_iHULLRot[2] = 0;
 
-		m_pSectionSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_SECTION_X));
-		m_pSectionSpinXRot->EnableSpinButtons(-360, 360);
-		m_pSectionSpinXRot->SetEditText("0");
+		//m_pSectionSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_SECTION_X));
+		//m_pSectionSpinXRot->EnableSpinButtons(-360, 360);
+		//m_pSectionSpinXRot->SetEditText("0");
 		m_iSectionRot[0] = 0;
-		m_pSectionSpinYRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_SECTION_Y));
-		m_pSectionSpinYRot->EnableSpinButtons(-360, 360);
-		m_pSectionSpinYRot->SetEditText("0");
+		//m_pSectionSpinYRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_SECTION_Y));
+		//m_pSectionSpinYRot->EnableSpinButtons(-360, 360);
+		//m_pSectionSpinYRot->SetEditText("0");
 		m_iSectionRot[1] = 0;
-		m_pSectionSpinZRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_SECTION_Z));
-		m_pSectionSpinZRot->EnableSpinButtons(-360, 360);
-		m_pSectionSpinZRot->SetEditText("0");
+		//m_pSectionSpinZRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_SECTION_Z));
+		//m_pSectionSpinZRot->EnableSpinButtons(-360, 360);
+		//m_pSectionSpinZRot->SetEditText("0");
 		m_iSectionRot[2] = 0;
 
-		m_pWaterlineSpinZPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_Z));
-		m_pWaterlineSpinZPos->EnableSpinButtons(-100000000, 100000000);
-		m_pWaterlineSpinZPos->SetEditText("0");
+		//m_pWaterlineSpinZPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_Z));
+		//m_pWaterlineSpinZPos->EnableSpinButtons(-100000000, 100000000);
+		//m_pWaterlineSpinZPos->SetEditText("0");
 		m_iWaterLinePos[2] = 0;
 
-		m_pWaterlineSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_X));
-		m_pWaterlineSpinXRot->EnableSpinButtons(-360, 360);
-		m_pWaterlineSpinXRot->SetEditText("0");
+		//m_pWaterlineSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_X));
+		//m_pWaterlineSpinXRot->EnableSpinButtons(-360, 360);
+		//m_pWaterlineSpinXRot->SetEditText("0");
 		m_iWaterLineRot[0] = 0;
-		m_pWaterlineSpinYRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_Y));
-		m_pWaterlineSpinYRot->EnableSpinButtons(-360, 360);
-		m_pWaterlineSpinYRot->SetEditText("0");
+		//m_pWaterlineSpinYRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_Y));
+		//m_pWaterlineSpinYRot->EnableSpinButtons(-360, 360);
+		//m_pWaterlineSpinYRot->SetEditText("0");
 		m_iWaterLineRot[1] = 0;
 	}
 
@@ -1467,45 +1440,45 @@ void CIRES2View::OnButtonDefineSections()
 		return;
 	}
 
-	if (m_pEditStart == NULL)
-	{
-		CMainFrame *pFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
-		if (pFrame)
-		{
-			m_pEditStart = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START));
-			m_pEditEnd = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END));
-			m_pEditSpace = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE));
-			//m_pEditPointsGap = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_POINT_GAP));
-			m_pEditPointsDistance = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE));
-			m_pEditPointsNumber = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER));
+	//if (m_pEditStart == NULL)
+	//{
+	//	CMainFrame *pFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
+	//	if (pFrame)
+	//	{
+	//		m_pEditStart = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START));
+	//		m_pEditEnd = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END));
+	//		m_pEditSpace = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE));
+	//		//m_pEditPointsGap = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_POINT_GAP));
+	//		m_pEditPointsDistance = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE));
+	//		m_pEditPointsNumber = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER));
 
-			m_pEditStartWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START_WATERLINE));
-			m_pEditEndWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END_WATERLINE));
-			m_pEditSpaceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE_WATERLINE));
-			m_pEditPointsDistanceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE_WATERLINE));
-			m_pEditPointsNumberWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER_WATERLINE));
-		}
-	}
+	//		m_pEditStartWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START_WATERLINE));
+	//		m_pEditEndWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END_WATERLINE));
+	//		m_pEditSpaceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE_WATERLINE));
+	//		m_pEditPointsDistanceWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_DISTANCE_WATERLINE));
+	//		m_pEditPointsNumberWaterline = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_NUMBER_WATERLINE));
+	//	}
+	//}
 
-	if (m_pEditStart)
-	{
-		CString temp_string;
-		m_aSectionStart.clear();
-		m_aSectionEnd.clear();
-		m_aSectionOffset.clear();
+	//if (m_pEditStart)
+	//{
+	//	CString temp_string;
+	//	m_aSectionStart.clear();
+	//	m_aSectionEnd.clear();
+	//	m_aSectionOffset.clear();
 
-		temp_string = m_pEditStart->GetEditText();
-		m_aSectionStart.push_back(atof(temp_string) * 1000.0f);
+	//	temp_string = m_pEditStart->GetEditText();
+	//	m_aSectionStart.push_back(atof(temp_string) * 1000.0f);
 
-		temp_string = m_pEditEnd->GetEditText();
-		m_aSectionEnd.push_back(atof(temp_string) * 1000.0f);
+	//	temp_string = m_pEditEnd->GetEditText();
+	//	m_aSectionEnd.push_back(atof(temp_string) * 1000.0f);
 
-		temp_string = m_pEditSpace->GetEditText();
-		m_aSectionOffset.push_back(atof(temp_string) * 1000.0f);
+	//	temp_string = m_pEditSpace->GetEditText();
+	//	m_aSectionOffset.push_back(atof(temp_string) * 1000.0f);
 
-		ClearSections();
-		DefineSections();
-	}
+	//	ClearSections();
+	//	DefineSections();
+	//}
 }
 
 void CIRES2View::ClearSections()
@@ -2446,63 +2419,63 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 
 	float points_gap = 500.0f;
 	float points_gap_waterline = 500.0f;
-	if (m_bUseDistanceForAxis)
-	{
-		if (m_pEditPointsDistance)
-		{
-			CString temp_string;
-			temp_string = m_pEditPointsDistance->GetEditText();
-			points_gap = atof(temp_string) * 1000.0f;
-		}
-	}
-	else
-	{
-		if (m_pEditPointsNumber)
-		{
-			CString temp_string;
-			temp_string = m_pEditPointsNumber->GetEditText();
-			points_gap = atof(temp_string) * 1000.0f;
-		}
-	}
+	//if (m_bUseDistanceForAxis)
+	//{
+	//	if (m_pEditPointsDistance)
+	//	{
+	//		CString temp_string;
+	//		temp_string = m_pEditPointsDistance->GetEditText();
+	//		points_gap = atof(temp_string) * 1000.0f;
+	//	}
+	//}
+	//else
+	//{
+	//	if (m_pEditPointsNumber)
+	//	{
+	//		CString temp_string;
+	//		temp_string = m_pEditPointsNumber->GetEditText();
+	//		points_gap = atof(temp_string) * 1000.0f;
+	//	}
+	//}
 
-	if (m_bUseDistanceForAxisWaterline)
-	{
-		if (m_pEditPointsDistanceWaterline)
-		{
-			CString temp_string;
-			temp_string = m_pEditPointsDistanceWaterline->GetEditText();
-			points_gap_waterline = atof(temp_string) * 1000.0f;
-		}
-	}
-	else
-	{
-		if (m_pEditPointsNumberWaterline)
-		{
-			CString temp_string;
-			temp_string = m_pEditPointsNumberWaterline->GetEditText();
-			points_gap_waterline = atof(temp_string) * 1000.0f;
-		}
-	}
+	//if (m_bUseDistanceForAxisWaterline)
+	//{
+	//	if (m_pEditPointsDistanceWaterline)
+	//	{
+	//		CString temp_string;
+	//		temp_string = m_pEditPointsDistanceWaterline->GetEditText();
+	//		points_gap_waterline = atof(temp_string) * 1000.0f;
+	//	}
+	//}
+	//else
+	//{
+	//	if (m_pEditPointsNumberWaterline)
+	//	{
+	//		CString temp_string;
+	//		temp_string = m_pEditPointsNumberWaterline->GetEditText();
+	//		points_gap_waterline = atof(temp_string) * 1000.0f;
+	//	}
+	//}
 
-	if (m_pEditStartWaterline)
-	{
-		CString temp_string;
-		temp_string = m_pEditStartWaterline->GetEditText();
-		m_fWaterlineStartPos = atof(temp_string) * 1000.0f;
-	}
-	if (m_pEditEndWaterline)
-	{
-		CString temp_string;
-		temp_string = m_pEditEndWaterline->GetEditText();
-		m_fWaterlineEndPos = atof(temp_string) * 1000.0f;
-	}
+	//if (m_pEditStartWaterline)
+	//{
+	//	CString temp_string;
+	//	temp_string = m_pEditStartWaterline->GetEditText();
+	//	m_fWaterlineStartPos = atof(temp_string) * 1000.0f;
+	//}
+	//if (m_pEditEndWaterline)
+	//{
+	//	CString temp_string;
+	//	temp_string = m_pEditEndWaterline->GetEditText();
+	//	m_fWaterlineEndPos = atof(temp_string) * 1000.0f;
+	//}
 
-	if (m_pEditSpaceWaterline)
-	{
-		CString temp_string;
-		temp_string = m_pEditSpaceWaterline->GetEditText();
-		m_fDraftValue = atof(temp_string);
-	}
+	//if (m_pEditSpaceWaterline)
+	//{
+	//	CString temp_string;
+	//	temp_string = m_pEditSpaceWaterline->GetEditText();
+	//	m_fDraftValue = atof(temp_string);
+	//}
 
 	//if (m_pEditPointsGap)
 	//{
@@ -3891,24 +3864,24 @@ void CIRES2View::OnTimer(UINT_PTR nIDEvent)
 {
 	if (nIDEvent == 1)
 	{
-		if (m_pEditStart)
-		{
-			CString temp_string;
-			temp_string.Format("%g", bbHull.xMax() / 1000.0f);
-			m_pEditStart->SetEditText(temp_string);
-			m_pEditStartWaterline->SetEditText(temp_string);
+		//if (m_pEditStart)
+		//{
+		//	CString temp_string;
+		//	temp_string.Format("%g", bbHull.xMax() / 1000.0f);
+		//	m_pEditStart->SetEditText(temp_string);
+		//	m_pEditStartWaterline->SetEditText(temp_string);
 
-			temp_string.Format("%g", bbHull.xMin() / 1000.0f);
-			m_pEditEnd->SetEditText(temp_string);
-			m_pEditEndWaterline->SetEditText(temp_string);
+		//	temp_string.Format("%g", bbHull.xMin() / 1000.0f);
+		//	m_pEditEnd->SetEditText(temp_string);
+		//	m_pEditEndWaterline->SetEditText(temp_string);
 
-			//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 / 1000.0f);
-			m_pEditSpace->SetEditText("0.5");
+		//	//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 / 1000.0f);
+		//	m_pEditSpace->SetEditText("0.5");
 
-			UpdateWaterlinePos();
-			
-			FitWorld();
-		}
+		//	UpdateWaterlinePos();
+		//	
+		//	FitWorld();
+		//}
 
 		KillTimer(1);
 	}
@@ -3965,207 +3938,207 @@ void CIRES2View::OnButtonSelectSection()
 }
 
 
-void CIRES2View::OnSpinHullXPos()
-{
-	CString str_x = m_pHULLSpinXPos->GetEditText();
-	str_x.Replace(",", "");
-	m_iHULLPos[0] = atof(str_x) * 1000.0f;
-	osg::Matrix m;
-	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iHULLPos);
-	m.setRotate(q);
-	osgHull_Center->setMatrix(m);
-}
-
-
-void CIRES2View::OnSpinHullYPos()
-{
-	CString str_x = m_pHULLSpinYPos->GetEditText();
-	str_x.Replace(",", "");
-	m_iHULLPos[1] = atof(str_x) * 1000.0f;
-	osg::Matrix m;
-	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iHULLPos);
-	m.setRotate(q);
-	osgHull_Center->setMatrix(m);
-}
-
-
-void CIRES2View::OnSpinHullZPos()
-{
-	CString str_x = m_pHULLSpinZPos->GetEditText();
-	str_x.Replace(",", "");
-	m_iHULLPos[2] = atof(str_x) * 1000.0f;
-	osg::Matrix m;
-	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iHULLPos);
-	m.setRotate(q);
-	osgHull_Center->setMatrix(m);
-}
-
-
-void CIRES2View::OnSpinHullXAngle()
-{
-	CString str_x = m_pHULLSpinXRot->GetEditText();
-	str_x.Replace(",", "");
-	m_iHULLRot[0] = osg::DegreesToRadians(atof(str_x));
-	osg::Matrix m;
-	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iHULLPos);
-	m.setRotate(q);
-	osgHull_Center->setMatrix(m);
-}
-
-
-
-void CIRES2View::OnSpinSectionX()
-{
-	CString str_x = m_pSectionSpinXRot->GetEditText();
-	str_x.Replace(",", "");
-	m_iSectionRot[0] = osg::DegreesToRadians(atof(str_x));
-	if(m_bBowBreaking)
-		osgSectionRotation = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
-	else
-		osgSectionRotation = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
-
-	osg::Vec3 diff(0, 0, -bbLength[2] * 2.0f);
-	for (int i = 0; i < osgSections.size(); i++)
-	{
-		osg::Matrix m;
-		if (osgSectionEnable[i])
-		{
-			m.setTrans(osgSectionPosList[i]);
-		}
-		else
-		{
-			m.setTrans(osgSectionPosList[i] + diff);
-		}
-		m.setRotate(osgSectionRotation);
-		osgSections[i]->setMatrix(m);
-	}
-}
-
-void CIRES2View::OnSpinSectionY()
-{
-	CString str_x = m_pSectionSpinYRot->GetEditText();
-	str_x.Replace(",", "");
-	m_iSectionRot[1] = osg::DegreesToRadians(atof(str_x));
-	if (m_bBowBreaking)
-		osgSectionRotation = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
-	else
-		osgSectionRotation = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
-
-	osg::Vec3 diff(0, 0, -bbLength[2] * 2.0f);
-	for (int i = 0; i < osgSections.size(); i++)
-	{
-		osg::Matrix m;
-		if (osgSectionEnable[i])
-		{
-			m.setTrans(osgSectionPosList[i]);
-		}
-		else
-		{
-			m.setTrans(osgSectionPosList[i] + diff);
-		}
-		m.setRotate(osgSectionRotation);
-		osgSections[i]->setMatrix(m);
-	}
-}
-
-void CIRES2View::OnSpinSectionZ()
-{
-	CString str_x = m_pSectionSpinZRot->GetEditText();
-	str_x.Replace(",", "");
-	m_iSectionRot[2] = osg::DegreesToRadians(atof(str_x));
-	if (m_bBowBreaking)
-		osgSectionRotation = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
-	else
-		osgSectionRotation = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
-
-	osg::Vec3 diff(0, 0, -bbLength[2] * 2.0f);
-	for (int i = 0; i < osgSections.size(); i++)
-	{
-		osg::Matrix m;
-		if (osgSectionEnable[i])
-		{
-			m.setTrans(osgSectionPosList[i]);
-		}
-		else
-		{
-			m.setTrans(osgSectionPosList[i] + diff);
-		}
-		m.setRotate(osgSectionRotation);
-		osgSections[i]->setMatrix(m);
-	}
-}
-
-
-void CIRES2View::OnSpinWaterlineZ()
-{
-	CString str_z = m_pWaterlineSpinZPos->GetEditText();
-	str_z.Replace(",", "");
-	m_iWaterLinePos[2] = atof(str_z) * 1000.0f;
-
-	osg::Matrix m;
-	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iWaterLinePos);
-	m.setRotate(q);
-	osgWaterline->setMatrix(m);
-}
-
-
-void CIRES2View::OnSpinWaterlineX()
-{
-	CString str_z = m_pWaterlineSpinXRot->GetEditText();
-	str_z.Replace(",", "");
-	m_iWaterLineRot[0] = osg::DegreesToRadians(atof(str_z));
-
-	osg::Matrix m;
-	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iWaterLinePos);
-	m.setRotate(q);
-	osgWaterline->setMatrix(m);
-}
-
-
-void CIRES2View::OnSpinWaterlineY()
-{
-	CString str_z = m_pWaterlineSpinYRot->GetEditText();
-	str_z.Replace(",", "");
-	m_iWaterLineRot[1] = osg::DegreesToRadians(atof(str_z));
-
-	osg::Matrix m;
-	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iWaterLinePos);
-	m.setRotate(q);
-	osgWaterline->setMatrix(m);
-}
-
-
-void CIRES2View::OnSpinHullYAngle()
-{
-	CString str_x = m_pHULLSpinYRot->GetEditText();
-	str_x.Replace(",", "");
-	m_iHULLRot[1] = osg::DegreesToRadians(atof(str_x));
-	osg::Matrix m;
-	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iHULLPos);
-	m.setRotate(q);
-	osgHull_Center->setMatrix(m);
-}
-
-
-void CIRES2View::OnSpinHullZAngle()
-{
-	CString str_x = m_pHULLSpinZRot->GetEditText();
-	str_x.Replace(",", "");
-	m_iHULLRot[2] = osg::DegreesToRadians(atof(str_x));
-	osg::Matrix m;
-	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iHULLPos);
-	m.setRotate(q);
-	osgHull_Center->setMatrix(m);
-}
+//void CIRES2View::OnSpinHullXPos()
+//{
+//	CString str_x = m_pHULLSpinXPos->GetEditText();
+//	str_x.Replace(",", "");
+//	m_iHULLPos[0] = atof(str_x) * 1000.0f;
+//	osg::Matrix m;
+//	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+//	m.setTrans(m_iHULLPos);
+//	m.setRotate(q);
+//	osgHull_Center->setMatrix(m);
+//}
+//
+//
+//void CIRES2View::OnSpinHullYPos()
+//{
+//	CString str_x = m_pHULLSpinYPos->GetEditText();
+//	str_x.Replace(",", "");
+//	m_iHULLPos[1] = atof(str_x) * 1000.0f;
+//	osg::Matrix m;
+//	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+//	m.setTrans(m_iHULLPos);
+//	m.setRotate(q);
+//	osgHull_Center->setMatrix(m);
+//}
+//
+//
+//void CIRES2View::OnSpinHullZPos()
+//{
+//	CString str_x = m_pHULLSpinZPos->GetEditText();
+//	str_x.Replace(",", "");
+//	m_iHULLPos[2] = atof(str_x) * 1000.0f;
+//	osg::Matrix m;
+//	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+//	m.setTrans(m_iHULLPos);
+//	m.setRotate(q);
+//	osgHull_Center->setMatrix(m);
+//}
+//
+//
+//void CIRES2View::OnSpinHullXAngle()
+//{
+//	CString str_x = m_pHULLSpinXRot->GetEditText();
+//	str_x.Replace(",", "");
+//	m_iHULLRot[0] = osg::DegreesToRadians(atof(str_x));
+//	osg::Matrix m;
+//	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+//	m.setTrans(m_iHULLPos);
+//	m.setRotate(q);
+//	osgHull_Center->setMatrix(m);
+//}
+//
+//
+//
+//void CIRES2View::OnSpinSectionX()
+//{
+//	CString str_x = m_pSectionSpinXRot->GetEditText();
+//	str_x.Replace(",", "");
+//	m_iSectionRot[0] = osg::DegreesToRadians(atof(str_x));
+//	if(m_bBowBreaking)
+//		osgSectionRotation = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+//	else
+//		osgSectionRotation = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+//
+//	osg::Vec3 diff(0, 0, -bbLength[2] * 2.0f);
+//	for (int i = 0; i < osgSections.size(); i++)
+//	{
+//		osg::Matrix m;
+//		if (osgSectionEnable[i])
+//		{
+//			m.setTrans(osgSectionPosList[i]);
+//		}
+//		else
+//		{
+//			m.setTrans(osgSectionPosList[i] + diff);
+//		}
+//		m.setRotate(osgSectionRotation);
+//		osgSections[i]->setMatrix(m);
+//	}
+//}
+//
+//void CIRES2View::OnSpinSectionY()
+//{
+//	CString str_x = m_pSectionSpinYRot->GetEditText();
+//	str_x.Replace(",", "");
+//	m_iSectionRot[1] = osg::DegreesToRadians(atof(str_x));
+//	if (m_bBowBreaking)
+//		osgSectionRotation = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+//	else
+//		osgSectionRotation = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+//
+//	osg::Vec3 diff(0, 0, -bbLength[2] * 2.0f);
+//	for (int i = 0; i < osgSections.size(); i++)
+//	{
+//		osg::Matrix m;
+//		if (osgSectionEnable[i])
+//		{
+//			m.setTrans(osgSectionPosList[i]);
+//		}
+//		else
+//		{
+//			m.setTrans(osgSectionPosList[i] + diff);
+//		}
+//		m.setRotate(osgSectionRotation);
+//		osgSections[i]->setMatrix(m);
+//	}
+//}
+//
+//void CIRES2View::OnSpinSectionZ()
+//{
+//	CString str_x = m_pSectionSpinZRot->GetEditText();
+//	str_x.Replace(",", "");
+//	m_iSectionRot[2] = osg::DegreesToRadians(atof(str_x));
+//	if (m_bBowBreaking)
+//		osgSectionRotation = osg::Quat(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+//	else
+//		osgSectionRotation = osg::Quat(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+//
+//	osg::Vec3 diff(0, 0, -bbLength[2] * 2.0f);
+//	for (int i = 0; i < osgSections.size(); i++)
+//	{
+//		osg::Matrix m;
+//		if (osgSectionEnable[i])
+//		{
+//			m.setTrans(osgSectionPosList[i]);
+//		}
+//		else
+//		{
+//			m.setTrans(osgSectionPosList[i] + diff);
+//		}
+//		m.setRotate(osgSectionRotation);
+//		osgSections[i]->setMatrix(m);
+//	}
+//}
+//
+//
+//void CIRES2View::OnSpinWaterlineZ()
+//{
+//	CString str_z = m_pWaterlineSpinZPos->GetEditText();
+//	str_z.Replace(",", "");
+//	m_iWaterLinePos[2] = atof(str_z) * 1000.0f;
+//
+//	osg::Matrix m;
+//	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+//	m.setTrans(m_iWaterLinePos);
+//	m.setRotate(q);
+//	osgWaterline->setMatrix(m);
+//}
+//
+//
+//void CIRES2View::OnSpinWaterlineX()
+//{
+//	CString str_z = m_pWaterlineSpinXRot->GetEditText();
+//	str_z.Replace(",", "");
+//	m_iWaterLineRot[0] = osg::DegreesToRadians(atof(str_z));
+//
+//	osg::Matrix m;
+//	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+//	m.setTrans(m_iWaterLinePos);
+//	m.setRotate(q);
+//	osgWaterline->setMatrix(m);
+//}
+//
+//
+//void CIRES2View::OnSpinWaterlineY()
+//{
+//	CString str_z = m_pWaterlineSpinYRot->GetEditText();
+//	str_z.Replace(",", "");
+//	m_iWaterLineRot[1] = osg::DegreesToRadians(atof(str_z));
+//
+//	osg::Matrix m;
+//	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+//	m.setTrans(m_iWaterLinePos);
+//	m.setRotate(q);
+//	osgWaterline->setMatrix(m);
+//}
+//
+//
+//void CIRES2View::OnSpinHullYAngle()
+//{
+//	CString str_x = m_pHULLSpinYRot->GetEditText();
+//	str_x.Replace(",", "");
+//	m_iHULLRot[1] = osg::DegreesToRadians(atof(str_x));
+//	osg::Matrix m;
+//	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+//	m.setTrans(m_iHULLPos);
+//	m.setRotate(q);
+//	osgHull_Center->setMatrix(m);
+//}
+//
+//
+//void CIRES2View::OnSpinHullZAngle()
+//{
+//	CString str_x = m_pHULLSpinZRot->GetEditText();
+//	str_x.Replace(",", "");
+//	m_iHULLRot[2] = osg::DegreesToRadians(atof(str_x));
+//	osg::Matrix m;
+//	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+//	m.setTrans(m_iHULLPos);
+//	m.setRotate(q);
+//	osgHull_Center->setMatrix(m);
+//}
 
 
 void CIRES2View::OnButtonHullPointToPoint()
@@ -4264,7 +4237,7 @@ void CIRES2View::OnLButtonDown(UINT nFlags, CPoint point)
 		m.setTrans(osgHull->getMatrix().getTrans() - diff);
 		osgHull->setMatrix(m);
 
-		UpdateHullPos();
+		//UpdateHullPos();
 
 		PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
 		m_QRemoveChild.push(pf);
@@ -4323,30 +4296,30 @@ void CIRES2View::OnLButtonDown(UINT nFlags, CPoint point)
 	CView::OnLButtonDown(nFlags, point);
 }
 
-void CIRES2View::UpdateHullPos()
-{
-	if (m_pHULLSpinXPos)
-	{
-		CString temp_string;
-		temp_string.Format("%.2lf", m_iHULLPos[0] / 1000.0f);
-		m_pHULLSpinXPos->SetEditText(temp_string);
-		temp_string.Format("%.2lf", m_iHULLPos[1] / 1000.0f);
-		m_pHULLSpinYPos->SetEditText(temp_string);
-		temp_string.Format("%.2lf", m_iHULLPos[2] / 1000.0f);
-		m_pHULLSpinZPos->SetEditText(temp_string);
-	}
-}
-
-void CIRES2View::UpdateWaterlinePos()
-{
-	if (m_pWaterlineSpinZPos)
-	{
-		CString temp_string;
-		temp_string.Format("%.2lf", m_iWaterLinePos[2] / 1000.0f);
-		m_pWaterlineSpinZPos->SetEditText(temp_string);
-		m_pEditSpaceWaterline->SetEditText(temp_string);
-	}
-}
+//void CIRES2View::UpdateHullPos()
+//{
+//	if (m_pHULLSpinXPos)
+//	{
+//		CString temp_string;
+//		temp_string.Format("%.2lf", m_iHULLPos[0] / 1000.0f);
+//		m_pHULLSpinXPos->SetEditText(temp_string);
+//		temp_string.Format("%.2lf", m_iHULLPos[1] / 1000.0f);
+//		m_pHULLSpinYPos->SetEditText(temp_string);
+//		temp_string.Format("%.2lf", m_iHULLPos[2] / 1000.0f);
+//		m_pHULLSpinZPos->SetEditText(temp_string);
+//	}
+//}
+//
+//void CIRES2View::UpdateWaterlinePos()
+//{
+//	if (m_pWaterlineSpinZPos)
+//	{
+//		CString temp_string;
+//		temp_string.Format("%.2lf", m_iWaterLinePos[2] / 1000.0f);
+//		m_pWaterlineSpinZPos->SetEditText(temp_string);
+//		m_pEditSpaceWaterline->SetEditText(temp_string);
+//	}
+//}
 
 void CIRES2View::OnButtonNurbsConversion()
 {
@@ -4628,18 +4601,18 @@ void CIRES2View::OnEditEndWaterline()
 }
 
 
-void CIRES2View::OnEditSpaceWaterline()
-{
-	CString str_z = m_pEditSpaceWaterline->GetEditText();
-	str_z.Replace(",", "");
-	m_iWaterLinePos[2] = atof(str_z) * 1000.0f;
-
-	osg::Matrix m;
-	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iWaterLinePos);
-	m.setRotate(q);
-	osgWaterline->setMatrix(m);
-}
+//void CIRES2View::OnEditSpaceWaterline()
+//{
+//	CString str_z = m_pEditSpaceWaterline->GetEditText();
+//	str_z.Replace(",", "");
+//	m_iWaterLinePos[2] = atof(str_z) * 1000.0f;
+//
+//	osg::Matrix m;
+//	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+//	m.setTrans(m_iWaterLinePos);
+//	m.setRotate(q);
+//	osgWaterline->setMatrix(m);
+//}
 
 
 void CIRES2View::OnCheckDistanceWaterline()
@@ -4703,4 +4676,10 @@ void CIRES2View::OnButtonDefine()
 	{
 
 	}
+}
+
+
+void CIRES2View::CalculateWaterSectionPoint()
+{
+
 }

@@ -1,19 +1,11 @@
-// ÀÌ MFC »ùÇÃ ¼Ò½º ÄÚµå´Â MFC Microsoft Office Fluent »ç¿ëÀÚ ÀÎÅÍÆäÀÌ½º("Fluent UI")¸¦ 
-// »ç¿ëÇÏ´Â ¹æ¹ıÀ» º¸¿© ÁÖ¸ç, MFC C++ ¶óÀÌºê·¯¸® ¼ÒÇÁÆ®¿ş¾î¿¡ Æ÷ÇÔµÈ 
-// Microsoft Foundation Classes Reference ¹× °ü·Ã ÀüÀÚ ¹®¼­¿¡ ´ëÇØ 
-// Ãß°¡ÀûÀ¸·Î Á¦°øµÇ´Â ³»¿ëÀÔ´Ï´Ù.  
-// Fluent UI¸¦ º¹»ç, »ç¿ë ¶Ç´Â ¹èÆ÷ÇÏ´Â µ¥ ´ëÇÑ »ç¿ë ¾à°üÀº º°µµ·Î Á¦°øµË´Ï´Ù.  
-// Fluent UI ¶óÀÌ¼±½Ì ÇÁ·Î±×·¥¿¡ ´ëÇÑ ÀÚ¼¼ÇÑ ³»¿ëÀº 
-// http://go.microsoft.com/fwlink/?LinkId=238214.
-//
-// Copyright (C) Microsoft Corporation
-// All rights reserved.
-
+ï»¿
 #include "stdafx.h"
 #include "MainFrm.h"
 #include "ClassView.h"
 #include "Resource.h"
 #include "I-RES2.h"
+#include "DlgDraftSection.h"
+#include "DlgCrossSection.h"
 
 class CClassViewMenuButton : public CMFCToolBarMenuButton
 {
@@ -22,7 +14,7 @@ class CClassViewMenuButton : public CMFCToolBarMenuButton
 	DECLARE_SERIAL(CClassViewMenuButton)
 
 public:
-	CClassViewMenuButton(HMENU hMenu = NULL) : CMFCToolBarMenuButton((UINT)-1, hMenu, -1)
+	CClassViewMenuButton(HMENU hMenu = nullptr) noexcept : CMFCToolBarMenuButton((UINT)-1, hMenu, -1)
 	{
 	}
 
@@ -43,12 +35,20 @@ public:
 IMPLEMENT_SERIAL(CClassViewMenuButton, CMFCToolBarMenuButton, 1)
 
 //////////////////////////////////////////////////////////////////////
-// »ı¼º/¼Ò¸ê
+// ìƒì„±/ì†Œë©¸
 //////////////////////////////////////////////////////////////////////
 
-CClassView::CClassView()
+CClassView::CClassView() noexcept
 {
 	m_nCurrSort = ID_SORTING_GROUPBYTYPE;
+	itemModelStatus = false;
+	itemHullStatus = false;
+	itemSectionStatus = false;
+	itemDraftSectionStatus = false;
+	itemCrossSectionStatus = false;
+	itemMaterialStatus = false;
+	itemConditionStatus = false;
+	itemAnalysisStatus = false;
 }
 
 CClassView::~CClassView()
@@ -68,10 +68,11 @@ BEGIN_MESSAGE_MAP(CClassView, CDockablePane)
 	ON_WM_SETFOCUS()
 	ON_COMMAND_RANGE(ID_SORTING_GROUPBYTYPE, ID_SORTING_SORTBYACCESS, OnSort)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_SORTING_GROUPBYTYPE, ID_SORTING_SORTBYACCESS, OnUpdateSort)
+	ON_NOTIFY(TVN_SELCHANGED, 2, &CClassView::OnTvnSelchanged)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
-// CClassView ¸Ş½ÃÁö Ã³¸®±â
+// CClassView ë©”ì‹œì§€ ì²˜ë¦¬ê¸°
 
 int CClassView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
@@ -81,45 +82,48 @@ int CClassView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CRect rectDummy;
 	rectDummy.SetRectEmpty();
 
-	// ºä¸¦ ¸¸µì´Ï´Ù.
-	const DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+	// ë·°ë¥¼ ë§Œë“­ë‹ˆë‹¤.
+	const DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | WS_BORDER;
 
 	if (!m_wndClassView.Create(dwViewStyle, rectDummy, this, 2))
 	{
-		TRACE0("Å¬·¡½º ºä¸¦ ¸¸µéÁö ¸øÇß½À´Ï´Ù.\n");
-		return -1;      // ¸¸µéÁö ¸øÇß½À´Ï´Ù.
+		TRACE0("í´ë˜ìŠ¤ ë·°ë¥¼ ë§Œë“¤ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.\n");
+		return -1;      // ë§Œë“¤ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.
 	}
+	m_wndClassView.ModifyStyle(0, TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS | TVS_SHOWSELALWAYS);
+	m_wndClassView.Initialize(0, 0);
+	m_wndClassView.SetHtml(TRUE);
 
-	// ÀÌ¹ÌÁö¸¦ ·ÎµåÇÕ´Ï´Ù.
-	m_wndToolBar.Create(this, AFX_DEFAULT_TOOLBAR_STYLE, IDR_SORT);
-	m_wndToolBar.LoadToolBar(IDR_SORT, 0, 0, TRUE /* Àá±İ */);
+	// ì´ë¯¸ì§€ë¥¼ ë¡œë“œí•©ë‹ˆë‹¤.
+	//m_wndToolBar.Create(this, AFX_DEFAULT_TOOLBAR_STYLE, IDR_SORT);
+	//m_wndToolBar.LoadToolBar(IDR_SORT, 0, 0, TRUE /* ì ê¸ˆ */);
 
 	OnChangeVisualStyle();
 
-	m_wndToolBar.SetPaneStyle(m_wndToolBar.GetPaneStyle() | CBRS_TOOLTIPS | CBRS_FLYBY);
-	m_wndToolBar.SetPaneStyle(m_wndToolBar.GetPaneStyle() & ~(CBRS_GRIPPER | CBRS_SIZE_DYNAMIC | CBRS_BORDER_TOP | CBRS_BORDER_BOTTOM | CBRS_BORDER_LEFT | CBRS_BORDER_RIGHT));
+	//m_wndToolBar.SetPaneStyle(m_wndToolBar.GetPaneStyle() | CBRS_TOOLTIPS | CBRS_FLYBY);
+	//m_wndToolBar.SetPaneStyle(m_wndToolBar.GetPaneStyle() & ~(CBRS_GRIPPER | CBRS_SIZE_DYNAMIC | CBRS_BORDER_TOP | CBRS_BORDER_BOTTOM | CBRS_BORDER_LEFT | CBRS_BORDER_RIGHT));
 
-	m_wndToolBar.SetOwner(this);
+	//m_wndToolBar.SetOwner(this);
 
-	// ¸ğµç ¸í·ÉÀº ºÎ¸ğ ÇÁ·¹ÀÓÀÌ ¾Æ´Ñ ÀÌ ÄÁÆ®·ÑÀ» ÅëÇØ ¶ó¿ìÆÃµË´Ï´Ù.
-	m_wndToolBar.SetRouteCommandsViaFrame(FALSE);
+	//// ëª¨ë“  ëª…ë ¹ì€ ë¶€ëª¨ í”„ë ˆì„ì´ ì•„ë‹Œ ì´ ì»¨íŠ¸ë¡¤ì„ í†µí•´ ë¼ìš°íŒ…ë©ë‹ˆë‹¤.
+	//m_wndToolBar.SetRouteCommandsViaFrame(FALSE);
 
-	CMenu menuSort;
-	menuSort.LoadMenu(IDR_POPUP_SORT);
+	//CMenu menuSort;
+	//menuSort.LoadMenu(IDR_POPUP_SORT);
 
-	m_wndToolBar.ReplaceButton(ID_SORT_MENU, CClassViewMenuButton(menuSort.GetSubMenu(0)->GetSafeHmenu()));
+	//m_wndToolBar.ReplaceButton(ID_SORT_MENU, CClassViewMenuButton(menuSort.GetSubMenu(0)->GetSafeHmenu()));
 
-	CClassViewMenuButton* pButton =  DYNAMIC_DOWNCAST(CClassViewMenuButton, m_wndToolBar.GetButton(0));
+	//CClassViewMenuButton* pButton =  DYNAMIC_DOWNCAST(CClassViewMenuButton, m_wndToolBar.GetButton(0));
 
-	if (pButton != NULL)
-	{
-		pButton->m_bText = FALSE;
-		pButton->m_bImage = TRUE;
-		pButton->SetImage(GetCmdMgr()->GetCmdImage(m_nCurrSort));
-		pButton->SetMessageWnd(this);
-	}
+	//if (pButton != nullptr)
+	//{
+	//	pButton->m_bText = FALSE;
+	//	pButton->m_bImage = TRUE;
+	//	pButton->SetImage(GetCmdMgr()->GetCmdImage(m_nCurrSort));
+	//	pButton->SetMessageWnd(this);
+	//}
 
-	// Á¤Àû Æ®¸® ºä µ¥ÀÌÅÍ¸¦ ´õ¹Ì ÄÚµå·Î Ã¤¿ó´Ï´Ù.
+	// ì •ì  íŠ¸ë¦¬ ë·° ë°ì´í„°ë¥¼ ë”ë¯¸ ì½”ë“œë¡œ ì±„ì›ë‹ˆë‹¤.
 	FillClassView();
 
 	return 0;
@@ -133,40 +137,16 @@ void CClassView::OnSize(UINT nType, int cx, int cy)
 
 void CClassView::FillClassView()
 {
-	HTREEITEM hRoot = m_wndClassView.InsertItem(_T("FakeApp Å¬·¡½º"), 0, 0);
-	m_wndClassView.SetItemState(hRoot, TVIS_BOLD, TVIS_BOLD);
+	itemModel = m_wndClassView.InsertItem(_T("Model <font color = \"red\">[?]</font></b>"), 0, 0);
+	itemHull = m_wndClassView.InsertItem(_T("<b>Hull <font color = \"red\">[?]</font>"), 1, 1, itemModel);
+	itemSection = m_wndClassView.InsertItem(_T("<b>Section Assignments <font color = \"red\">[?]</font>"), 2, 2, itemModel);
+	itemDraftSection = m_wndClassView.InsertItem(_T("<b>Draft Section <font color = \"red\">[?]</font>"), 5, 5, itemSection);
+	itemCrossSection = m_wndClassView.InsertItem(_T("<b>Cross Section <font color = \"red\">[?]</font>"), 5, 5, itemSection);
+	itemMaterial = m_wndClassView.InsertItem(_T("<b>Material <font color = \"red\">[?]</font>"), 3, 1, itemModel);
+	itemCondition = m_wndClassView.InsertItem(_T("<b>Condition <font color = \"red\">[?]</font>"), 4, 1, itemModel);
+	m_wndClassView.Expand(itemModel, TVE_EXPAND);
 
-	HTREEITEM hClass = m_wndClassView.InsertItem(_T("CFakeAboutDlg"), 1, 1, hRoot);
-	m_wndClassView.InsertItem(_T("CFakeAboutDlg()"), 3, 3, hClass);
-
-	m_wndClassView.Expand(hRoot, TVE_EXPAND);
-
-	hClass = m_wndClassView.InsertItem(_T("CFakeApp"), 1, 1, hRoot);
-	m_wndClassView.InsertItem(_T("CFakeApp()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("InitInstance()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("OnAppAbout()"), 3, 3, hClass);
-
-	hClass = m_wndClassView.InsertItem(_T("CFakeAppDoc"), 1, 1, hRoot);
-	m_wndClassView.InsertItem(_T("CFakeAppDoc()"), 4, 4, hClass);
-	m_wndClassView.InsertItem(_T("~CFakeAppDoc()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("OnNewDocument()"), 3, 3, hClass);
-
-	hClass = m_wndClassView.InsertItem(_T("CFakeAppView"), 1, 1, hRoot);
-	m_wndClassView.InsertItem(_T("CFakeAppView()"), 4, 4, hClass);
-	m_wndClassView.InsertItem(_T("~CFakeAppView()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("GetDocument()"), 3, 3, hClass);
-	m_wndClassView.Expand(hClass, TVE_EXPAND);
-
-	hClass = m_wndClassView.InsertItem(_T("CFakeAppFrame"), 1, 1, hRoot);
-	m_wndClassView.InsertItem(_T("CFakeAppFrame()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("~CFakeAppFrame()"), 3, 3, hClass);
-	m_wndClassView.InsertItem(_T("m_wndMenuBar"), 6, 6, hClass);
-	m_wndClassView.InsertItem(_T("m_wndToolBar"), 6, 6, hClass);
-	m_wndClassView.InsertItem(_T("m_wndStatusBar"), 6, 6, hClass);
-
-	hClass = m_wndClassView.InsertItem(_T("Globals"), 2, 2, hRoot);
-	m_wndClassView.InsertItem(_T("theFakeApp"), 5, 5, hClass);
-	m_wndClassView.Expand(hClass, TVE_EXPAND);
+	itemAnalysis = m_wndClassView.InsertItem(_T("Analysis"), 0, 0);
 }
 
 void CClassView::OnContextMenu(CWnd* pWnd, CPoint point)
@@ -182,13 +162,13 @@ void CClassView::OnContextMenu(CWnd* pWnd, CPoint point)
 
 	if (point != CPoint(-1, -1))
 	{
-		// Å¬¸¯ÇÑ Ç×¸ñÀ» ¼±ÅÃÇÕ´Ï´Ù.
+		// í´ë¦­í•œ í•­ëª©ì„ ì„ íƒí•©ë‹ˆë‹¤.
 		CPoint ptTree = point;
 		pWndTree->ScreenToClient(&ptTree);
 
 		UINT flags = 0;
 		HTREEITEM hTreeItem = pWndTree->HitTest(ptTree, &flags);
-		if (hTreeItem != NULL)
+		if (hTreeItem != nullptr)
 		{
 			pWndTree->SelectItem(hTreeItem);
 		}
@@ -214,7 +194,7 @@ void CClassView::OnContextMenu(CWnd* pWnd, CPoint point)
 
 void CClassView::AdjustLayout()
 {
-	if (GetSafeHwnd() == NULL)
+	if (GetSafeHwnd() == nullptr)
 	{
 		return;
 	}
@@ -222,10 +202,10 @@ void CClassView::AdjustLayout()
 	CRect rectClient;
 	GetClientRect(rectClient);
 
-	int cyTlb = m_wndToolBar.CalcFixedLayout(FALSE, TRUE).cy;
+	//int cyTlb = m_wndToolBar.CalcFixedLayout(FALSE, TRUE).cy;
 
-	m_wndToolBar.SetWindowPos(NULL, rectClient.left, rectClient.top, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
-	m_wndClassView.SetWindowPos(NULL, rectClient.left + 1, rectClient.top + cyTlb + 1, rectClient.Width() - 2, rectClient.Height() - cyTlb - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+	//m_wndToolBar.SetWindowPos(nullptr, rectClient.left, rectClient.top, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
+	m_wndClassView.SetWindowPos(nullptr, rectClient.left + 1, rectClient.top + 1, rectClient.Width() - 2, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 BOOL CClassView::PreTranslateMessage(MSG* pMsg)
@@ -242,14 +222,14 @@ void CClassView::OnSort(UINT id)
 
 	m_nCurrSort = id;
 
-	CClassViewMenuButton* pButton =  DYNAMIC_DOWNCAST(CClassViewMenuButton, m_wndToolBar.GetButton(0));
+	//CClassViewMenuButton* pButton =  DYNAMIC_DOWNCAST(CClassViewMenuButton, m_wndToolBar.GetButton(0));
 
-	if (pButton != NULL)
-	{
-		pButton->SetImage(GetCmdMgr()->GetCmdImage(id));
-		m_wndToolBar.Invalidate();
-		m_wndToolBar.UpdateWindow();
-	}
+	//if (pButton != nullptr)
+	//{
+	//	pButton->SetImage(GetCmdMgr()->GetCmdImage(id));
+	//	m_wndToolBar.Invalidate();
+	//	m_wndToolBar.UpdateWindow();
+	//}
 }
 
 void CClassView::OnUpdateSort(CCmdUI* pCmdUI)
@@ -259,32 +239,32 @@ void CClassView::OnUpdateSort(CCmdUI* pCmdUI)
 
 void CClassView::OnClassAddMemberFunction()
 {
-	AfxMessageBox(_T("¸â¹ö ÇÔ¼ö Ãß°¡..."));
+	AfxMessageBox(_T("ë©¤ë²„ í•¨ìˆ˜ ì¶”ê°€..."));
 }
 
 void CClassView::OnClassAddMemberVariable()
 {
-	// TODO: ¿©±â¿¡ ¸í·É Ã³¸®±â ÄÚµå¸¦ Ãß°¡ÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— ëª…ë ¹ ì²˜ë¦¬ê¸° ì½”ë“œë¥¼ ì¶”ê°€í•©ë‹ˆë‹¤.
 }
 
 void CClassView::OnClassDefinition()
 {
-	// TODO: ¿©±â¿¡ ¸í·É Ã³¸®±â ÄÚµå¸¦ Ãß°¡ÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— ëª…ë ¹ ì²˜ë¦¬ê¸° ì½”ë“œë¥¼ ì¶”ê°€í•©ë‹ˆë‹¤.
 }
 
 void CClassView::OnClassProperties()
 {
-	// TODO: ¿©±â¿¡ ¸í·É Ã³¸®±â ÄÚµå¸¦ Ãß°¡ÇÕ´Ï´Ù.
+	// TODO: ì—¬ê¸°ì— ëª…ë ¹ ì²˜ë¦¬ê¸° ì½”ë“œë¥¼ ì¶”ê°€í•©ë‹ˆë‹¤.
 }
 
 void CClassView::OnNewFolder()
 {
-	AfxMessageBox(_T("»õ Æú´õ..."));
+	AfxMessageBox(_T("ìƒˆ í´ë”..."));
 }
 
 void CClassView::OnPaint()
 {
-	CPaintDC dc(this); // ±×¸®±â¸¦ À§ÇÑ µğ¹ÙÀÌ½º ÄÁÅØ½ºÆ®ÀÔ´Ï´Ù.
+	CPaintDC dc(this); // ê·¸ë¦¬ê¸°ë¥¼ ìœ„í•œ ë””ë°”ì´ìŠ¤ ì»¨í…ìŠ¤íŠ¸ì…ë‹ˆë‹¤.
 
 	CRect rectTree;
 	m_wndClassView.GetWindowRect(rectTree);
@@ -310,7 +290,7 @@ void CClassView::OnChangeVisualStyle()
 	CBitmap bmp;
 	if (!bmp.LoadBitmap(uiBmpId))
 	{
-		TRACE(_T("ºñÆ®¸ÊÀ» ·ÎµåÇÒ ¼ö ¾ø½À´Ï´Ù. %x\n"), uiBmpId);
+		TRACE(_T("ë¹„íŠ¸ë§µì„ ë¡œë“œí•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. %x\n"), uiBmpId);
 		ASSERT(FALSE);
 		return;
 	}
@@ -327,6 +307,209 @@ void CClassView::OnChangeVisualStyle()
 
 	m_wndClassView.SetImageList(&m_ClassViewImages, TVSIL_NORMAL);
 
-	m_wndToolBar.CleanUpLockedImages();
-	m_wndToolBar.LoadBitmap(theApp.m_bHiColorIcons ? IDB_SORT_24 : IDR_SORT, 0, 0, TRUE /* Àá±İ */);
+	//m_wndToolBar.CleanUpLockedImages();
+	//m_wndToolBar.LoadBitmap(theApp.m_bHiColorIcons ? IDB_SORT_24 : IDR_SORT, 0, 0, TRUE /* ì ê¸ˆ */);
+}
+
+void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
+	HTREEITEM current_item = m_wndClassView.GetSelectedItem();
+	if (current_item)
+	{
+		//CString item_text = m_wndClassView.GetItemText(current_item);
+		CMainFrame* m_pFrame = (CMainFrame*)AfxGetMainWnd();
+
+		if (m_pFrame)
+		{
+			if (current_item == itemHull)
+			{
+				m_pFrame->m_wndDlgToolbar.SetToolbar(0);
+				CRect rect;
+				m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
+				m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
+				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
+				m_pFrame->m_wndDlgToolbar.SetFocus();
+			}
+			else if (current_item == itemDraftSection || current_item == itemSection)
+			{
+				m_pFrame->m_wndDlgToolbar.SetToolbar(1);
+				CRect rect;
+				m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
+				m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
+				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
+				m_pFrame->m_wndDlgToolbar.SetFocus();
+
+				CDlgDraftSection pDlg(m_pView);
+				pDlg.DoModal();
+			}
+			else if (current_item == itemCrossSection)
+			{
+				m_pFrame->m_wndDlgToolbar.SetToolbar(1);
+				CRect rect;
+				m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
+				m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
+				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
+				m_pFrame->m_wndDlgToolbar.SetFocus();
+
+				CDlgCrossSection pDlg(m_pView);
+				pDlg.DoModal();
+			}
+			else
+			{
+				m_pFrame->m_wndDlgToolbar.ShowPane(FALSE, FALSE, FALSE);
+			}
+		}
+		//HTREEITEM parent_item = m_wndClassView.GetParentItem(current_item);
+		//if (parent_item)
+		//{
+		//	CMainFrame* m_pFrame = (CMainFrame*)AfxGetMainWnd();
+
+		//	if (m_pFrame)
+		//	{
+		//		COSSimulatorView* pview = (COSSimulatorView*)(m_pFrame->GetActiveView());
+		//		if (pview)
+		//		{
+		//			pview->SelectResultFromTree(parent_item, current_item);
+		//		}
+		//	}
+		//}
+	}
+	*pResult = 0;
+}
+
+void CClassView::SetModelStatus(bool is_on)
+{
+	itemModelStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemModel, _T("Model <font color = \"green\">[O]</font></b>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemModel, _T("Model <font color = \"red\">[?]</font></b>"));
+	}
+}
+
+void CClassView::SetHulllStatus(bool is_on)
+{
+	itemHullStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemHull, _T("<b>Hull <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemHull, _T("<b>Hull <font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetSectionStatus(bool is_on)
+{
+	itemSectionStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemSection, _T("<b>Section Assignments <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemSection, _T("<b>Section Assignments <font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetDraftStatus(bool is_on)
+{
+	itemDraftSectionStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemDraftSection, _T("<b>Draft Section <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemDraftSection, _T("<b>Draft Section <font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetCrossStatus(bool is_on)
+{
+	itemCrossSectionStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemCrossSection, _T("<b>Cross Section <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemCrossSection, _T("<b>Cross Section <font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetMaterialStatus(bool is_on)
+{
+	itemMaterialStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemMaterial, _T("<b>Material <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemMaterial, _T("<b>Material <font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetConditionStatus(bool is_on)
+{
+	itemConditionStatus = is_on;
+	if (is_on)
+	{
+		m_wndClassView.SetItemText(itemCondition, _T("<b>Condition <font color = \"green\">[O]</font>"));
+	}
+	else
+	{
+		m_wndClassView.SetItemText(itemCondition, _T("<b>Condition < font color = \"red\">[?]</font>"));
+	}
+}
+
+void CClassView::SetAnalysisStatus(bool is_on)
+{
+	itemAnalysisStatus = is_on;
+}
+
+int CClassView::GetModelStatus()
+{
+	return itemModelStatus;
+}
+
+int CClassView::GetHulllStatus()
+{
+	return itemHullStatus;
+}
+
+int CClassView::GetSectionStatus()
+{
+	return itemSectionStatus;
+}
+
+int CClassView::GetDraftStatus()
+{
+	return itemDraftSectionStatus;
+}
+
+int CClassView::GetCrossStatus()
+{
+	return itemCrossSectionStatus;
+}
+
+int CClassView::GetMaterialStatus()
+{
+	return itemMaterialStatus;
+}
+
+int CClassView::GetConditionStatus()
+{
+	return itemConditionStatus;
+}
+
+int CClassView::GetAnalysisStatus()
+{
+	return itemAnalysisStatus;
 }

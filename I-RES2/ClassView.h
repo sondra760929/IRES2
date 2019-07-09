@@ -1,18 +1,9 @@
-// ÀÌ MFC »ùÇÃ ¼Ò½º ÄÚµå´Â MFC Microsoft Office Fluent »ç¿ëÀÚ ÀÎÅÍÆäÀÌ½º("Fluent UI")¸¦ 
-// »ç¿ëÇÏ´Â ¹æ¹ıÀ» º¸¿© ÁÖ¸ç, MFC C++ ¶óÀÌºê·¯¸® ¼ÒÇÁÆ®¿ş¾î¿¡ Æ÷ÇÔµÈ 
-// Microsoft Foundation Classes Reference ¹× °ü·Ã ÀüÀÚ ¹®¼­¿¡ ´ëÇØ 
-// Ãß°¡ÀûÀ¸·Î Á¦°øµÇ´Â ³»¿ëÀÔ´Ï´Ù.  
-// Fluent UI¸¦ º¹»ç, »ç¿ë ¶Ç´Â ¹èÆ÷ÇÏ´Â µ¥ ´ëÇÑ »ç¿ë ¾à°üÀº º°µµ·Î Á¦°øµË´Ï´Ù.  
-// Fluent UI ¶óÀÌ¼±½Ì ÇÁ·Î±×·¥¿¡ ´ëÇÑ ÀÚ¼¼ÇÑ ³»¿ëÀº 
-// http://go.microsoft.com/fwlink/?LinkId=238214.
-//
-// Copyright (C) Microsoft Corporation
-// All rights reserved.
-
+ï»¿
 #pragma once
 
 #include "ViewTree.h"
-
+#include "XHtmlTree.h"
+class CIRES2View;
 class CClassToolBar : public CMFCToolBar
 {
 	virtual void OnUpdateCmdUI(CFrameWnd* /*pTarget*/, BOOL bDisableIfNoHndler)
@@ -26,21 +17,55 @@ class CClassToolBar : public CMFCToolBar
 class CClassView : public CDockablePane
 {
 public:
-	CClassView();
+	CClassView() noexcept;
 	virtual ~CClassView();
 
 	void AdjustLayout();
 	void OnChangeVisualStyle();
+	HTREEITEM itemModel;
+	HTREEITEM itemHull;
+	HTREEITEM itemSection;
+	HTREEITEM itemDraftSection;
+	HTREEITEM itemCrossSection;
+	HTREEITEM itemMaterial;
+	HTREEITEM itemCondition;
+	HTREEITEM itemAnalysis;
+	bool itemModelStatus;
+	bool itemHullStatus;
+	bool itemSectionStatus;
+	bool itemDraftSectionStatus;
+	bool itemCrossSectionStatus;
+	bool itemMaterialStatus;
+	bool itemConditionStatus;
+	bool itemAnalysisStatus;
 
+	void SetModelStatus(bool is_on);
+	void SetHulllStatus(bool is_on);
+	void SetSectionStatus(bool is_on);
+	void SetDraftStatus(bool is_on);
+	void SetCrossStatus(bool is_on);
+	void SetMaterialStatus(bool is_on);
+	void SetConditionStatus(bool is_on);
+	void SetAnalysisStatus(bool is_on);
+	int GetModelStatus();
+	int GetHulllStatus();
+	int GetSectionStatus();
+	int GetDraftStatus();
+	int GetCrossStatus();
+	int GetMaterialStatus();
+	int GetConditionStatus();
+	int GetAnalysisStatus();
+
+	CIRES2View* m_pView;
 protected:
-	CClassToolBar m_wndToolBar;
-	CViewTree m_wndClassView;
+	//CClassToolBar m_wndToolBar;
+	CXHtmlTree m_wndClassView;
 	CImageList m_ClassViewImages;
 	UINT m_nCurrSort;
 
 	void FillClassView();
 
-// ÀçÁ¤ÀÇÀÔ´Ï´Ù.
+// ì¬ì •ì˜ì…ë‹ˆë‹¤.
 public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 
@@ -60,5 +85,7 @@ protected:
 	afx_msg void OnUpdateSort(CCmdUI* pCmdUI);
 
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult);
 };
 

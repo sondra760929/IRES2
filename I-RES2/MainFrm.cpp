@@ -52,23 +52,54 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	BOOL bNameValid;
 
-	m_wndRibbonBar.Create(this);
-	m_wndRibbonBar.LoadFromResource(IDR_RIBBON);
+	//m_wndRibbonBar.Create(this);
+	//m_wndRibbonBar.LoadFromResource(IDR_RIBBON);
 
-	if (!m_wndStatusBar.Create(this))
+	//if (!m_wndStatusBar.Create(this))
+	//{
+	//	TRACE0("상태 표시줄을 만들지 못했습니다.\n");
+	//	return -1;      // 만들지 못했습니다.
+	//}
+
+	//CString strTitlePane1;
+	//CString strTitlePane2;
+	//bNameValid = strTitlePane1.LoadString(IDS_STATUS_PANE1);
+	//ASSERT(bNameValid);
+	//bNameValid = strTitlePane2.LoadString(IDS_STATUS_PANE2);
+	//ASSERT(bNameValid);
+	//m_wndStatusBar.AddElement(new CMFCRibbonStatusBarPane(ID_STATUSBAR_PANE1, strTitlePane1, TRUE), strTitlePane1);
+	//m_wndStatusBar.AddExtendedElement(new CMFCRibbonStatusBarPane(ID_STATUSBAR_PANE2, strTitlePane2, TRUE), strTitlePane2);
+
+	if (!m_wndToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
+		!m_wndToolBar.LoadToolBar(theApp.m_bHiColorIcons ? IDR_TOOLBAR2 : IDR_MAINFRAME))
 	{
-		TRACE0("상태 표시줄을 만들지 못했습니다.\n");
+		TRACE0("도구 모음을 만들지 못했습니다.\n");
 		return -1;      // 만들지 못했습니다.
 	}
 
-	CString strTitlePane1;
-	CString strTitlePane2;
-	bNameValid = strTitlePane1.LoadString(IDS_STATUS_PANE1);
-	ASSERT(bNameValid);
-	bNameValid = strTitlePane2.LoadString(IDS_STATUS_PANE2);
-	ASSERT(bNameValid);
-	m_wndStatusBar.AddElement(new CMFCRibbonStatusBarPane(ID_STATUSBAR_PANE1, strTitlePane1, TRUE), strTitlePane1);
-	m_wndStatusBar.AddExtendedElement(new CMFCRibbonStatusBarPane(ID_STATUSBAR_PANE2, strTitlePane2, TRUE), strTitlePane2);
+	//CString strToolBarName;
+	//bNameValid = strToolBarName.LoadString(IDS_TOOLBAR_STANDARD);
+	//ASSERT(bNameValid);
+	m_wndToolBar.SetWindowText("Main Toolbar");
+
+	//CString strCustomize;
+	//bNameValid = strCustomize.LoadString(IDS_TOOLBAR_CUSTOMIZE);
+	//ASSERT(bNameValid);
+	//m_wndToolBar.EnableCustomizeButton(TRUE, ID_VIEW_CUSTOMIZE, strCustomize);
+
+	//if (!m_wndStatusBar.Create(this))
+	//{
+	//	TRACE0("상태 표시줄을 만들지 못했습니다.\n");
+	//	return -1;      // 만들지 못했습니다.
+	//}
+	//m_wndStatusBar.SetIndicators(indicators, sizeof(indicators)/sizeof(UINT));
+
+	//// TODO: 도구 모음 및 메뉴 모음을 도킹할 수 없게 하려면 이 다섯 줄을 삭제하십시오.
+	//m_wndMenuBar.EnableDocking(CBRS_ALIGN_ANY);
+	m_wndToolBar.EnableDocking(CBRS_ALIGN_ANY);
+	EnableDocking(CBRS_ALIGN_ANY);
+	//DockPane(&m_wndMenuBar);
+	DockPane(&m_wndToolBar);
 
 	// Visual Studio 2005 스타일 도킹 창 동작을 활성화합니다.
 	CDockingManager::SetDockingMode(DT_SMART);
@@ -84,6 +115,31 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		TRACE0("도킹 창을 만들지 못했습니다.\n");
 		return -1;
 	}
+
+	if (!m_wndDlgToolbar.Create(_T("Toolbar"), this, CRect(0, 0, 24, 200), TRUE, ID_VIEW_TOOLBAR1, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT))
+	{
+		TRACE0("속성 창을 만들지 못했습니다.\n");
+		return FALSE; // 만들지 못했습니다.
+	}
+
+	CTabbedPane::m_bTabsAlwaysTop = TRUE;
+
+	m_wndFileView.EnableDocking(CBRS_ALIGN_ANY);
+	m_wndClassView.EnableDocking(CBRS_ALIGN_ANY);
+	m_wndFileView.EnableGripper(FALSE);
+	m_wndClassView.EnableGripper(FALSE);
+	DockPane(&m_wndClassView);
+
+	//m_wndToolbar.EnableDocking(CBRS_ALIGN_ANY);
+	DockPane(&m_wndDlgToolbar);
+	m_wndDlgToolbar.EnableGripper(FALSE);
+
+	m_wndDlgToolbar.ShowPane(FALSE, FALSE, FALSE);
+	m_wndDlgToolbar.SetToolbar(0);
+
+	CDockablePane* pTabbedBar = nullptr;
+	m_wndFileView.AttachToTabWnd(&m_wndClassView, DM_SHOW, TRUE, &pTabbedBar);
+	m_wndClassView.ShowPane(TRUE, FALSE, TRUE);
 
 	//m_wndFileView.EnableDocking(CBRS_ALIGN_ANY);
 	//m_wndClassView.EnableDocking(CBRS_ALIGN_ANY);
@@ -119,25 +175,25 @@ BOOL CMainFrame::CreateDockingWindows()
 {
 	BOOL bNameValid;
 
-	//// 클래스 뷰를 만듭니다.
-	//CString strClassView;
-	//bNameValid = strClassView.LoadString(IDS_CLASS_VIEW);
-	//ASSERT(bNameValid);
-	//if (!m_wndClassView.Create(strClassView, this, CRect(0, 0, 200, 200), TRUE, ID_VIEW_CLASSVIEW, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT | CBRS_FLOAT_MULTI))
-	//{
-	//	TRACE0("클래스 뷰 창을 만들지 못했습니다.\n");
-	//	return FALSE; // 만들지 못했습니다.
-	//}
+	// 클래스 뷰를 만듭니다.
+	CString strClassView;
+	bNameValid = strClassView.LoadString(IDS_CLASS_VIEW);
+	ASSERT(bNameValid);
+	if (!m_wndClassView.Create(_T("Model"), this, CRect(0, 0, 200, 200), TRUE, ID_VIEW_CLASSVIEW, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT | CBRS_FLOAT_MULTI))
+	{
+		TRACE0("클래스 뷰 창을 만들지 못했습니다.\n");
+		return FALSE; // 만들지 못했습니다.
+	}
 
-	//// 파일 뷰를 만듭니다.
-	//CString strFileView;
-	//bNameValid = strFileView.LoadString(IDS_FILE_VIEW);
-	//ASSERT(bNameValid);
-	//if (!m_wndFileView.Create(strFileView, this, CRect(0, 0, 200, 200), TRUE, ID_VIEW_FILEVIEW, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT| CBRS_FLOAT_MULTI))
-	//{
-	//	TRACE0("파일 뷰 창을 만들지 못했습니다.\n");
-	//	return FALSE; // 만들지 못했습니다.
-	//}
+	// 파일 뷰를 만듭니다.
+	CString strFileView;
+	bNameValid = strFileView.LoadString(IDS_FILE_VIEW);
+	ASSERT(bNameValid);
+	if (!m_wndFileView.Create(_T("Result"), this, CRect(0, 0, 200, 200), TRUE, ID_VIEW_FILEVIEW, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT| CBRS_FLOAT_MULTI))
+	{
+		TRACE0("파일 뷰 창을 만들지 못했습니다.\n");
+		return FALSE; // 만들지 못했습니다.
+	}
 
 	//// 출력 창을 만듭니다.
 	//CString strOutputWnd;
@@ -165,11 +221,11 @@ BOOL CMainFrame::CreateDockingWindows()
 
 void CMainFrame::SetDockingWindowIcons(BOOL bHiColorIcons)
 {
-	//HICON hFileViewIcon = (HICON) ::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(bHiColorIcons ? IDI_FILE_VIEW_HC : IDI_FILE_VIEW), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0);
-	//m_wndFileView.SetIcon(hFileViewIcon, FALSE);
+	HICON hFileViewIcon = (HICON) ::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(bHiColorIcons ? IDI_FILE_VIEW_HC : IDI_FILE_VIEW), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0);
+	m_wndFileView.SetIcon(hFileViewIcon, FALSE);
 
-	//HICON hClassViewIcon = (HICON) ::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(bHiColorIcons ? IDI_CLASS_VIEW_HC : IDI_CLASS_VIEW), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0);
-	//m_wndClassView.SetIcon(hClassViewIcon, FALSE);
+	HICON hClassViewIcon = (HICON) ::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(bHiColorIcons ? IDI_CLASS_VIEW_HC : IDI_CLASS_VIEW), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0);
+	m_wndClassView.SetIcon(hClassViewIcon, FALSE);
 
 	//HICON hOutputBarIcon = (HICON) ::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(bHiColorIcons ? IDI_OUTPUT_WND_HC : IDI_OUTPUT_WND), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0);
 	//m_wndOutput.SetIcon(hOutputBarIcon, FALSE);

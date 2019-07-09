@@ -1,17 +1,8 @@
-// ÀÌ MFC »ùÇÃ ¼Ò½º ÄÚµå´Â MFC Microsoft Office Fluent »ç¿ëÀÚ ÀÎÅÍÆäÀÌ½º("Fluent UI")¸¦ 
-// »ç¿ëÇÏ´Â ¹æ¹ıÀ» º¸¿© ÁÖ¸ç, MFC C++ ¶óÀÌºê·¯¸® ¼ÒÇÁÆ®¿ş¾î¿¡ Æ÷ÇÔµÈ 
-// Microsoft Foundation Classes Reference ¹× °ü·Ã ÀüÀÚ ¹®¼­¿¡ ´ëÇØ 
-// Ãß°¡ÀûÀ¸·Î Á¦°øµÇ´Â ³»¿ëÀÔ´Ï´Ù.  
-// Fluent UI¸¦ º¹»ç, »ç¿ë ¶Ç´Â ¹èÆ÷ÇÏ´Â µ¥ ´ëÇÑ »ç¿ë ¾à°üÀº º°µµ·Î Á¦°øµË´Ï´Ù.  
-// Fluent UI ¶óÀÌ¼±½Ì ÇÁ·Î±×·¥¿¡ ´ëÇÑ ÀÚ¼¼ÇÑ ³»¿ëÀº 
-// http://go.microsoft.com/fwlink/?LinkId=238214.
-//
-// Copyright (C) Microsoft Corporation
-// All rights reserved.
-
+ï»¿
 #pragma once
 
 #include "ViewTree.h"
+#include "XHtmlTree.h"
 
 class CFileViewToolBar : public CMFCToolBar
 {
@@ -25,24 +16,24 @@ class CFileViewToolBar : public CMFCToolBar
 
 class CFileView : public CDockablePane
 {
-// »ı¼ºÀÔ´Ï´Ù.
+// ìƒì„±ì…ë‹ˆë‹¤.
 public:
-	CFileView();
+	CFileView() noexcept;
 
 	void AdjustLayout();
 	void OnChangeVisualStyle();
 
-// Æ¯¼ºÀÔ´Ï´Ù.
+// íŠ¹ì„±ì…ë‹ˆë‹¤.
 protected:
 
-	CViewTree m_wndFileView;
+	CXHtmlTree m_wndFileView;
 	CImageList m_FileViewImages;
-	CFileViewToolBar m_wndToolBar;
+	//CFileViewToolBar m_wndToolBar;
 
 protected:
 	void FillFileView();
 
-// ±¸ÇöÀÔ´Ï´Ù.
+// êµ¬í˜„ì…ë‹ˆë‹¤.
 public:
 	virtual ~CFileView();
 

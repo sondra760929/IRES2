@@ -148,44 +148,45 @@ public:
 	float m_fWaterlineStartPos;
 	float m_fWaterlineEndPos;
 	float m_fDraftValue;
+	float m_fWaterlinePointGap;
+	void CalculateWaterSectionPoint();
+	//CMFCRibbonEdit* m_pEditStart;
+	//CMFCRibbonEdit* m_pEditEnd;
+	//CMFCRibbonEdit* m_pEditSpace;
+	////CMFCRibbonEdit* m_pEditPointsGap;
+	//CMFCRibbonEdit* m_pEditPointsDistance;
+	//CMFCRibbonEdit* m_pEditPointsNumber;
 
-	CMFCRibbonEdit* m_pEditStart;
-	CMFCRibbonEdit* m_pEditEnd;
-	CMFCRibbonEdit* m_pEditSpace;
-	//CMFCRibbonEdit* m_pEditPointsGap;
-	CMFCRibbonEdit* m_pEditPointsDistance;
-	CMFCRibbonEdit* m_pEditPointsNumber;
+	//CMFCRibbonEdit* m_pEditStartWaterline;
+	//CMFCRibbonEdit* m_pEditEndWaterline;
+	//CMFCRibbonEdit* m_pEditSpaceWaterline;
+	//CMFCRibbonEdit* m_pEditPointsDistanceWaterline;
+	//CMFCRibbonEdit* m_pEditPointsNumberWaterline;
 
-	CMFCRibbonEdit* m_pEditStartWaterline;
-	CMFCRibbonEdit* m_pEditEndWaterline;
-	CMFCRibbonEdit* m_pEditSpaceWaterline;
-	CMFCRibbonEdit* m_pEditPointsDistanceWaterline;
-	CMFCRibbonEdit* m_pEditPointsNumberWaterline;
+	//CMFCRibbonEdit* m_pHULLSpinXPos;
+	//CMFCRibbonEdit* m_pHULLSpinYPos;
+	//CMFCRibbonEdit* m_pHULLSpinZPos;
 
-	CMFCRibbonEdit* m_pHULLSpinXPos;
-	CMFCRibbonEdit* m_pHULLSpinYPos;
-	CMFCRibbonEdit* m_pHULLSpinZPos;
+	//CMFCRibbonEdit* m_pHULLSpinXRot;
+	//CMFCRibbonEdit* m_pHULLSpinYRot;
+	//CMFCRibbonEdit* m_pHULLSpinZRot;
 
-	CMFCRibbonEdit* m_pHULLSpinXRot;
-	CMFCRibbonEdit* m_pHULLSpinYRot;
-	CMFCRibbonEdit* m_pHULLSpinZRot;
+	//CMFCRibbonEdit* m_pSectionSpinXRot;
+	//CMFCRibbonEdit* m_pSectionSpinYRot;
+	//CMFCRibbonEdit* m_pSectionSpinZRot;
 
-	CMFCRibbonEdit* m_pSectionSpinXRot;
-	CMFCRibbonEdit* m_pSectionSpinYRot;
-	CMFCRibbonEdit* m_pSectionSpinZRot;
+	//CMFCRibbonEdit* m_pWaterlineSpinZPos;
 
-	CMFCRibbonEdit* m_pWaterlineSpinZPos;
-
-	CMFCRibbonEdit* m_pWaterlineSpinXRot;
-	CMFCRibbonEdit* m_pWaterlineSpinYRot;
+	//CMFCRibbonEdit* m_pWaterlineSpinXRot;
+	//CMFCRibbonEdit* m_pWaterlineSpinYRot;
 
 	osg::Vec3 m_iHULLPos;
 	osg::Vec3 m_iHULLRot;
 	osg::Vec3 m_iSectionRot;
 	osg::Vec3 m_iWaterLinePos;
 	osg::Vec3 m_iWaterLineRot;
-	void UpdateHullPos();
-	void UpdateWaterlinePos();
+	//void UpdateHullPos();
+	//void UpdateWaterlinePos();
 
 	vector< float > m_aSectionStart;
 	vector< float > m_aSectionEnd;
@@ -265,21 +266,21 @@ public:
 	afx_msg void OnButtonAnalysis();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnButtonSelectSection();
-	afx_msg void OnSpinHullXPos();
-	afx_msg void OnSpinHullYPos();
-	afx_msg void OnSpinHullZPos();
-	afx_msg void OnSpinHullXAngle();
-	afx_msg void OnSpinSectionZ();
-	afx_msg void OnSpinWaterlineZ();
-	afx_msg void OnSpinWaterlineX();
-	afx_msg void OnSpinWaterlineY();
-	afx_msg void OnSpinHullYAngle();
-	afx_msg void OnSpinHullZAngle();
+	//afx_msg void OnSpinHullXPos();
+	//afx_msg void OnSpinHullYPos();
+	//afx_msg void OnSpinHullZPos();
+	//afx_msg void OnSpinHullXAngle();
+	//afx_msg void OnSpinSectionZ();
+	//afx_msg void OnSpinWaterlineZ();
+	//afx_msg void OnSpinWaterlineX();
+	//afx_msg void OnSpinWaterlineY();
+	//afx_msg void OnSpinHullYAngle();
+	//afx_msg void OnSpinHullZAngle();
 	afx_msg void OnButtonHullPointToPoint();
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-	afx_msg void OnSpinSectionX();
-	afx_msg void OnSpinSectionY();
+	//afx_msg void OnSpinSectionX();
+	//afx_msg void OnSpinSectionY();
 	afx_msg void OnButtonNurbsConversion();
 	afx_msg void OnUpdateButtonNurbsConversion(CCmdUI *pCmdUI);
 	afx_msg void OnButtonfront();
@@ -305,7 +306,7 @@ public:
 	afx_msg void OnUpdateEditNumber(CCmdUI *pCmdUI);
 	afx_msg void OnEditStartWaterline();
 	afx_msg void OnEditEndWaterline();
-	afx_msg void OnEditSpaceWaterline();
+	//afx_msg void OnEditSpaceWaterline();
 	afx_msg void OnCheckDistanceWaterline();
 	afx_msg void OnUpdateCheckDistanceWaterline(CCmdUI *pCmdUI);
 	afx_msg void OnCheckNumberWaterline();

@@ -78,6 +78,45 @@
     <ClInclude Include="Dlg2.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="VisualStylesXP.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="XHtmlDraw.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="XHtmlDrawLink.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="XHtmlTree.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlDocument.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="XNamedColors.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="XString.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="XTrace.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateCheckboxImageList.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CToolbarWnd.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgCrossSection.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgDraftSection.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgMainToolbar.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="I-RES2.cpp">
@@ -132,6 +171,42 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Dlg2.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="VisualStylesXP.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="XHtmlDraw.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="XHtmlDrawLink.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="XHtmlTree.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlDocument.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="XNamedColors.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="XString.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CreateCheckboxImageList.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CToolbarWnd.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgCrossSection.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgDraftSection.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgMainToolbar.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -235,6 +310,30 @@
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="res\filelarge3.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\toolbar2.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\Trans.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\new_toolbar.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\Rot.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\normal.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\New.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\datum.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\calc.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

@@ -84,6 +84,8 @@ using namespace std;
 #define WM_GRD_EDITE_VERIFY WM_USER + 19
 #define WM_GRD_EDITE_FINISH WM_USER + 20
 
+#define XHTMLXML
+#define XHTMLHTML
 
 //#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
 

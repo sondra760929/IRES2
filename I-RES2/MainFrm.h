@@ -13,10 +13,11 @@
 //
 
 #pragma once
-//#include "FileView.h"
-//#include "ClassView.h"
 //#include "OutputWnd.h"
 //#include "PropertiesWnd.h"
+#include "FileView.h"
+#include "ClassView.h"
+#include "CToolbarWnd.h"
 
 class CMainFrame : public CFrameWndEx
 {
@@ -27,10 +28,11 @@ protected: // serialization에서만 만들어집니다.
 
 // 특성입니다.
 public:
-	CMFCRibbonBar     m_wndRibbonBar;
+	//CMFCRibbonBar     m_wndRibbonBar;
 
 // 작업입니다.
 public:
+	CToolbarWnd m_wndDlgToolbar;
 
 // 재정의입니다.
 public:
@@ -43,6 +45,9 @@ public:
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
+	CFileView         m_wndFileView;
+	CClassView        m_wndClassView;
+	CMFCToolBar       m_wndToolBar;
 
 protected:  // 컨트롤 모음이 포함된 멤버입니다.
 	CMFCRibbonApplicationButton m_MainButton;

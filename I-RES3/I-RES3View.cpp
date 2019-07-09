@@ -1152,6 +1152,111 @@ void CIRES3View::CalculateWaterSectionPoint()
 	//CalculateSectionPoint(OPoint3D(0, 0, 1), OPoint3D(0, 0, m_fDraftValue), 0, section_points, m_bUseDistanceForAxisWaterline, points_gap_waterline, actWaterLine, actWaterPlane, true, m_fWaterlineStartPos, m_fWaterlineEndPos);
 }
 
+bool GetCellNormals(vtkPolyData* polydata, int cell_id, double* normal)
+{
+	std::cout << "Looking for cell normals..." << std::endl;
+
+	// Count points
+	vtkIdType numCells = polydata->GetNumberOfCells();
+	std::cout << "There are " << numCells << " cells." << std::endl;
+
+	// Count triangles
+	vtkIdType numPolys = polydata->GetNumberOfPolys();
+	std::cout << "There are " << numPolys << " polys." << std::endl;
+
+	////////////////////////////////////////////////////////////////
+	// Double normals in an array
+	vtkDoubleArray* normalDataDouble =
+		vtkDoubleArray::SafeDownCast(polydata->GetCellData()->GetArray("Normals"));
+
+	if (normalDataDouble)
+	{
+		int nc = normalDataDouble->GetNumberOfTuples();
+		normalDataDouble->GetTypedTuple(cell_id, normal);
+		std::cout << "There are " << nc
+			<< " components in normalDataDouble" << std::endl;
+		return true;
+	}
+
+	////////////////////////////////////////////////////////////////
+	// Double normals in an array
+	vtkFloatArray* normalDataFloat =
+		vtkFloatArray::SafeDownCast(polydata->GetCellData()->GetArray("Normals"));
+
+	if (normalDataFloat)
+	{
+		int nc = normalDataFloat->GetNumberOfTuples();
+		float test_normal[3];
+		normalDataFloat->GetTypedTuple(cell_id, test_normal);
+		normal[0] = test_normal[0];
+		normal[1] = test_normal[1];
+		normal[2] = test_normal[2];
+		std::cout << "There are " << nc
+			<< " components in normalDataFloat" << std::endl;
+		return true;
+	}
+
+	////////////////////////////////////////////////////////////////
+	// Point normals
+	vtkDoubleArray* normalsDouble =
+		vtkDoubleArray::SafeDownCast(polydata->GetCellData()->GetNormals());
+
+	if (normalsDouble)
+	{
+		normal[0] = normalsDouble->GetComponent(cell_id, 0);
+		normal[1] = normalsDouble->GetComponent(cell_id, 1);
+		normal[2] = normalsDouble->GetComponent(cell_id, 2);
+		std::cout << "There are " << normalsDouble->GetNumberOfComponents()
+			<< " components in normalsDouble" << std::endl;
+		return true;
+	}
+
+	////////////////////////////////////////////////////////////////
+	// Point normals
+	vtkFloatArray* normalsFloat =
+		vtkFloatArray::SafeDownCast(polydata->GetCellData()->GetNormals());
+
+	if (normalsFloat)
+	{
+		normal[0] = normalsDouble->GetComponent(cell_id, 0);
+		normal[1] = normalsDouble->GetComponent(cell_id, 1);
+		normal[2] = normalsDouble->GetComponent(cell_id, 2);
+		std::cout << "There are " << normalsFloat->GetNumberOfComponents()
+			<< " components in normalsFloat" << std::endl;
+		return true;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	// Generic type point normals
+	vtkDataArray* normalsGeneric = polydata->GetCellData()->GetNormals(); //works
+	if (normalsGeneric)
+	{
+		std::cout << "There are " << normalsGeneric->GetNumberOfTuples()
+			<< " normals in normalsGeneric" << std::endl;
+
+		//double testDouble[3];
+		normalsGeneric->GetTuple(0, normal);
+
+		//std::cout << "Double: " << testDouble[0] << " "
+		//	<< testDouble[1] << " " << testDouble[2] << std::endl;
+
+		// Can't do this:
+		/*
+		float testFloat[3];
+		normalsGeneric->GetTuple(0, testFloat);
+
+		std::cout << "Float: " << testFloat[0] << " "
+				  << testFloat[1] << " " << testFloat[2] << std::endl;
+		*/
+		return true;
+	}
+
+
+	// If the function has not yet quit, there were none of these types of normals
+	std::cout << "Normals not found!" << std::endl;
+	return false;
+
+}
 bool CIRES3View::GetNormal(PointData& pd)
 {
 	double max_distance = 10000000.0;
@@ -1186,7 +1291,126 @@ bool CIRES3View::GetNormal(PointData& pd)
 		}
 	}
 
+	double pt_normal[3];
+	bool hasCellNormals = GetCellNormals(polyHull[current_poly_index], current_cell_id, pt_normal);
+	if (!hasCellNormals)
+	{
+		std::cout << "No cell normals were found. Computing normals..." << std::endl;
 
+		// Generate normals
+		vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+		normalGenerator->SetInputData(polyHull[current_poly_index]);
+		normalGenerator->ComputePointNormalsOff();
+		normalGenerator->ComputeCellNormalsOn();
+		normalGenerator->Update();
+		/*
+		// Optional settings
+		normalGenerator->SetFeatureAngle(0.1);
+		normalGenerator->SetSplitting(1);
+		normalGenerator->SetConsistency(0);
+		normalGenerator->SetAutoOrientNormals(0);
+		normalGenerator->SetComputePointNormals(1);
+		normalGenerator->SetComputeCellNormals(0);
+		normalGenerator->SetFlipNormals(0);
+		normalGenerator->SetNonManifoldTraversal(1);
+		*/
+
+		polyHull[current_poly_index] = normalGenerator->GetOutput();
+
+		// Try to read normals again
+		hasCellNormals = GetCellNormals(polyHull[current_poly_index], current_cell_id, pt_normal);
+
+		std::cout << "On the second try, has cell normals? " << hasCellNormals << std::endl;
+	}
+
+	if (hasCellNormals)
+	{
+		pd.normal.Set(pt_normal[0], pt_normal[1], pt_normal[2]);
+		try	//	for alpha
+		{
+			gp_Lin2d lin0(gp_Pnt2d(pd.pnt.x, pd.pnt.y), gp_Dir2d(pd.normal.y, -pd.normal.x));
+			gp_Lin2d lin1(gp_Pnt2d(0, 0), gp_Dir2d(1, 0));
+			IntAna2d_AnaIntersection Inters;
+			Inters.Perform(lin0, lin1);
+			if (Inters.IsDone())
+			{
+				if (Inters.IsDone())
+				{
+					if (!Inters.IdenticalElements() && !Inters.ParallelElements())
+					{
+						pd.alpha_exist = true;
+						pd.pnt_alpha.Set(Inters.Point(1).Value().X(), Inters.Point(1).Value().Y(), pd.pnt.z);
+						pd.angle_alpha = abs(lin0.Angle(lin1) * 180.0 / M_PI);
+						if (pd.angle_alpha > 90)
+						{
+							pd.angle_alpha = 180.0f - pd.angle_alpha;
+						}
+					}
+				}
+			}
+		}
+		catch (Standard_Failure e)
+		{
+			//AfxMessageBox(e.GetMessageString());
+		}
+
+		try	//	for beta
+		{
+			gp_Lin2d lin0(gp_Pnt2d(pd.pnt.y, pd.pnt.z), gp_Dir2d(pd.normal.z, -pd.normal.y));
+			gp_Lin2d lin1(gp_Pnt2d(0, 0), gp_Dir2d(0, 1));
+			IntAna2d_AnaIntersection Inters;
+			Inters.Perform(lin0, lin1);
+			if (Inters.IsDone())
+			{
+				if (Inters.IsDone())
+				{
+					if (!Inters.IdenticalElements() && !Inters.ParallelElements())
+					{
+						pd.beta_exist = true;
+						pd.pnt_beta.Set(pd.pnt.x, Inters.Point(1).Value().X(), Inters.Point(1).Value().Y());
+						pd.angle_beta = abs(lin0.Angle(lin1) * 180.0 / M_PI);
+						if (pd.angle_beta > 90)
+						{
+							pd.angle_beta = 180.0f - pd.angle_beta;
+						}
+					}
+				}
+			}
+		}
+		catch (Standard_Failure e)
+		{
+			//AfxMessageBox(e.GetMessageString());
+		}
+
+		try	//	for gamma
+		{
+			gp_Lin2d lin0(gp_Pnt2d(pd.pnt.x, pd.pnt.z), gp_Dir2d(pd.normal.z, -pd.normal.x));
+			gp_Lin2d lin1(gp_Pnt2d(0, 0), gp_Dir2d(0, 1));
+			IntAna2d_AnaIntersection Inters;
+			Inters.Perform(lin0, lin1);
+			if (Inters.IsDone())
+			{
+				if (Inters.IsDone())
+				{
+					if (!Inters.IdenticalElements() && !Inters.ParallelElements())
+					{
+						pd.gamma_exist = true;
+						pd.pnt_gamma.Set(Inters.Point(1).Value().X(), pd.pnt.y, Inters.Point(1).Value().Y());
+						pd.angle_gamma = abs(lin0.Angle(lin1) * 180.0 / M_PI);
+						if (pd.angle_gamma > 90)
+						{
+							pd.angle_gamma = 180.0f - pd.angle_gamma;
+						}
+					}
+				}
+			}
+		}
+		catch (Standard_Failure e)
+		{
+			//AfxMessageBox(e.GetMessageString());
+		}
+		return true;
+	}
 
 	//osg::Geometry* geom = geo->asGeometry();
 	//if (geom)
