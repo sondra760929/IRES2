@@ -56,6 +56,13 @@
 #include "vtkGlyph3D.h"
 #include "vtkCubeAxesActor.h"
 #include "vtktextproperty.h"
+#include "vtkPlane.h"
+#include "vtkCutter.h"
+#include "vtkPlaneSource.h"
+#include "vtkPointSource.h"
+#include "vtkStringArray.h"
+#include "vtkLabeledDataMapper.h"
+#include "vtkCellLocator.h"
 //#include "vtkMaskedGlyph3D.h"
 
 // CIRES3View
@@ -368,7 +375,7 @@ void CIRES3View::OnImportModel()
 				txtprop->SetShadowOffset(1, 1);
 				txtprop->SetColor(1, 1, 1);
 				vtk_engine->m_pvtkRenderer->AddActor(txtHullSize);
-				if(txtHullSize->GetBounds())
+				if (txtHullSize->GetBounds())
 					txtHullSize->SetDisplayPosition(m_iClientWidth - txtHullSize->GetBounds()[1], m_iClientHeight - txtHullSize->GetBounds()[3]);
 				else
 					txtHullSize->SetDisplayPosition(m_iClientWidth - 250, m_iClientHeight - 55);
@@ -873,8 +880,13 @@ vtkAssembly* CIRES3View::FaceToGeometry(const TopoDS_Face& aFace, float face_def
 		vtkActor *cubeActor = vtkActor::New();
 		//cubeActor->DeferLODConstructionOn();
 		//cubeActor->StaticOn();
+
+		//cubeActor->GetProperty()->SetOpacity(0.5);
+
 		cubeActor->SetMapper(cubeMapper);
 		sub_geo->AddPart(cubeActor);
+
+		polyHull.push_back(cube);
 
 		//vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
 		//normalGenerator->SetInputData(cube);
@@ -1118,356 +1130,958 @@ void CIRES3View::OnViewOrtho()
 	vtk_engine->OnViewOrtho();
 }
 
+bool sort_curves_x(OPoint3D  i, OPoint3D  j)
+{
+	return (i.x > j.x);
+}
+
+bool sort_curves_y(OPoint3D  i, OPoint3D j)
+{
+	return (i.y > j.y);
+}
+
+bool sort_curves_z(OPoint3D i, OPoint3D j)
+{
+	return (i.z > j.z);
+}
+
 void CIRES3View::CalculateWaterSectionPoint()
 {
-	map< double, osg::Drawable* > loop_geo;
-	osg::Plane water_plane(plane_normal, plane_point);
-	osg::ref_ptr<osgUtil::PlaneIntersector> intersector = new osgUtil::PlaneIntersector(water_plane, osg::Polytope());
-	//intersector->enter(*dynamic_cast<osg::Node*>(m_mtScan.get()));
-	osgUtil::PlaneIntersector::Intersections& intersections = intersector->getIntersections();
-	osgUtil::IntersectionVisitor            _intersectionVisitor;
-	_intersectionVisitor.reset();
-	_intersectionVisitor.setIntersector(intersector.get());
+	vector< PointData > section_points;
+	CalculateSectionPoint(OPoint3D(0, 0, 1), OPoint3D(0, 0, m_fDraftValue), 0, section_points, m_bUseDistanceForAxisWaterline, points_gap_waterline, actWaterLine, actWaterPlane);
+	//CalculateSectionPoint(OPoint3D(0, 0, 1), OPoint3D(0, 0, m_fDraftValue), 0, section_points, m_bUseDistanceForAxisWaterline, points_gap_waterline, actWaterLine, actWaterPlane, true, m_fWaterlineStartPos, m_fWaterlineEndPos);
+}
 
-	osgHull_Center.get()->accept(_intersectionVisitor);
-	int prev_count = m_iStatus;
-	int total_count = 0;
-	int current_count = 0;
-	typedef osgUtil::PlaneIntersector::Intersection::Polyline Polyline;
-	if (!intersections.empty())
+bool CIRES3View::GetNormal(PointData& pd)
+{
+	double max_distance = 10000000.0;
+	int current_poly_index = -1;
+	vtkIdType current_cell_id;
+	int current_sub_id;
+	double current_cell_point[3];
+	for (int i = 0; i < polyHull.size(); i++)
 	{
-		total_count = intersections.size() * 3;
+		vtkSmartPointer<vtkCellLocator> cellLocator =
+			vtkSmartPointer<vtkCellLocator>::New();
+		cellLocator->SetDataSet(polyHull[i]);
+		cellLocator->BuildLocator();
 
-		osgUtil::PlaneIntersector::Intersections::iterator itr;
-		for (itr = intersections.begin();
-			itr != intersections.end();
-			++itr)
+		double testPoint[3] = { pd.pnt.x, pd.pnt.y, pd.pnt.z };
+
+		//Find the closest points to TestPoint
+		double closestPoint[3];//the coordinates of the closest point will be returned here
+		double closestPointDist2; //the squared distance to the closest point will be returned here
+		vtkIdType cellId; //the cell id of the cell containing the closest point will be returned here
+		int subId; //this is rarely used (in triangle strips only, I believe)
+		cellLocator->FindClosestPoint(testPoint, closestPoint, cellId, subId, closestPointDist2);
+		if (max_distance > closestPointDist2)
 		{
-			osgUtil::PlaneIntersector::Intersection& intersection = *itr;
-			current_count++;
-			m_iStatus = prev_count + (current_count / total_count) * 100;
-			UpdateProgress();
-			if (intersection.matrix.valid())
-			{
-				// osg::notify(osg::NOTICE)<<"  transforming "<<std::endl;
-				// transform points on polyline 
-				for (Polyline::iterator pitr = intersection.polyline.begin();
-					pitr != intersection.polyline.end();
-					++pitr)
-				{
-					*pitr = (*pitr) * (*intersection.matrix);
-				}
-
-				// matrix no longer needed.
-				intersection.matrix = 0;
-			}
+			max_distance = closestPointDist2;
+			current_poly_index = i;
+			current_cell_id = cellId;
+			current_sub_id = subId;
+			current_cell_point[0] = closestPoint[0];
+			current_cell_point[1] = closestPoint[1];
+			current_cell_point[2] = closestPoint[2];
 		}
+	}
 
-		for (itr = intersections.begin();
-			itr != intersections.end();
-			++itr)
+
+
+	//osg::Geometry* geom = geo->asGeometry();
+	//if (geom)
+	//{
+	//	osg::Vec3Array *vertices = (osg::Vec3Array *)geom->getVertexArray();
+	//	osg::Vec3Array *normals = (osg::Vec3Array *)geom->getNormalArray();
+	//	osg::Geometry::PrimitiveSetList primitiveList = geom->getPrimitiveSetList();
+	//	osg::Matrix world(osg::computeLocalToWorld(geo->getParentalNodePaths()[0]));
+
+	//	int polygonIndex = 0;
+	//	osg::Vec3 p1, p2, p3;
+	//	int index1, index2, index3;
+	//	//double dot00;
+	//	//double dot01;
+	//	//double dot02;
+	//	//double dot11;
+	//	//double dot12;
+	//	//double invDenom, u, v;
+	//	osg::Vec3 v0, v1, v2, v3;
+
+	//	for (int x = 0; x <primitiveList.size(); x++)
+	//	{
+	//		//fprintf(FileLog, "GetNormal [%d / %d] cl : %lf, sl : %lf, rl : %lf\n", x, primitiveList.size(), pd.pnt.x(), pd.pnt.y(), pd.pnt.z());
+
+	//		osg::PrimitiveSet *set = primitiveList[x];
+	//		int numberOfIndices = set->getNumIndices();
+	//		if (set->getMode() == osg::PrimitiveSet::Mode::TRIANGLES)
+	//		{
+	//			for (unsigned int y = 0; y < set->getDrawElements()->getNumIndices() /*numberOfIndices*/; y+=3)
+	//			{
+	//				index1 = set->getDrawElements()->getElement(y); //set->index(y); 
+	//				if (index1 < vertices->size())
+	//				{
+	//					p1 = vertices->at(index1) * world;
+	//				}
+	//				index2 = set->getDrawElements()->getElement(y +1); //set->index(y); 
+	//				if (index2 < vertices->size())
+	//				{
+	//					p2 = vertices->at(index2) * world;
+	//				}
+	//				index3 = set->getDrawElements()->getElement(y +2); //set->index(y); 
+	//				if (index3 < vertices->size())
+	//				{
+	//					p3 = vertices->at(index3) * world;
+	//				}
+
+	//				//	Same Side Technique
+	//				bool ss1 = same_side(pd.pnt, p1, p2, p3);
+	//				bool ss2 = same_side(pd.pnt, p2, p1, p3);
+	//				bool ss3 = same_side(pd.pnt, p3, p1, p2);
+	//				//fprintf(FileLog, "GetNormal \t %d, %d, %d >> %d, %d, %d\n", index1, index2, index3, ss1, ss2, ss3);
+	//				if (ss1 && ss2 && ss3)
+	//				{
+	//					v1 = p2 - p1;
+	//					v3 = p3 - p2;
+	//					osg::Vec3 normal = v1 ^ v3;
+	//					//osg::Vec3 normal = normals->at(index1) + normals->at(index2) + normals->at(index3);
+	//					normal.normalize();
+	//					pd.normal = normal;
+
+	//					try	//	for alpha
+	//					{
+	//						gp_Lin2d lin0(gp_Pnt2d(pd.pnt.x(), pd.pnt.y()), gp_Dir2d(pd.normal.y(), -pd.normal.x()));
+	//						gp_Lin2d lin1(gp_Pnt2d(0, 0), gp_Dir2d(1, 0));
+	//						IntAna2d_AnaIntersection Inters;
+	//						Inters.Perform(lin0, lin1);
+	//						if (Inters.IsDone())
+	//						{
+	//							if (Inters.IsDone())
+	//							{
+	//								if (!Inters.IdenticalElements() && !Inters.ParallelElements())
+	//								{
+	//									pd.alpha_exist = true;
+	//									pd.pnt_alpha = osg::Vec3(Inters.Point(1).Value().X(), Inters.Point(1).Value().Y(), pd.pnt.z());
+	//									pd.angle_alpha = abs(lin0.Angle(lin1) * 180.0 / M_PI);
+	//									if (pd.angle_alpha > 90)
+	//									{
+	//										pd.angle_alpha = 180.0f - pd.angle_alpha;
+	//									}
+	//								}
+	//							}
+	//						}
+	//					}
+	//					catch (Standard_Failure e)
+	//					{
+	//						//AfxMessageBox(e.GetMessageString());
+	//					}
+
+	//					try	//	for beta
+	//					{
+	//						gp_Lin2d lin0(gp_Pnt2d(pd.pnt.y(), pd.pnt.z()), gp_Dir2d(pd.normal.z(), -pd.normal.y()));
+	//						gp_Lin2d lin1(gp_Pnt2d(0, 0), gp_Dir2d(0, 1));
+	//						IntAna2d_AnaIntersection Inters;
+	//						Inters.Perform(lin0, lin1);
+	//						if (Inters.IsDone())
+	//						{
+	//							if (Inters.IsDone())
+	//							{
+	//								if (!Inters.IdenticalElements() && !Inters.ParallelElements())
+	//								{
+	//									pd.beta_exist = true;
+	//									pd.pnt_beta = osg::Vec3(pd.pnt.x(), Inters.Point(1).Value().X(), Inters.Point(1).Value().Y());
+	//									pd.angle_beta = abs(lin0.Angle(lin1) * 180.0 / M_PI);
+	//									if (pd.angle_beta > 90)
+	//									{
+	//										pd.angle_beta = 180.0f - pd.angle_beta;
+	//									}
+	//								}
+	//							}
+	//						}
+	//					}
+	//					catch (Standard_Failure e)
+	//					{
+	//						//AfxMessageBox(e.GetMessageString());
+	//					}
+
+	//					try	//	for gamma
+	//					{
+	//						gp_Lin2d lin0(gp_Pnt2d(pd.pnt.x(), pd.pnt.z()), gp_Dir2d(pd.normal.z(), -pd.normal.x()));
+	//						gp_Lin2d lin1(gp_Pnt2d(0, 0), gp_Dir2d(0, 1));
+	//						IntAna2d_AnaIntersection Inters;
+	//						Inters.Perform(lin0, lin1);
+	//						if (Inters.IsDone())
+	//						{
+	//							if (Inters.IsDone())
+	//							{
+	//								if (!Inters.IdenticalElements() && !Inters.ParallelElements())
+	//								{
+	//									pd.gamma_exist = true;
+	//									pd.pnt_gamma = osg::Vec3(Inters.Point(1).Value().X(), pd.pnt.y(), Inters.Point(1).Value().Y());
+	//									pd.angle_gamma = abs(lin0.Angle(lin1) * 180.0 / M_PI);
+	//									if (pd.angle_gamma > 90)
+	//									{
+	//										pd.angle_gamma = 180.0f - pd.angle_gamma;
+	//									}
+	//								}
+	//							}
+	//						}
+	//					}
+	//					catch (Standard_Failure e)
+	//					{
+	//						//AfxMessageBox(e.GetMessageString());
+	//					}
+	//					return true;
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+	//pd.normal = osg::Vec3(0, 0, 0);
+	return false;
+}
+
+void CIRES3View::CalculateSectionPoint(OPoint3D plane_normal, OPoint3D plane_point, int align_axis, vector< PointData >& section_point_data, bool check_point_distance, float point_distance, vector< vtkActor* >& act_line, vtkSmartPointer<vtkActor>& act_plane, bool use_start_end, float start_pos, float end_pos)
+{
+	vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
+	//plane->SetNormal(0, 0, 1);
+	//plane->SetOrigin(0, 0, m_fDraftValue);
+	plane->SetNormal(plane_normal.x, plane_normal.y, plane_normal.z);
+	plane->SetOrigin(plane_point.x, plane_point.y, plane_point.z);
+
+	for (int i = 0; i < act_line.size(); i++)
+	{
+		vtk_engine->m_pvtkRenderer->RemoveActor(act_line[i]);
+		act_line[i]->Delete();
+	}
+	act_line.clear();
+
+	vector< vector< OPoint3D > > section_line;
+	for (int i = 0; i < polyHull.size(); i++)
+	{
+		vector< OPoint3D > loop_pt;
+		vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
+		cutter->SetInputData(polyHull[i]);
+		cutter->SetCutFunction(plane);
+		cutter->GenerateValues(1, 0, 0);
+
+		vtkPolyData* poly = cutter->GetOutput();
+		cutter->Update();
+		vtkPoints* pts = poly->GetPoints();
+		int point_count = pts->GetNumberOfPoints();
+		if (point_count > 0)
 		{
-			current_count++;
-			m_iStatus = prev_count + (current_count / total_count) * 100;
-			UpdateProgress();
-			//	more에서 문제가 있어서 중간 포인트 정리하는 과정을 생략한다.
-			//map< CString, int > temp_exist;
-			CString str_exist;
-			vector< osg::Vec3 > temp_loop;
-			osg::Vec3 temp_pt;
-			osgUtil::PlaneIntersector::Intersection& intersection = *itr;
-			Polyline::iterator pitr = intersection.polyline.begin();
-			for (;
-				pitr != intersection.polyline.end();
-				++pitr)
+			double bounds[6];
+			for (int j = 0; j < point_count; j++)
 			{
-				temp_pt = *pitr;
-				//str_exist.Format("%.0lf-%.0lf-%.0lf", temp_pt.x() * 100.0f, temp_pt.y() * 100.0f, temp_pt.z() * 100.0f);
-				//if (temp_exist.find(str_exist) == temp_exist.end())
+				loop_pt.push_back(OPoint3D(pts->GetPoint(j)[0], pts->GetPoint(j)[1], pts->GetPoint(j)[2]));
+				if (j == 0)
+				{
+					bounds[0] = pts->GetPoint(j)[0];
+					bounds[1] = pts->GetPoint(j)[0];
+					bounds[2] = pts->GetPoint(j)[1];
+					bounds[3] = pts->GetPoint(j)[1];
+					bounds[4] = pts->GetPoint(j)[2];
+					bounds[5] = pts->GetPoint(j)[2];
+				}
+				else
+				{
+					if (bounds[0] > pts->GetPoint(j)[0])
+						bounds[0] = pts->GetPoint(j)[0];
+					if (bounds[1] < pts->GetPoint(j)[0])
+						bounds[1] = pts->GetPoint(j)[0];
+					if (bounds[2] > pts->GetPoint(j)[1])
+						bounds[2] = pts->GetPoint(j)[1];
+					if (bounds[3] < pts->GetPoint(j)[1])
+						bounds[3] = pts->GetPoint(j)[1];
+					if (bounds[4] > pts->GetPoint(j)[2])
+						bounds[4] = pts->GetPoint(j)[2];
+					if (bounds[5] < pts->GetPoint(j)[2])
+						bounds[5] = pts->GetPoint(j)[2];
+				}
+			}
+
+			double length[3];
+			length[0] = bounds[1] - bounds[0];
+			length[1] = bounds[3] - bounds[2];
+			length[2] = bounds[5] - bounds[4];
+			if (length[0] > length[1])
+			{
+				if (length[0] > length[2])
+				{
+					//	length[0]
+					sort(loop_pt.begin(), loop_pt.end(), sort_curves_x);
+				}
+				else
+				{
+					//	length[2]
+					sort(loop_pt.begin(), loop_pt.end(), sort_curves_z);
+				}
+			}
+			else
+			{
+				if (length[1] > length[2])
+				{
+					//	length[1]
+					sort(loop_pt.begin(), loop_pt.end(), sort_curves_y);
+				}
+				else
+				{
+					//	length[2]
+					sort(loop_pt.begin(), loop_pt.end(), sort_curves_z);
+				}
+			}
+
+			section_line.push_back(loop_pt);
+
+			vtkSmartPointer<vtkPolyDataMapper> cutterMapper =
+				vtkSmartPointer<vtkPolyDataMapper>::New();
+			cutterMapper->SetInputConnection(cutter->GetOutputPort());
+			cutterMapper->ScalarVisibilityOff();
+
+			// Create cut actor
+			vtkActor* actWater = vtkActor::New();
+			actWater->GetProperty()->SetColor(1, 1, 1);
+			actWater->GetProperty()->SetLineWidth(2);
+			actWater->SetMapper(cutterMapper);
+			vtk_engine->m_pvtkRenderer->AddActor(actWater);
+			act_line.push_back(actWater);
+		}
+	}
+
+	vtkSmartPointer<vtkPlaneSource> planeSource =
+		vtkSmartPointer<vtkPlaneSource>::New();
+	planeSource->SetOrigin(0, 0, m_fDraftValue);
+	planeSource->SetPoint1(m_dHullSize[1], 0, m_fDraftValue);
+	planeSource->SetPoint2(0, m_dHullSize[3], m_fDraftValue);
+	planeSource->Update();
+	vtkSmartPointer<vtkPolyDataMapper> planeMapper =
+		vtkSmartPointer<vtkPolyDataMapper>::New();
+	planeMapper->SetInputConnection(planeSource->GetOutputPort());
+
+	if (act_plane.Get())
+	{
+		vtk_engine->m_pvtkRenderer->RemoveActor(act_plane);
+	}
+	act_plane = vtkSmartPointer<vtkActor>::New();
+	act_plane->GetProperty()->SetColor(1, 1, 0);
+	act_plane->GetProperty()->SetOpacity(0.50);
+	act_plane->GetProperty()->EdgeVisibilityOn();
+	act_plane->GetProperty()->SetEdgeColor(0, 0, 0);
+	act_plane->GetProperty()->SetLineWidth(2.0);
+	act_plane->SetMapper(planeMapper);
+	vtk_engine->m_pvtkRenderer->AddActor(act_plane);
+
+	//FILE* fp = NULL;
+	//fopen_s(&fp, "e:\\check.txt", "wt");
+	vector< OPoint3D > result_pt;
+	//if (fp)
+	//{
+	//	fprintf(fp, "> %d\n", section_line.size());
+	//}
+	if (section_line.size() > 0)
+	{
+		//for (int i = 0; i < section_line.size(); i++)
+		//{
+		//	for (int j = 0; j < section_line[i].size(); j++)
+		//	{
+		//		fprintf(fp, "[%d/%d] %.2lf, %.2lf, %.2lf\n", i, j, section_line[i][j].x, section_line[i][j].y, section_line[i][j].z);
+		//	}
+		//}
+
+		result_pt.assign(section_line[0].begin(), section_line[0].end());
+		section_line.erase(section_line.begin());
+
+		//if (fp)
+		//{
+		//	fprintf(fp, "set first line > %d\n", section_line.size());
+		//}
+
+		double p0[3], p1[3], pp0[3], pp1[3];
+		while (section_line.size() > 0)
+		{
+			double max_distance = 100000.0;
+			double current_distance;
+			int check_index = -1;
+			int check_type = -1;
+
+			//fprintf(fp, "check result pts [%.2lf, %.2lf, %.2lf] - [%.2lf, %.2lf, %.2lf]\n", result_pt[0].x, result_pt[0].y, result_pt[0].z, result_pt[result_pt.size() - 1].x, result_pt[result_pt.size() - 1].y, result_pt[result_pt.size() - 1].z);
+			p0[0] = result_pt[0].x;
+			p0[1] = result_pt[0].y;
+			p0[2] = result_pt[0].z;
+			p1[0] = result_pt[result_pt.size() - 1].x;
+			p1[1] = result_pt[result_pt.size() - 1].y;
+			p1[2] = result_pt[result_pt.size() - 1].z;
+			for (int i = 0; i < section_line.size(); i++)
+			{
+				int pt_count = section_line[i].size();
+
+				//if (fp)
 				//{
-				temp_loop.push_back(temp_pt);
-				//	temp_exist[str_exist] = 1;
+				//	fprintf(fp, "check pts [%d/%d] [%.2lf, %.2lf, %.2lf] - [%.2lf, %.2lf, %.2lf]\n", i, section_line.size(),
+				//		section_line[i][0].x, section_line[i][0].y, section_line[i][0].z, section_line[i][pt_count - 1].x, section_line[i][pt_count - 1].y, section_line[i][pt_count - 1].z);
 				//}
 
+				pp0[0] = section_line[i][0].x;
+				pp0[1] = section_line[i][0].y;
+				pp0[2] = section_line[i][0].z;
+				pp1[0] = section_line[i][pt_count - 1].x;
+				pp1[1] = section_line[i][pt_count - 1].y;
+				pp1[2] = section_line[i][pt_count - 1].z;
+
+				current_distance = vtkMath::Distance2BetweenPoints(p0, pp0);
+				if (current_distance < max_distance)
+				{
+					max_distance = current_distance;
+					check_index = i;
+					check_type = 0;
+				}
+
+				current_distance = vtkMath::Distance2BetweenPoints(p0, pp1);
+				if (current_distance < max_distance)
+				{
+					max_distance = current_distance;
+					check_index = i;
+					check_type = 1;
+				}
+
+				current_distance = vtkMath::Distance2BetweenPoints(p1, pp0);
+				if (current_distance < max_distance)
+				{
+					max_distance = current_distance;
+					check_index = i;
+					check_type = 2;
+				}
+
+				current_distance = vtkMath::Distance2BetweenPoints(p1, pp1);
+				if (current_distance < max_distance)
+				{
+					max_distance = current_distance;
+					check_index = i;
+					check_type = 3;
+				}
 			}
 
-			switch (align_axis)
+			if (check_index > -1)
 			{
-			case 0:
-			{
-				if (temp_loop[0].x() < temp_loop[temp_loop.size() - 1].x()) std::reverse(temp_loop.begin(), temp_loop.end());
-				loop_geo[temp_loop[0].x()] = intersection.drawable.get();
+				//if (fp)
+				//{
+				//	fprintf(fp, "distance : %.2lf, [%d] [%d]\n", max_distance, check_index, check_type);
+				//}
+				int pt_count = section_line[check_index].size();
+				switch (check_type)
+				{
+				case 0:
+				{
+					for (int j = 0; j < pt_count; j++)
+					{
+						result_pt.insert(result_pt.begin(), section_line[check_index][j]);
+					}
+				}
+				break;
+				case 1:
+				{
+					for (int j = 0; j < pt_count; j++)
+					{
+						result_pt.insert(result_pt.begin(), section_line[check_index][pt_count - j - 1]);
+					}
+				}
+				break;
+				case 2:
+				{
+					for (int j = 0; j < pt_count; j++)
+					{
+						result_pt.push_back(section_line[check_index][j]);
+					}
+				}
+				break;
+				case 3:
+				{
+					for (int j = 0; j < pt_count; j++)
+					{
+						result_pt.push_back(section_line[check_index][pt_count - j - 1]);
+					}
+				}
+				break;
+				}
+				section_line.erase(section_line.begin() + check_index);
 			}
-			break;
-			case 1:
-			{
-				if (temp_loop[0].y() < temp_loop[temp_loop.size() - 1].y()) std::reverse(temp_loop.begin(), temp_loop.end());
-				loop_geo[temp_loop[0].y()] = intersection.drawable.get();
-			}
-			break;
-			case 2:
-			{
-				if (temp_loop[0].z() > temp_loop[temp_loop.size() - 1].z()) std::reverse(temp_loop.begin(), temp_loop.end());
-				loop_geo[temp_loop[0].z()] = intersection.drawable.get();
-			}
-			break;
-			}
-			section_line.push_back(temp_loop);
 		}
 
-		switch (align_axis)
-		{
-		case 0:
-		{
-			sort(section_line.begin(), section_line.end(), sort_curves_x);
-			if (check_point_distance)
+		//if (check_point_distance)
+		//{
+			double remain_length = 0;
+			for (int i = 1; i < result_pt.size(); i++)
 			{
-				float remain_length = 0;
-				for (int j = 0; j < section_line.size(); j++)
+				p0[0] = result_pt[i - 1].x;
+				p0[1] = result_pt[i - 1].y;
+				p0[2] = result_pt[i - 1].z;
+				p1[0] = result_pt[i].x;
+				p1[1] = result_pt[i].y;
+				p1[2] = result_pt[i].z;
+				double current_length = vtkMath::Distance2BetweenPoints(p0, p1);	//	두점 사이 거리
+				double current_remove_length = 0;
+				OPoint3D dir = result_pt[i] - result_pt[i - 1];
+				dir /= current_length;
+				while (current_length - current_remove_length > remain_length)	//	점 사이 거리가 남은 거리보다 크다
 				{
-					current_count++;
-					m_iStatus = prev_count + (current_count / total_count) * 100;
-					UpdateProgress();
-					if (section_line[j].size() > 0)
+					PointData pd;
+					current_remove_length += remain_length;	//	남은 거리 빼기
+					pd.pnt = result_pt[i - 1] + (dir * current_remove_length);
+					if ((pd.pnt.z <= m_fDraftValue) && ((use_start_end == false) || (pd.pnt.x <= start_pos && pd.pnt.x >= end_pos)))
 					{
-						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
-
-						for (int i = 1; i < section_line[j].size(); i++)
+						if (GetNormal(pd))
 						{
-							osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
-							float current_length = dir.length();
-							float step_length = 0;
-							dir.normalize();
-							//fprintf(stderr, "before while current_length : %lf, step_length : %lf, remain_length : %lf\n", current_length, step_length, remain_length);
-							while (current_length - step_length > remain_length)
-							{
-								PointData pd;
-								step_length += remain_length;
-								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if ((pd.pnt.z() / 1000.0f <= m_fDraftValue) && ((use_start_end == false) || (pd.pnt.x() <= start_pos && pd.pnt.x() >= end_pos)))
-								{
-									if (GetNormal(geo, pd))
-										section_point_data.push_back(pd);
-								}
-								remain_length = point_distance;
-								//fprintf(stderr, "in while current_length : %lf, step_length : %lf, remain_length : %lf (%.2lf, %.2lf, %.2lf)\n", current_length, step_length, remain_length, pd.pnt.x(), pd.pnt.y(), pd.pnt.z());
-							}
-
-							remain_length = remain_length - (current_length - step_length);
+							section_point_data.push_back(pd);
 						}
+					}
+					remain_length = point_distance;
+				}
+				remain_length -= (current_length - current_remove_length);
+			}
+			if (remain_length > 0)
+			{
+				PointData pd;
+				pd.pnt = result_pt[result_pt.size() - 1];
+				if ((pd.pnt.z <= m_fDraftValue) && ((use_start_end == false) || (pd.pnt.x <= start_pos && pd.pnt.x >= end_pos)))
+				{
+					if (GetNormal(pd))
+					{
+						section_point_data.push_back(pd);
 					}
 				}
 			}
-			else
-			{
-				//	waterline
-				for (int j = 0; j < section_line.size(); j++)
-				{
-					current_count++;
-					m_iStatus = prev_count + (current_count / total_count) * 100;
-					UpdateProgress();
-					if (section_line[j].size() > 0)
-					{
-						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
-						float current_x = floor(section_line[j][0].x() / 1000.0f) * 1000.0f + point_distance;
-						while (current_x > section_line[j][0].x())
-						{
-							current_x -= point_distance;
-						}
+		//}
+		//else
+		//{
+		//	//	waterline
+		//	for (int j = 0; j < section_line.size(); j++)
+		//	{
+		//		current_count++;
+		//		m_iStatus = prev_count + (current_count / total_count) * 100;
+		//		UpdateProgress();
+		//		if (section_line[j].size() > 0)
+		//		{
+		//			osg::Drawable* geo = loop_geo[section_line[j][0].x()];
+		//			float current_x = floor(section_line[j][0].x() / 1000.0f) * 1000.0f + point_distance;
+		//			while (current_x > section_line[j][0].x())
+		//			{
+		//				current_x -= point_distance;
+		//			}
 
-						if (use_start_end)
-						{
-							if (current_x > start_pos)
-								current_x = start_pos;
-						}
+		//			if (use_start_end)
+		//			{
+		//				if (current_x > start_pos)
+		//					current_x = start_pos;
+		//			}
 
-						for (int i = 1; i < section_line[j].size(); i++)
-						{
-							while (section_line[j][i].x() <= current_x && ((use_start_end == false) || (current_x >= end_pos)))
-							{
-								PointData pd;
-								float ratio = (current_x - section_line[j][i - 1].x()) / (section_line[j][i].x() - section_line[j][i - 1].x());
-								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
-								vec *= ratio;
-								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
-								{
-									if (GetNormal(geo, pd))
-										section_point_data.push_back(pd);
-								}
-								current_x -= point_distance;
-							}
-						}
-					}
-				}
-			}
-		}
-		break;
-		case 1:
-		{
-			sort(section_line.begin(), section_line.end(), sort_curves_y);
-			if (check_point_distance)
-			{
-				//	sections
-				float remain_length = 0;
-				for (int j = 0; j < section_line.size(); j++)
-				{
-					current_count++;
-					m_iStatus = prev_count + (current_count / total_count) * 100;
-					UpdateProgress();
-					if (section_line[j].size() > 0)
-					{
-						osg::Drawable* geo = loop_geo[section_line[j][0].y()];
+		//			for (int i = 1; i < section_line[j].size(); i++)
+		//			{
+		//				while (section_line[j][i].x() <= current_x && ((use_start_end == false) || (current_x >= end_pos)))
+		//				{
+		//					PointData pd;
+		//					float ratio = (current_x - section_line[j][i - 1].x()) / (section_line[j][i].x() - section_line[j][i - 1].x());
+		//					osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
+		//					vec *= ratio;
+		//					pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
+		//					if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+		//					{
+		//						if (GetNormal(geo, pd))
+		//							section_point_data.push_back(pd);
+		//					}
+		//					current_x -= point_distance;
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
 
-						//fprintf(FileLog, "lines %d\n", j);
-						for (int i = 1; i < section_line[j].size(); i++)
-						{
-							osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
-							float current_length = dir.length();
-							float step_length = 0;
-							dir.normalize();
-							//fprintf(FileLog, "[%d / %d] cl : %lf, sl : %lf, rl : %lf\n", i, section_line[j].size(), current_length, step_length, remain_length);
-							while (current_length - step_length > remain_length)
-							{
-								PointData pd;
-								step_length += remain_length;
-								//fprintf(FileLog, "add > \tcl : %lf, \tsl : %lf, \trl : %lf ", current_length, step_length, remain_length);
-								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
-								{
-									if (GetNormal(geo, pd))
-										section_point_data.push_back(pd);
-								}
-								remain_length = point_distance;
-							}
-
-							remain_length -= (current_length - step_length);
-						}
-					}
-				}
-			}
-			else
-			{
-				for (int j = 0; j < section_line.size(); j++)
-				{
-					current_count++;
-					m_iStatus = prev_count + (current_count / total_count) * 100;
-					UpdateProgress();
-					if (section_line[j].size() > 0)
-					{
-						osg::Drawable* geo = loop_geo[section_line[j][0].y()];
-						int temp_count = section_line[j][0].y() / point_distance;
-						float current_y = (float)(temp_count + 1) * point_distance;
-						//float current_y = floor(section_line[j][0].y() / 100.0f) * 100.0f + point_distance;
-						while (current_y > section_line[j][0].y())
-						{
-							current_y -= point_distance;
-						}
-
-						for (int i = 1; i < section_line[j].size(); i++)
-						{
-							while (section_line[j][i].y() <= current_y)
-							{
-								PointData pd;
-								float ratio = (current_y - section_line[j][i - 1].y()) / (section_line[j][i].y() - section_line[j][i - 1].y());
-								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
-								vec *= ratio;
-								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
-								{
-									if (GetNormal(geo, pd))
-										section_point_data.push_back(pd);
-								}
-								current_y -= point_distance;
-							}
-						}
-					}
-				}
-			}
-		}
-		break;
-		case 2:
-		{
-			sort(section_line.begin(), section_line.end(), sort_curves_z);
-			if (check_point_distance)
-			{
-				for (int j = 0; j < section_line.size(); j++)
-				{
-					current_count++;
-					m_iStatus = prev_count + (current_count / total_count) * 100;
-					UpdateProgress();
-					if (section_line[j].size() > 0)
-					{
-						osg::Drawable* geo = loop_geo[section_line[j][0].z()];
-
-						float remain_length = 0;
-						for (int i = 1; i < section_line[j].size(); i++)
-						{
-							osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
-							float current_length = dir.length();
-							float step_length = remain_length;
-							dir.normalize();
-							while (current_length - step_length < remain_length)
-							{
-								PointData pd;
-								step_length += remain_length;
-								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
-								{
-									if (GetNormal(geo, pd))
-										section_point_data.push_back(pd);
-								}
-								remain_length = point_distance;
-							}
-
-							remain_length = point_distance - (current_length - step_length);
-						}
-					}
-				}
-			}
-			else
-			{
-				for (int j = 0; j < section_line.size(); j++)
-				{
-					current_count++;
-					m_iStatus = prev_count + (current_count / total_count) * 100;
-					UpdateProgress();
-					if (section_line[j].size() > 0)
-					{
-						osg::Drawable* geo = loop_geo[section_line[j][0].z()];
-						float current_z = floor(section_line[j][0].z() / 1000.0f) * 1000.0f - point_distance;
-						while (current_z < section_line[j][0].z())
-						{
-							current_z += point_distance;
-						}
-
-						for (int i = 1; i < section_line[j].size(); i++)
-						{
-							while (section_line[j][i].z() >= current_z)
-							{
-								PointData pd;
-								float ratio = (current_z - section_line[j][i - 1].z()) / (section_line[j][i].z() - section_line[j][i - 1].z());
-								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
-								vec *= ratio;
-								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
-								{
-									if (GetNormal(geo, pd))
-										section_point_data.push_back(pd);
-								}
-								current_z += point_distance;
-							}
-						}
-					}
-				}
-			}
-		}
-		break;
-		}
 	}
-	else
-	{
-		osg::notify(osg::NOTICE) << "No intersections found." << std::endl;
-	}
-	m_iStatus = prev_count + 100;
+
+	//float p[3];
+	//int point_count = result_pt.size();
+
+	//vtkSmartPointer<vtkPointSource> pointSource =
+	//	vtkSmartPointer<vtkPointSource>::New();
+	//pointSource->SetNumberOfPoints(point_count);
+	//pointSource->Update();
+	//vtkPoints* points = pointSource->GetOutput()->GetPoints();
+
+	//for (int i = 0; i < point_count; i++)
+	//{
+	//	//fprintf(fp, "[%d/%d] %.2lf, %.2lf, %.2lf\n", i, result_pt.size(), result_pt[i].x, result_pt[i].y, result_pt[i].z);
+	//	p[0] = result_pt[i].x;
+	//	p[1] = result_pt[i].y;
+	//	p[2] = result_pt[i].z;
+	//	points->SetPoint(i, p);
+	//}
+	////fclose(fp);
+
+	//// Create a mapper and actor
+	//vtkSmartPointer<vtkPolyDataMapper> pointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	//pointMapper->SetInputConnection(pointSource->GetOutputPort());
+
+	//vtkSmartPointer<vtkActor> pointActor = vtkSmartPointer<vtkActor>::New();
+	//pointActor->SetMapper(pointMapper);
+	//pointActor->GetProperty()->SetPointSize(10);
+	//pointActor->GetProperty()->SetColor(1, 1, .4);
+
+	//vtkSmartPointer<vtkLabeledDataMapper> labelMapper = vtkSmartPointer<vtkLabeledDataMapper>::New();
+	//labelMapper->SetInputConnection(pointSource->GetOutputPort());
+	//vtkSmartPointer<vtkActor2D> labelActor = vtkSmartPointer<vtkActor2D>::New();
+	//labelActor->SetMapper(labelMapper);
+
+	//// Add the actor to the scene
+	//vtk_engine->m_pvtkRenderer->AddActor(pointActor);
+	//vtk_engine->m_pvtkRenderer->AddActor(labelActor);
+	
+	//map< double, osg::Drawable* > loop_geo;
+	//osg::Plane water_plane(plane_normal, plane_point);
+	//osg::ref_ptr<osgUtil::PlaneIntersector> intersector = new osgUtil::PlaneIntersector(water_plane, osg::Polytope());
+	////intersector->enter(*dynamic_cast<osg::Node*>(m_mtScan.get()));
+	//osgUtil::PlaneIntersector::Intersections& intersections = intersector->getIntersections();
+	//osgUtil::IntersectionVisitor            _intersectionVisitor;
+	//_intersectionVisitor.reset();
+	//_intersectionVisitor.setIntersector(intersector.get());
+
+	//osgHull_Center.get()->accept(_intersectionVisitor);
+	//int prev_count = m_iStatus;
+	//int total_count = 0;
+	//int current_count = 0;
+	//typedef osgUtil::PlaneIntersector::Intersection::Polyline Polyline;
+	//if (!intersections.empty())
+	//{
+	//	total_count = intersections.size() * 3;
+
+	//	osgUtil::PlaneIntersector::Intersections::iterator itr;
+	//	for (itr = intersections.begin();
+	//		itr != intersections.end();
+	//		++itr)
+	//	{
+	//		osgUtil::PlaneIntersector::Intersection& intersection = *itr;
+	//		current_count++;
+	//		m_iStatus = prev_count + (current_count / total_count) * 100;
+	//		UpdateProgress();
+	//		if (intersection.matrix.valid())
+	//		{
+	//			// osg::notify(osg::NOTICE)<<"  transforming "<<std::endl;
+	//			// transform points on polyline 
+	//			for (Polyline::iterator pitr = intersection.polyline.begin();
+	//				pitr != intersection.polyline.end();
+	//				++pitr)
+	//			{
+	//				*pitr = (*pitr) * (*intersection.matrix);
+	//			}
+
+	//			// matrix no longer needed.
+	//			intersection.matrix = 0;
+	//		}
+	//	}
+
+	//	for (itr = intersections.begin();
+	//		itr != intersections.end();
+	//		++itr)
+	//	{
+	//		current_count++;
+	//		m_iStatus = prev_count + (current_count / total_count) * 100;
+	//		UpdateProgress();
+	//		//	more에서 문제가 있어서 중간 포인트 정리하는 과정을 생략한다.
+	//		//map< CString, int > temp_exist;
+	//		CString str_exist;
+	//		vector< osg::Vec3 > temp_loop;
+	//		osg::Vec3 temp_pt;
+	//		osgUtil::PlaneIntersector::Intersection& intersection = *itr;
+	//		Polyline::iterator pitr = intersection.polyline.begin();
+	//		for (;
+	//			pitr != intersection.polyline.end();
+	//			++pitr)
+	//		{
+	//			temp_pt = *pitr;
+	//			//str_exist.Format("%.0lf-%.0lf-%.0lf", temp_pt.x() * 100.0f, temp_pt.y() * 100.0f, temp_pt.z() * 100.0f);
+	//			//if (temp_exist.find(str_exist) == temp_exist.end())
+	//			//{
+	//			temp_loop.push_back(temp_pt);
+	//			//	temp_exist[str_exist] = 1;
+	//			//}
+
+	//		}
+
+	//		switch (align_axis)
+	//		{
+	//		case 0:
+	//		{
+	//			if (temp_loop[0].x() < temp_loop[temp_loop.size() - 1].x()) std::reverse(temp_loop.begin(), temp_loop.end());
+	//			loop_geo[temp_loop[0].x()] = intersection.drawable.get();
+	//		}
+	//		break;
+	//		case 1:
+	//		{
+	//			if (temp_loop[0].y() < temp_loop[temp_loop.size() - 1].y()) std::reverse(temp_loop.begin(), temp_loop.end());
+	//			loop_geo[temp_loop[0].y()] = intersection.drawable.get();
+	//		}
+	//		break;
+	//		case 2:
+	//		{
+	//			if (temp_loop[0].z() > temp_loop[temp_loop.size() - 1].z()) std::reverse(temp_loop.begin(), temp_loop.end());
+	//			loop_geo[temp_loop[0].z()] = intersection.drawable.get();
+	//		}
+	//		break;
+	//		}
+	//		section_line.push_back(temp_loop);
+	//	}
+
+	//	switch (align_axis)
+	//	{
+	//	case 0:
+	//	{
+	//		sort(section_line.begin(), section_line.end(), sort_curves_x);
+	//		if (check_point_distance)
+	//		{
+	//			float remain_length = 0;
+	//			for (int j = 0; j < section_line.size(); j++)
+	//			{
+	//				current_count++;
+	//				m_iStatus = prev_count + (current_count / total_count) * 100;
+	//				UpdateProgress();
+	//				if (section_line[j].size() > 0)
+	//				{
+	//					osg::Drawable* geo = loop_geo[section_line[j][0].x()];
+
+	//					for (int i = 1; i < section_line[j].size(); i++)
+	//					{
+	//						osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
+	//						float current_length = dir.length();
+	//						float step_length = 0;
+	//						dir.normalize();
+	//						//fprintf(stderr, "before while current_length : %lf, step_length : %lf, remain_length : %lf\n", current_length, step_length, remain_length);
+	//						while (current_length - step_length > remain_length)
+	//						{
+	//							PointData pd;
+	//							step_length += remain_length;
+	//							pd.pnt = section_line[j][i - 1] + (dir * step_length);
+	//							if ((pd.pnt.z() / 1000.0f <= m_fDraftValue) && ((use_start_end == false) || (pd.pnt.x() <= start_pos && pd.pnt.x() >= end_pos)))
+	//							{
+	//								if (GetNormal(geo, pd))
+	//									section_point_data.push_back(pd);
+	//							}
+	//							remain_length = point_distance;
+	//							//fprintf(stderr, "in while current_length : %lf, step_length : %lf, remain_length : %lf (%.2lf, %.2lf, %.2lf)\n", current_length, step_length, remain_length, pd.pnt.x(), pd.pnt.y(), pd.pnt.z());
+	//						}
+
+	//						remain_length = remain_length - (current_length - step_length);
+	//					}
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			//	waterline
+	//			for (int j = 0; j < section_line.size(); j++)
+	//			{
+	//				current_count++;
+	//				m_iStatus = prev_count + (current_count / total_count) * 100;
+	//				UpdateProgress();
+	//				if (section_line[j].size() > 0)
+	//				{
+	//					osg::Drawable* geo = loop_geo[section_line[j][0].x()];
+	//					float current_x = floor(section_line[j][0].x() / 1000.0f) * 1000.0f + point_distance;
+	//					while (current_x > section_line[j][0].x())
+	//					{
+	//						current_x -= point_distance;
+	//					}
+
+	//					if (use_start_end)
+	//					{
+	//						if (current_x > start_pos)
+	//							current_x = start_pos;
+	//					}
+
+	//					for (int i = 1; i < section_line[j].size(); i++)
+	//					{
+	//						while (section_line[j][i].x() <= current_x && ((use_start_end == false) || (current_x >= end_pos)))
+	//						{
+	//							PointData pd;
+	//							float ratio = (current_x - section_line[j][i - 1].x()) / (section_line[j][i].x() - section_line[j][i - 1].x());
+	//							osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
+	//							vec *= ratio;
+	//							pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
+	//							if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+	//							{
+	//								if (GetNormal(geo, pd))
+	//									section_point_data.push_back(pd);
+	//							}
+	//							current_x -= point_distance;
+	//						}
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//	break;
+	//	case 1:
+	//	{
+	//		sort(section_line.begin(), section_line.end(), sort_curves_y);
+	//		if (check_point_distance)
+	//		{
+	//			//	sections
+	//			float remain_length = 0;
+	//			for (int j = 0; j < section_line.size(); j++)
+	//			{
+	//				current_count++;
+	//				m_iStatus = prev_count + (current_count / total_count) * 100;
+	//				UpdateProgress();
+	//				if (section_line[j].size() > 0)
+	//				{
+	//					osg::Drawable* geo = loop_geo[section_line[j][0].y()];
+
+	//					//fprintf(FileLog, "lines %d\n", j);
+	//					for (int i = 1; i < section_line[j].size(); i++)
+	//					{
+	//						osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
+	//						float current_length = dir.length();
+	//						float step_length = 0;
+	//						dir.normalize();
+	//						//fprintf(FileLog, "[%d / %d] cl : %lf, sl : %lf, rl : %lf\n", i, section_line[j].size(), current_length, step_length, remain_length);
+	//						while (current_length - step_length > remain_length)
+	//						{
+	//							PointData pd;
+	//							step_length += remain_length;
+	//							//fprintf(FileLog, "add > \tcl : %lf, \tsl : %lf, \trl : %lf ", current_length, step_length, remain_length);
+	//							pd.pnt = section_line[j][i - 1] + (dir * step_length);
+	//							if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+	//							{
+	//								if (GetNormal(geo, pd))
+	//									section_point_data.push_back(pd);
+	//							}
+	//							remain_length = point_distance;
+	//						}
+
+	//						remain_length -= (current_length - step_length);
+	//					}
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			for (int j = 0; j < section_line.size(); j++)
+	//			{
+	//				current_count++;
+	//				m_iStatus = prev_count + (current_count / total_count) * 100;
+	//				UpdateProgress();
+	//				if (section_line[j].size() > 0)
+	//				{
+	//					osg::Drawable* geo = loop_geo[section_line[j][0].y()];
+	//					int temp_count = section_line[j][0].y() / point_distance;
+	//					float current_y = (float)(temp_count + 1) * point_distance;
+	//					//float current_y = floor(section_line[j][0].y() / 100.0f) * 100.0f + point_distance;
+	//					while (current_y > section_line[j][0].y())
+	//					{
+	//						current_y -= point_distance;
+	//					}
+
+	//					for (int i = 1; i < section_line[j].size(); i++)
+	//					{
+	//						while (section_line[j][i].y() <= current_y)
+	//						{
+	//							PointData pd;
+	//							float ratio = (current_y - section_line[j][i - 1].y()) / (section_line[j][i].y() - section_line[j][i - 1].y());
+	//							osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
+	//							vec *= ratio;
+	//							pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
+	//							if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+	//							{
+	//								if (GetNormal(geo, pd))
+	//									section_point_data.push_back(pd);
+	//							}
+	//							current_y -= point_distance;
+	//						}
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//	break;
+	//	case 2:
+	//	{
+	//		sort(section_line.begin(), section_line.end(), sort_curves_z);
+	//		if (check_point_distance)
+	//		{
+	//			for (int j = 0; j < section_line.size(); j++)
+	//			{
+	//				current_count++;
+	//				m_iStatus = prev_count + (current_count / total_count) * 100;
+	//				UpdateProgress();
+	//				if (section_line[j].size() > 0)
+	//				{
+	//					osg::Drawable* geo = loop_geo[section_line[j][0].z()];
+
+	//					float remain_length = 0;
+	//					for (int i = 1; i < section_line[j].size(); i++)
+	//					{
+	//						osg::Vec3 dir = section_line[j][i] - section_line[j][i - 1];
+	//						float current_length = dir.length();
+	//						float step_length = remain_length;
+	//						dir.normalize();
+	//						while (current_length - step_length < remain_length)
+	//						{
+	//							PointData pd;
+	//							step_length += remain_length;
+	//							pd.pnt = section_line[j][i - 1] + (dir * step_length);
+	//							if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+	//							{
+	//								if (GetNormal(geo, pd))
+	//									section_point_data.push_back(pd);
+	//							}
+	//							remain_length = point_distance;
+	//						}
+
+	//						remain_length = point_distance - (current_length - step_length);
+	//					}
+	//				}
+	//			}
+	//		}
+	//		else
+	//		{
+	//			for (int j = 0; j < section_line.size(); j++)
+	//			{
+	//				current_count++;
+	//				m_iStatus = prev_count + (current_count / total_count) * 100;
+	//				UpdateProgress();
+	//				if (section_line[j].size() > 0)
+	//				{
+	//					osg::Drawable* geo = loop_geo[section_line[j][0].z()];
+	//					float current_z = floor(section_line[j][0].z() / 1000.0f) * 1000.0f - point_distance;
+	//					while (current_z < section_line[j][0].z())
+	//					{
+	//						current_z += point_distance;
+	//					}
+
+	//					for (int i = 1; i < section_line[j].size(); i++)
+	//					{
+	//						while (section_line[j][i].z() >= current_z)
+	//						{
+	//							PointData pd;
+	//							float ratio = (current_z - section_line[j][i - 1].z()) / (section_line[j][i].z() - section_line[j][i - 1].z());
+	//							osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
+	//							vec *= ratio;
+	//							pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
+	//							if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+	//							{
+	//								if (GetNormal(geo, pd))
+	//									section_point_data.push_back(pd);
+	//							}
+	//							current_z += point_distance;
+	//						}
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//	break;
+	//	}
+	//}
+	//else
+	//{
+	//	osg::notify(osg::NOTICE) << "No intersections found." << std::endl;
+	//}
+	//m_iStatus = prev_count + 100;
 }

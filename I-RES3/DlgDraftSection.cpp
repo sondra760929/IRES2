@@ -121,6 +121,7 @@ void CDlgDraftSection::OnBnClickedCheckAxis()
 void CDlgDraftSection::OnBnClickedMfcbuttonCalculate()
 {
 	UpdateData();
+	m_pView->m_fDraftValue = m_fDraft;
 	if (m_pView->m_bUseDistanceForAxisWaterline)
 	{
 		m_pView->points_gap_waterline = m_fPointDistance * 1000.0f;

@@ -924,7 +924,7 @@ void CVTKEngine::Init(CWnd* pView)
 	m_pvtkRenderer->GradientBackgroundOn();
 	m_pvtkRenderer->SetBackground(0.7, 0.7, 0.7);
 	m_pvtkRenderer->SetBackground2(0.0, 0.0, 0.0);
-	m_pvtkRenderer->SetUseShadows(true);
+	//m_pvtkRenderer->SetUseShadows(true);
 
 	//vtkSmartPointer<vtkSphereSource> sphereSource =
 	//	vtkSmartPointer<vtkSphereSource>::New();
@@ -1012,6 +1012,9 @@ void CVTKEngine::Init(CWnd* pView)
 	m_widgetAxes->InteractiveOff();
 	
 	OnViewISO();
+
+	//m_pvtkRenderer->GetActiveCamera()->Azimuth(-25);
+	//m_pvtkRenderer->GetActiveCamera()->Elevation(30);
 
 	m_pView = (CIRES3View*)pView;
 	//iren->Start();
