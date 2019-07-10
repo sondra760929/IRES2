@@ -160,7 +160,7 @@ BOOL CDlgCondition::OnInitDialog()
 		}
 	}
 	FILE* fp_4;
-	fopen_s(&fp_4, m_strAppPath + "\\ICE_INPUT.inp", "rt");
+	fopen_s(&fp_4, m_strProjectPath + "\\ICE_INPUT.inp", "rt");
 	if (fp_4)
 	{
 		COptImportExportBase ifp;
@@ -209,7 +209,7 @@ BOOL CDlgCondition::OnInitDialog()
 void CDlgCondition::OnBnClickedOk()
 {
 	FILE* fp_4;
-	fopen_s(&fp_4, m_strAppPath + "\\ICE_INPUT.inp", "wt");
+	fopen_s(&fp_4, m_strProjectPath + "\\ICE_INPUT.inp", "wt");
 	if (fp_4)
 	{
 		fprintf_s(fp_4, "        %d\n", HULL_TYPE);

@@ -39,12 +39,101 @@
 #include <osg/BlendFunc>
 #include "CDlgSelectSections.h"
 #include "DlgDefineInp.h"
+#include "zip.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
 
 // CIRES2View
+
+void CopyFiles(CString from, CString to)
+{
+	CopyFile(from + "\\ICE_INPUT.inp", to + "\\ICE_INPUT.inp", FALSE);
+	CopyFile(from + "\\ICECOFF_INPUT.inp", to + "\\ICECOFF_INPUT.inp", FALSE);
+	CopyFile(from + "\\SELECT MODULE.INP", to + "\\SELECT MODULE.INP", FALSE);
+	CopyFile(from + "\\FRAME.inp", to + "\\FRAME.inp", FALSE);
+	CopyFile(from + "\\WATERLINE_OUTSIDE.inp", to + "\\WATERLINE_OUTSIDE.inp", FALSE);
+	CopyFile(from + "\\ice_result.OUT", to + "\\ice_result.OUT", FALSE);
+	CopyFile(from + "\\ECHO.OUT", to + "\\ECHO.OUT", FALSE);
+	CopyFile(from + "\\IMSI.OUT", to + "\\IMSI.OUT", FALSE);
+	CopyFile(from + "\\CROSS_SECTION.INP", to + "\\CROSS_SECTION.INP", FALSE);
+	CopyFile(from + "\\DRAFT_SECTION.INP", to + "\\DRAFT_SECTION.INP", FALSE);
+}
+
+CString GetDocumentFolder()
+{
+	LPWSTR path;
+	CString document_folder;
+	SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &path);
+	document_folder = path;
+	CoTaskMemFree(path);
+	return document_folder;
+}
+
+CString GetNewProjectFolder()
+{
+	CString document_folder = GetDocumentFolder();
+
+	CString new_proj_folder;
+	CTime cTime = CTime::GetCurrentTime(); // 현재 시스템으로부터 날짜 및 시간을 얻어 온다.
+	CString strDate; // 반환되는 날짜와 시간을 저장할 CString 변수 선언
+	strDate.Format("%04d%02d%02d%02d%02d%02d", cTime.GetYear(), // 현재 년도 반환
+		cTime.GetMonth(), // 현재 월 반환
+		cTime.GetDay(), cTime.GetHour(), cTime.GetMinute(), cTime.GetSecond()); // 현재 일 반환
+	new_proj_folder = document_folder + "\\" + strDate;
+	return new_proj_folder;
+}
+
+
+BOOL DeleteDirectoryFile(LPCTSTR RootDir)
+{
+	if (RootDir == NULL)
+	{
+		return FALSE;
+	}
+
+	BOOL bRval = FALSE;
+
+	CString szNextDirPath = _T("");
+	CString szRoot = _T("");
+
+
+	// 해당 디렉토리의 모든 파일을 검사한다.
+	szRoot.Format(_T("%s\\*.*"), RootDir);
+
+	CFileFind find;
+
+	bRval = find.FindFile(szRoot);
+
+	if (bRval == FALSE)
+	{
+		return bRval;
+	}
+
+	while (bRval)
+	{
+		bRval = find.FindNextFile();
+
+		// . or .. 인 경우 무시 한다. 
+		if (find.IsDots() == FALSE)
+		{
+			// Directory 일 경우 재귀호출 한다.
+			if (find.IsDirectory())
+			{
+				DeleteDirectoryFile(find.GetFilePath());
+			}
+			// file일 경우 삭제
+			else
+			{
+				bRval = DeleteFile(find.GetFilePath());
+			}
+		}
+	}
+	find.Close();
+	bRval = RemoveDirectory(RootDir);
+	return bRval;
+}
 
 IMPLEMENT_DYNCREATE(CIRES2View, CView)
 
@@ -58,6 +147,9 @@ BEGIN_MESSAGE_MAP(CIRES2View, CView)
 	ON_WM_CREATE()
 	ON_WM_DESTROY()
 	ON_COMMAND(ID_BUTTON_IMPORT_HULL, &CIRES2View::OnButtonImportHull)
+	ON_COMMAND(ID_BUTTON_OPEN, &CIRES2View::OnButtonOpen)
+	ON_COMMAND(ID_BUTTON_SAVE, &CIRES2View::OnButtonSave)
+	ON_COMMAND(ID_BUTTON_SAVE_IMAGE, &CIRES2View::OnButtonSaveImage)
 	ON_WM_RBUTTONDBLCLK()
 	ON_COMMAND(ID_BUTTON_DEFINE_SECTIONS, &CIRES2View::OnButtonDefineSections)
 	ON_COMMAND(ID_CHECK_BOW_BREAKING, &CIRES2View::OnCheckBowBreaking)
@@ -232,6 +324,7 @@ CIRES2View::CIRES2View()
 	, m_fCrossSectionOffset(5000.0f)
 	, m_fCrossSectionPointGap(500.0f)
 	, m_bConditionConstant(false)
+	, m_isCreateFolder(false)
 {
 	//m_iHULLPos[0] = 0;
 	//m_iHULLPos[1] = 0;
@@ -252,6 +345,11 @@ CIRES2View::CIRES2View()
 
 CIRES2View::~CIRES2View()
 {
+	if (m_isCreateFolder)
+	{
+		if(m_strProjectPath != m_strAppPath)
+			DeleteDirectoryFile(m_strProjectPath);
+	}
 }
 
 BOOL CIRES2View::PreCreateWindow(CREATESTRUCT& cs)
@@ -577,6 +675,147 @@ void CIRES2View::OnInitialUpdate()
 	OnButtonzoomall();
 }
 
+void CIRES2View::OnButtonOpen()
+{
+	CFileDialog dlg(TRUE,
+		NULL,
+		NULL,
+		OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+		"I-RES2 Files (*.ires)|*.ires|All Files (*.*)|*.*||",
+		NULL);
+
+	if (dlg.DoModal() == IDOK)
+	{
+		CString document_folder = GetDocumentFolder();
+		m_strProjectPath = GetNewProjectFolder();
+
+		CString command_string;
+		command_string = m_strAppPath + "\\unzip.exe " + dlg.GetPathName() + " -d " + m_strProjectPath;
+		STARTUPINFO si;
+		SECURITY_ATTRIBUTES sa;
+		PROCESS_INFORMATION pi;
+
+		sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+		sa.lpSecurityDescriptor = NULL;
+		sa.bInheritHandle = TRUE;
+
+		ZeroMemory(&si, sizeof(STARTUPINFO));
+		si.cb = sizeof(STARTUPINFO);
+		si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+		si.hStdOutput = NULL;
+		si.hStdInput = NULL;
+		si.hStdError = NULL;
+		si.wShowWindow = SW_HIDE;       /* 눈에 보이지 않는 상태로 프로세스 시작 */
+
+		DWORD ret = CreateProcess(NULL, command_string.GetBuffer(), NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+		if (ret)
+		{
+			WaitForSingleObject(pi.hProcess, 0xffffffff);
+			CloseHandle(pi.hThread);
+			CloseHandle(pi.hProcess);
+		}
+
+		CString temp_string;
+		temp_string = m_strProjectPath + "\\hull.osg";
+		if (PathFileExists(temp_string))
+		{
+			m_isCreateFolder = true;
+
+			time(&start_time);
+			time(&end_time);
+			double diff_time1 = difftime(end_time, start_time);
+
+			CT2CA pszConvertedAnsiString(temp_string);
+			std::string strStd(pszConvertedAnsiString);
+			osg::Node* geo_node = osgDB::readNodeFile(strStd);
+			if (geo_node)
+			{
+				PreFrameUpdateData pf(osgHull, NULL);
+				m_QRemoveChild.push(pf);
+
+				PreFrameUpdateData pf1(osgHull, geo_node);
+				m_QAddChild.push(pf1);
+
+				ClearSections();
+				m_pMainFrame->m_wndClassView.SetHulllStatus(true);
+				m_pMainFrame->m_wndClassView.SetDraftStatus(true);
+				m_pMainFrame->m_wndClassView.SetCrossStatus(true);
+				m_pMainFrame->m_wndClassView.SetMaterialStatus(true);
+				m_pMainFrame->m_wndClassView.SetConditionStatus(true);
+
+				m_pMainFrame->m_wndFileView.Clear();
+				m_pMainFrame->m_wndClassView.ClearJobList();
+
+				temp_string = m_strProjectPath + "\\JOB";
+				CFileFind file;
+				BOOL b = file.FindFile(temp_string + _T("\\*.*"));		// 모든 확장자를 다 사용.
+			//	CString strMusicFilter = ".MP3.OGG.WMA.WAV";			// 필터링 하고 싶으면 이렇게 쓰면 됨
+				CString strFolderItem, strFileExt, strTempString;
+				while (b)
+				{
+					b = file.FindNextFile();
+					if (file.IsDirectory() && !file.IsDots())			// 디렉토리 발견시 
+					{
+						strFolderItem = file.GetFileTitle();
+						m_pMainFrame->m_wndClassView.AddJobItem(strFolderItem);
+						m_pMainFrame->m_wndFileView.AddItem(strFolderItem);
+					}
+					if (!file.IsDots())									// 파일 탐색 필터 정의에따라 해당 StringList에 추가
+					{
+						if (file.IsDirectory()) continue;				// 폴더만 남는 경우는 넣으면 안됨 
+					}
+				}
+			}
+		}
+	}
+}
+
+void CIRES2View::OnButtonSave()
+{
+	if (m_isCreateFolder)
+	{
+		CFileDialog dlg(FALSE,
+			NULL,
+			NULL,
+			OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+			"I-RES2 Files (*.ires)|*.osgb|All Files (*.*)|*.*||",
+			NULL);
+
+		if (dlg.DoModal() == IDOK)
+		{
+			SetCurrentDirectory(m_strProjectPath);
+			CString command_string;
+			command_string = m_strAppPath + "\\zip.exe -r " + dlg.GetPathName() + " *";
+			STARTUPINFO si;
+			SECURITY_ATTRIBUTES sa;
+			PROCESS_INFORMATION pi;
+
+			sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+			sa.lpSecurityDescriptor = NULL;
+			sa.bInheritHandle = TRUE;
+
+			ZeroMemory(&si, sizeof(STARTUPINFO));
+			si.cb = sizeof(STARTUPINFO);
+			si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+			si.hStdOutput = NULL;
+			si.hStdInput = NULL;
+			si.hStdError = NULL;
+			si.wShowWindow = SW_HIDE;       /* 눈에 보이지 않는 상태로 프로세스 시작 */
+
+			CreateProcess(NULL, command_string.GetBuffer(), NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+			CloseHandle(pi.hThread);
+			CloseHandle(pi.hProcess);
+		}
+	}
+	else
+	{
+		AfxMessageBox("No files for saving");
+	}
+}
+
+void CIRES2View::OnButtonSaveImage()
+{
+}
 
 void CIRES2View::OnButtonImportHull()
 {
@@ -627,6 +866,11 @@ void CIRES2View::OnButtonImportHull()
 					m_QAddChild.push(pf1);
 					//osgHull->addChild(geode);
 
+					m_strProjectPath = GetNewProjectFolder();
+
+					CreateDirectory(m_strProjectPath, NULL);
+					CopyFiles(m_strAppPath, m_strProjectPath);
+					m_isCreateFolder = true;
 					ClearSections();
 					m_pMainFrame->m_wndClassView.SetHulllStatus(true);
 				}
@@ -650,6 +894,11 @@ void CIRES2View::OnButtonImportHull()
 				m_QAddChild.push(pf1);
 				//osgHull->addChild(geo_node);
 
+				m_strProjectPath = GetNewProjectFolder();
+
+				CreateDirectory(m_strProjectPath, NULL);
+				CopyFiles(m_strAppPath, m_strProjectPath);
+				m_isCreateFolder = true;
 				ClearSections();
 				m_pMainFrame->m_wndClassView.SetHulllStatus(true);
 			}
@@ -2443,6 +2692,49 @@ void CIRES2View::ClearCrossSectionLine()
 //	}
 //}
 
+void CIRES2View::LoadIceInput()
+{
+	fopen_s(&fp_4, m_strProjectPath + "\\ICE_INPUT.inp", "rt");
+	if (fp_4)
+	{
+		COptImportExportBase ifp;
+		ifp.m_fp_input = fp_4;
+		ifp.m_array_strSplit.push_back(' ');
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			HULL_TYPE = atoi(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			FG = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 2)
+		{
+			SIGMAP = atof(ifp.m_array_strOutput[0]);
+			SIGMAK = atof(ifp.m_array_strOutput[1]);
+			SSIGMA = atof(ifp.m_array_strOutput[2]);
+		}
+		if (ifp.ReadOneLineFromFile() > 2)
+		{
+			HH = atof(ifp.m_array_strOutput[0]);
+			HK = atof(ifp.m_array_strOutput[1]);
+			SH = atof(ifp.m_array_strOutput[2]);
+		}
+		ifp.ReadOneLineFromFile();
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+			DRAFT = atof(ifp.m_array_strOutput[0]);
+			BREADTH = atof(ifp.m_array_strOutput[1]);
+		}
+		if (ifp.ReadOneLineFromFile() > 2)
+		{
+			VS = atof(ifp.m_array_strOutput[0]);
+			VE = atof(ifp.m_array_strOutput[1]);
+			VI = atof(ifp.m_array_strOutput[2]);
+		}
+	}
+}
+
 void CIRES2View::OnButtonCalculateSectionPoints()
 {
 	UnSetFlipNormal();
@@ -2534,45 +2826,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 		return;
 	}
 
-	fopen_s(&fp_4, m_strAppPath + "\\ICE_INPUT.inp", "rt");
-	if (fp_4)
-	{
-		COptImportExportBase ifp;
-		ifp.m_fp_input = fp_4;
-		ifp.m_array_strSplit.push_back(' ');
-		if (ifp.ReadOneLineFromFile() > 0)
-		{
-			HULL_TYPE = atoi(ifp.m_array_strOutput[0]);
-		}
-		if (ifp.ReadOneLineFromFile() > 0)
-		{
-			FG = atof(ifp.m_array_strOutput[0]);
-		}
-		if (ifp.ReadOneLineFromFile() > 2)
-		{
-			SIGMAP = atof(ifp.m_array_strOutput[0]);
-			SIGMAK = atof(ifp.m_array_strOutput[1]);
-			SSIGMA = atof(ifp.m_array_strOutput[2]);
-		}
-		if (ifp.ReadOneLineFromFile() > 2)
-		{
-			HH = atof(ifp.m_array_strOutput[0]);
-			HK = atof(ifp.m_array_strOutput[1]);
-			SH = atof(ifp.m_array_strOutput[2]);
-		}
-		ifp.ReadOneLineFromFile();
-		if (ifp.ReadOneLineFromFile() > 1)
-		{
-			DRAFT = atof(ifp.m_array_strOutput[0]);
-			BREADTH = atof(ifp.m_array_strOutput[1]);
-		}
-		if (ifp.ReadOneLineFromFile() > 2)
-		{
-			VS = atof(ifp.m_array_strOutput[0]);
-			VE = atof(ifp.m_array_strOutput[1]);
-			VI = atof(ifp.m_array_strOutput[2]);
-		}
-	}
+	LoadIceInput();
 
 	//ClearSectionPoints();
 
@@ -2664,7 +2918,7 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 		FILE* save_file;
 		if (m_aWaterLinePointData.size() > 0)
 		{
-			fopen_s(&save_file, m_strAppPath + "\\WATERLINE_OUTSIDE.inp", "wt");
+			fopen_s(&save_file, m_strProjectPath + "\\WATERLINE_OUTSIDE.inp", "wt");
 			if (save_file)
 			{
 				fprintf_s(save_file, "%d\n", m_aWaterLinePointData.size());
@@ -2710,7 +2964,7 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 				}
 			}
 
-			fopen_s(&save_file, m_strAppPath + "\\FRAME.inp", "wt");
+			fopen_s(&save_file, m_strProjectPath + "\\FRAME.inp", "wt");
 			if (save_file)
 			{
 				fprintf_s(save_file, "%d\n", m_aSectionPointDataList.size());
@@ -2745,12 +2999,12 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 	//---------------------------------------------------------------------------------------
 	//	3D_R.f90 파일 계산 로직 추가
 	//---------------------------------------------------------------------------------------
-	fopen_s(&fp_4, m_strAppPath + "\\ICE_INPUT.inp", "rt");
-	fopen_s(&fp_6, m_strAppPath + "\\ECHO.OUT", "wt");
-	fopen_s(&fp_7, m_strAppPath + "\\ice_result.OUT", "wt");
-	fopen_s(&fp_8, m_strAppPath + "\\IMSI.OUT", "wt");
-	fopen_s(&fp_9, m_strAppPath + "\\ICECOFF_INPUT.inp", "rt");
-	fopen_s(&fp_10, m_strAppPath + "\\SELECT MODULE.INP", "rt");
+	fopen_s(&fp_4, m_strProjectPath + "\\ICE_INPUT.inp", "rt");
+	fopen_s(&fp_6, m_strProjectPath + "\\ECHO.OUT", "wt");
+	fopen_s(&fp_7, m_strProjectPath + "\\ice_result.OUT", "wt");
+	fopen_s(&fp_8, m_strProjectPath + "\\IMSI.OUT", "wt");
+	fopen_s(&fp_9, m_strProjectPath + "\\ICECOFF_INPUT.inp", "rt");
+	fopen_s(&fp_10, m_strProjectPath + "\\SELECT MODULE.INP", "rt");
 
 	CAL_COND();
 	READ_HULL(1);
@@ -2853,7 +3107,7 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 		fclose(fp_15);
 	}
 
-	ShellExecute(NULL, "open", m_strAppPath + "\\ice_result.OUT", NULL, NULL, SW_SHOW);
+	//ShellExecute(NULL, "open", m_strAppPath + "\\ice_result.OUT", NULL, NULL, SW_SHOW);
 }
 
 void CIRES2View::CAL_COND()
@@ -2898,7 +3152,7 @@ void CIRES2View::CAL_COND()
 		ifp.m_fp_input = NULL;
 	}
 
-	fopen_s(&fp_9, m_strAppPath + "\\ICECOFF_INPUT.inp", "rt");
+	fopen_s(&fp_9, m_strProjectPath + "\\ICECOFF_INPUT.inp", "rt");
 	if (fp_9)
 	{
 		COptImportExportBase ifp;
@@ -3011,15 +3265,15 @@ void CIRES2View::READ_HULL(int ID)
 	//	READ_HULL
 	if (ID == 1)
 	{
-		fopen_s(&fp_5, m_strAppPath + "\\WATERLINE_OUTSIDE.inp", "rt");
+		fopen_s(&fp_5, m_strProjectPath + "\\WATERLINE_OUTSIDE.inp", "rt");
 	}
 	else if (ID == 2)
 	{
-		fopen_s(&fp_5, m_strAppPath + "\\WATERLINE_INSIDE.inp", "rt");
+		fopen_s(&fp_5, m_strProjectPath + "\\WATERLINE_INSIDE.inp", "rt");
 	}
 	else if (ID == 3)
 	{
-		fopen_s(&fp_5, m_strAppPath + "\\WATERLINE_MIDDLE.inp", "rt");
+		fopen_s(&fp_5, m_strProjectPath + "\\WATERLINE_MIDDLE.inp", "rt");
 	}
 	else
 	{
@@ -3102,7 +3356,7 @@ void CIRES2View::READ_HULL(int ID)
 
 	if (ID == 1)
 	{
-		fopen_s(&fp_15, m_strAppPath + "\\FRAME.inp", "rt");
+		fopen_s(&fp_15, m_strProjectPath + "\\FRAME.inp", "rt");
 		if (fp_15)
 		{
 			COptImportExportBase ifp;
@@ -3789,6 +4043,11 @@ void CIRES2View::PreFrameUpdate()
 		
 		if (pd.parent_node == osgHull)
 		{
+			CT2CA pszConvertedAnsiString(m_strProjectPath + "\\hull.osg");
+			std::string strStd(pszConvertedAnsiString);
+			osg::Node* node = osgHull->getChild(0);
+			bool result = osgDB::writeNodeFile(*node, strStd);
+
 			//bbHull.expandBy(osgHull->getBound());
 			//bbHullRadius = osgHull->getBound().radius();
 			osg::ComputeBoundsVisitor cbbv;
@@ -4743,6 +5002,8 @@ void CIRES2View::CalculateWaterSectionPoint()
 		return;
 	}
 
+	LoadIceInput();
+
 	ClearWaterLine();
 
 	m_iTotal = (osgSectionPosList.size() + 1) * 100;
@@ -4776,6 +5037,8 @@ void CIRES2View::CalculateSectionPoint()
 		AfxMessageBox("Import HULL data first.");
 		return;
 	}
+
+	LoadIceInput();
 
 	ClearCrossSectionLine();
 
@@ -4852,4 +5115,144 @@ void CIRES2View::OnMouseHWheel(UINT nFlags, short zDelta, CPoint pt)
 {
 	mOSG->OnMouseHWheel(nFlags, zDelta, pt);
 	CView::OnMouseHWheel(nFlags, zDelta, pt);
+}
+
+void CIRES2View::LoadDraftSectionSetting()
+{
+	FILE* fp_draft;
+	fopen_s(&fp_draft, m_strProjectPath + "\\DRAFT_SECTION.INP", "rt");
+	if (fp_draft)
+	{
+		COptImportExportBase ifp;
+		ifp.m_fp_input = fp_draft;
+		ifp.m_array_strSplit.push_back(' ');
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			m_fDraftValue = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			m_bUseDistanceForAxisWaterline = (atoi(ifp.m_array_strOutput[0]) == 1);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			m_fWaterlinePointGap = atof(ifp.m_array_strOutput[0]);
+		}
+	}
+}
+
+void CIRES2View::SaveDraftSectionSetting()
+{
+	FILE* fp_draft;
+	fopen_s(&fp_draft, m_strProjectPath + "\\DRAFT_SECTION.INP", "wt");
+	if (fp_draft)
+	{
+		fprintf_s(fp_draft, "%.2lf\n", m_fDraftValue);
+		fprintf_s(fp_draft, "%d\n", m_bUseDistanceForAxisWaterline ? 1 : 0);
+		fprintf_s(fp_draft, "%.2lf\n", m_fWaterlinePointGap);
+		fclose(fp_draft);
+	}
+}
+
+void CIRES2View::LoadCrossSectionSetting()
+{
+	FILE* fp_cross;
+	fopen_s(&fp_cross, m_strProjectPath + "\\CROSS_SECTION.INP", "rt");
+	if (fp_cross)
+	{
+		COptImportExportBase ifp;
+		ifp.m_fp_input = fp_cross;
+		ifp.m_array_strSplit.push_back(' ');
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			m_fCrossSectionStart = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			m_fCrossSectionEnd = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			m_fCrossSectionOffset = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			m_bUseDistanceForAxis = (atoi(ifp.m_array_strOutput[0]) == 1);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			m_fCrossSectionPointGap = atof(ifp.m_array_strOutput[0]);
+		}
+	}
+}
+
+void CIRES2View::SaveCrossSectionSetting()
+{
+	FILE* fp_cross;
+	fopen_s(&fp_cross, m_strProjectPath + "\\CROSS_SECTION.INP", "wt");
+	if (fp_cross)
+	{
+		fprintf_s(fp_cross, "%.2lf\n", m_fCrossSectionStart);
+		fprintf_s(fp_cross, "%.2lf\n", m_fCrossSectionEnd);
+		fprintf_s(fp_cross, "%.2lf\n", m_fCrossSectionOffset);
+		fprintf_s(fp_cross, "%d\n", m_bUseDistanceForAxis ? 1 : 0);
+		fprintf_s(fp_cross, "%.2lf\n", m_fCrossSectionPointGap);
+		fclose(fp_cross);
+	}
+}
+
+bool CIRES2View::SelectJob(CString job_name)
+{
+	CString job_path = m_strProjectPath + "\\JOB\\" + job_name + "\\";
+	if (PathFileExists(job_path))
+	{
+		CopyFiles(m_strProjectPath + "\\JOB\\" + job_name, m_strProjectPath);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\ICE_INPUT.inp", m_strAppPath + "\\ICE_INPUT.inp", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\ICECOFF_INPUT.inp", m_strAppPath + "\\ICECOFF_INPUT.inp", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\SELECT MODULE.INP", m_strAppPath + "\\SELECT MODULE.INP", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\FRAME.inp", m_strAppPath + "\\FRAME.inp", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\WATERLINE_OUTSIDE.inp", m_strAppPath + "\\WATERLINE_OUTSIDE.inp", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\ice_result.OUT", m_strAppPath + "\\ice_result.OUT", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\ECHO.OUT", m_strAppPath + "\\ECHO.OUT", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\IMSI.OUT", m_strAppPath + "\\IMSI.OUT", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\CROSS_SECTION.INP", m_strAppPath + "\\CROSS_SECTION.INP", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\DRAFT_SECTION.INP", m_strAppPath + "\\DRAFT_SECTION.INP", FALSE);
+
+		LoadDraftSectionSetting();
+		CalculateWaterSectionPoint();
+		LoadCrossSectionSetting();
+		CalculateSectionPoint();
+
+		return true;
+	}
+	else
+	{
+		AfxMessageBox("Job folder does not exist.");
+	}
+	return false;
+}
+
+bool CIRES2View::CreateJob(CString job_name)
+{
+	CalculateOutputResult();
+
+	CString job_path = m_strProjectPath + "\\JOB\\";
+	CreateDirectory(job_path, NULL);
+	job_path = m_strProjectPath + "\\JOB\\" + job_name + "\\";
+	CreateDirectory(job_path, NULL);
+
+	CopyFiles(m_strProjectPath, m_strProjectPath + "\\JOB\\" + job_name);
+
+	//CopyFile(m_strAppPath + "\\ICE_INPUT.inp", m_strAppPath + "\\JOB\\" + job_name + "\\ICE_INPUT.inp", FALSE);
+	//CopyFile(m_strAppPath + "\\ICECOFF_INPUT.inp", m_strAppPath + "\\JOB\\" + job_name + "\\ICECOFF_INPUT.inp", FALSE);
+	//CopyFile(m_strAppPath + "\\SELECT MODULE.INP", m_strAppPath + "\\JOB\\" + job_name + "\\SELECT MODULE.INP", FALSE);
+	//CopyFile(m_strAppPath + "\\FRAME.inp", m_strAppPath + "\\JOB\\" + job_name + "\\FRAME.inp", FALSE);
+	//CopyFile(m_strAppPath + "\\WATERLINE_OUTSIDE.inp", m_strAppPath + "\\JOB\\" + job_name + "\\WATERLINE_OUTSIDE.inp", FALSE);
+	//CopyFile(m_strAppPath + "\\ice_result.OUT", m_strAppPath + "\\JOB\\" + job_name + "\\ice_result.OUT", FALSE);
+	//CopyFile(m_strAppPath + "\\ECHO.OUT", m_strAppPath + "\\JOB\\" + job_name + "\\ECHO.OUT", FALSE);
+	//CopyFile(m_strAppPath + "\\IMSI.OUT", m_strAppPath + "\\JOB\\" + job_name + "\\IMSI.OUT", FALSE);
+	//CopyFile(m_strAppPath + "\\CROSS_SECTION.INP", m_strAppPath + "\\JOB\\" + job_name + "\\CROSS_SECTION.INP", FALSE);
+	//CopyFile(m_strAppPath + "\\DRAFT_SECTION.INP", m_strAppPath + "\\JOB\\" + job_name + "\\DRAFT_SECTION.INP", FALSE);
+
+	return true;
 }

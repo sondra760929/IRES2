@@ -155,6 +155,13 @@ public:
 	float m_fWaterlinePointGap;
 	void CalculateWaterSectionPoint();
 	void CalculateSectionPoint();
+	bool CreateJob(CString job_name);
+	bool SelectJob(CString job_name);
+	void LoadIceInput();
+	void LoadDraftSectionSetting();
+	void SaveDraftSectionSetting();
+	void LoadCrossSectionSetting();
+	void SaveCrossSectionSetting();
 	//CMFCRibbonEdit* m_pEditStart;
 	//CMFCRibbonEdit* m_pEditEnd;
 	//CMFCRibbonEdit* m_pEditSpace;
@@ -221,6 +228,7 @@ public:
 	queue < PreFrameUpdateData > m_QAddChild;
 	queue < PreFrameUpdateData > m_QRemoveChild;
 	// 작업입니다.
+	bool m_isCreateFolder;
 public:
 
 // 재정의입니다.
@@ -253,6 +261,9 @@ public:
 	afx_msg void OnDestroy();
 	virtual void OnInitialUpdate();
 	afx_msg void OnButtonImportHull();
+	afx_msg void OnButtonOpen();
+	afx_msg void OnButtonSave();
+	afx_msg void OnButtonSaveImage();
 	afx_msg void OnRButtonDblClk(UINT nFlags, CPoint point);
 	afx_msg void OnButtonDefineSections();
 	afx_msg void OnCheckBowBreaking();

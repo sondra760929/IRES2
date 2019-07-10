@@ -17,6 +17,7 @@
 
 
 CString m_strAppPath;
+CString m_strProjectPath;
 bool m_bUseOutline = false;
 bool m_bUseVBO = false;
 bool m_bUseShadow = false;

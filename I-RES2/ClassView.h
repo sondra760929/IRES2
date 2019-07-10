@@ -58,14 +58,18 @@ public:
 	int GetMaterialStatus();
 	int GetConditionStatus();
 	int GetAnalysisStatus();
-
+	void UpdateStatus();
 	CIRES2View* m_pView;
 
 	int m_iCurrentToolbar;
 	CDlgMainToolbar m_MainToolbar;
 	CDlgSectionToolbar m_SectionToolbar;
 	void SetToolbar(int index);
-
+	int CountTreeItems(HTREEITEM hItem = NULL, bool Recurse = false);
+	void CreateJob(HTREEITEM current_item);
+	void SelectJob(HTREEITEM current_item);
+	void ClearJobList();
+	void AddJobItem(CString job_name);
 protected:
 	//CClassToolBar m_wndToolBar;
 	CXHtmlTree m_wndClassView;
@@ -96,5 +100,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult);
 };
 

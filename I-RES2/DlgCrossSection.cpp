@@ -102,6 +102,7 @@ void CDlgCrossSection::OnBnClickedMfcbuttonCalculate()
 		m_pView->m_fCrossSectionPointGap = m_fAxisDistance * 1000.0f;
 	}
 
+	m_pView->SaveCrossSectionSetting();
 	m_pView->CalculateSectionPoint();
 
 	CDialog::OnOK();

@@ -16,6 +16,7 @@ static char THIS_FILE[]=__FILE__;
 
 CFileView::CFileView() noexcept
 {
+	item_count = 0;
 }
 
 CFileView::~CFileView()
@@ -44,6 +45,9 @@ int CFileView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CDockablePane::OnCreate(lpCreateStruct) == -1)
 		return -1;
+
+	m_OutputToolbar.Create(IDD_DIALOG_OUTPUT_TOOLBAR, this);
+	m_OutputToolbar.ShowWindow(SW_SHOW);
 
 	CRect rectDummy;
 	rectDummy.SetRectEmpty();
@@ -93,10 +97,8 @@ void CFileView::OnSize(UINT nType, int cx, int cy)
 
 void CFileView::FillFileView()
 {
-    HTREEITEM hRoot = m_wndFileView.InsertItem(_T("Output <font color = \"green\">[2]</font></b>"), 0, 0);
-    m_wndFileView.InsertItem(_T("<b>Output_1"), 1, 1, hRoot);
-    m_wndFileView.InsertItem(_T("<b>Output_2"), 1, 1, hRoot);
-    m_wndFileView.Expand(hRoot, TVE_EXPAND);
+	m_itemRoot = m_wndFileView.InsertItem(_T("Output <font color = \"green\">[0]</font></b>"), 0, 0);
+    m_wndFileView.Expand(m_itemRoot, TVE_EXPAND);
 }
 
 void CFileView::OnContextMenu(CWnd* pWnd, CPoint point)
@@ -139,9 +141,12 @@ void CFileView::AdjustLayout()
 	GetClientRect(rectClient);
 
 	//int cyTlb = m_wndToolBar.CalcFixedLayout(FALSE, TRUE).cy;
+	int toolbar_width = 35;
+	m_wndFileView.SetWindowPos(nullptr, rectClient.left + 1, rectClient.top + 1, rectClient.Width() - 2 - toolbar_width, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+	m_OutputToolbar.SetWindowPos(nullptr, rectClient.left + rectClient.Width() - toolbar_width, rectClient.top + 1, toolbar_width, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
 
 	//m_wndToolBar.SetWindowPos(nullptr, rectClient.left, rectClient.top, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
-	m_wndFileView.SetWindowPos(nullptr, rectClient.left + 1, rectClient.top + 1, rectClient.Width() - 2, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+	//m_wndFileView.SetWindowPos(nullptr, rectClient.left + 1, rectClient.top + 1, rectClient.Width() - 2, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 void CFileView::OnProperties()
@@ -229,4 +234,32 @@ void CFileView::OnChangeVisualStyle()
 	m_wndFileView.SetImageList(&m_FileViewImages, TVSIL_NORMAL);
 }
 
+void CFileView::Clear()
+{
+	if (m_wndFileView.ItemHasChildren(m_itemRoot))
+	{
+		HTREEITEM hNextItem;
+		HTREEITEM hChildItem = m_wndFileView.GetChildItem(m_itemRoot);
 
+		while (hChildItem != NULL)
+		{
+			hNextItem = m_wndFileView.GetNextItem(hChildItem, TVGN_NEXT);
+			m_wndFileView.DeleteItem(hChildItem);
+			hChildItem = hNextItem;
+		}
+	}
+	item_count = 0;
+	CString temp_string;
+	temp_string.Format(_T("Output <font color = \"green\">[%d]</font></b>"), item_count);
+	m_wndFileView.SetItemText(m_itemRoot, temp_string);
+}
+
+void CFileView::AddItem(CString job_name)
+{
+	m_wndFileView.InsertItem(job_name, 1, 1, m_itemRoot);
+	m_wndFileView.Expand(m_itemRoot, TVE_EXPAND);
+	item_count++;
+	CString temp_string;
+	temp_string.Format(_T("Output <font color = \"green\">[%d]</font></b>"), item_count);
+	m_wndFileView.SetItemText(m_itemRoot, temp_string);
+}

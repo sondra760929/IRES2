@@ -7,6 +7,8 @@
 #include "DlgDraftSection.h"
 #include "DlgCrossSection.h"
 #include "DlgCondition.h"
+#include "DlgMaterial.h"
+#include "DlgCreateJob.h"
 
 class CClassViewMenuButton : public CMFCToolBarMenuButton
 {
@@ -71,6 +73,7 @@ BEGIN_MESSAGE_MAP(CClassView, CDockablePane)
 	ON_COMMAND_RANGE(ID_SORTING_GROUPBYTYPE, ID_SORTING_SORTBYACCESS, OnSort)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_SORTING_GROUPBYTYPE, ID_SORTING_SORTBYACCESS, OnUpdateSort)
 	ON_NOTIFY(TVN_SELCHANGED, 2, &CClassView::OnTvnSelchanged)
+	ON_NOTIFY(NM_DBLCLK, 2, &CClassView::OnTvnDoubleClicked)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -150,8 +153,8 @@ void CClassView::FillClassView()
 	itemSection = m_wndClassView.InsertItem(_T("<b>Section Assignments <font color = \"red\">[?]</font>"), 2, 2, itemModel);
 	itemDraftSection = m_wndClassView.InsertItem(_T("<b>Draft Section <font color = \"red\">[?]</font>"), 5, 5, itemSection);
 	itemCrossSection = m_wndClassView.InsertItem(_T("<b>Cross Section <font color = \"red\">[?]</font>"), 5, 5, itemSection);
-	itemMaterial = m_wndClassView.InsertItem(_T("<b>Material <font color = \"red\">[?]</font>"), 3, 1, itemModel);
-	itemCondition = m_wndClassView.InsertItem(_T("<b>Condition <font color = \"red\">[?]</font>"), 4, 1, itemModel);
+	itemMaterial = m_wndClassView.InsertItem(_T("<b>Material <font color = \"red\">[?]</font>"), 3, 3, itemModel);
+	itemCondition = m_wndClassView.InsertItem(_T("<b>Condition <font color = \"red\">[?]</font>"), 4, 4, itemModel);
 	m_wndClassView.Expand(itemModel, TVE_EXPAND);
 	m_wndClassView.Expand(itemSection, TVE_EXPAND);
 
@@ -230,7 +233,7 @@ void CClassView::AdjustLayout()
 		{
 			m_SectionToolbar.Init();
 			m_SectionToolbar.ShowWindow(SW_SHOW);
-			m_SectionToolbar.SetWindowPos(nullptr, rectClient.left + rectClient.Width() - toolbar_width, rectClient.top + 1,toolbar_width, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+			m_SectionToolbar.SetWindowPos(nullptr, rectClient.left + rectClient.Width() - toolbar_width, rectClient.top + 1, toolbar_width, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
 		}
 		break;
 		}
@@ -344,6 +347,87 @@ void CClassView::OnChangeVisualStyle()
 	//m_wndToolBar.LoadBitmap(theApp.m_bHiColorIcons ? IDB_SORT_24 : IDR_SORT, 0, 0, TRUE /* 잠금 */);
 }
 
+int CClassView::CountTreeItems(HTREEITEM hItem, bool Recurse)
+{
+	int count = 0;
+	if (hItem == NULL)
+		hItem = m_wndClassView.GetSelectedItem();
+
+	if (m_wndClassView.ItemHasChildren(hItem))
+	{
+		hItem = m_wndClassView.GetNextItem(hItem, TVGN_CHILD);
+		while (hItem)
+		{
+			count++;
+			if (Recurse)
+			{
+				count += CountTreeItems(hItem, Recurse);
+			}
+			hItem = m_wndClassView.GetNextItem(hItem, TVGN_NEXT);
+		}
+	}
+	return count;
+}
+
+void CClassView::ClearJobList()
+{
+	if (m_wndClassView.ItemHasChildren(itemAnalysis))
+	{
+		HTREEITEM hNextItem;
+		HTREEITEM hChildItem = m_wndClassView.GetChildItem(itemAnalysis);
+
+		while (hChildItem != NULL)
+		{
+			hNextItem = m_wndClassView.GetNextItem(hChildItem, TVGN_NEXT);
+			m_wndClassView.DeleteItem(hChildItem);
+			hChildItem = hNextItem;
+		}
+	}
+}
+
+void CClassView::AddJobItem(CString job_name)
+{
+	m_wndClassView.InsertItem(job_name, 6, 6, itemAnalysis);
+	m_wndClassView.Expand(itemAnalysis, TVE_EXPAND);
+}
+
+void CClassView::CreateJob(HTREEITEM current_item)
+{
+	CMainFrame* m_pFrame = (CMainFrame*)AfxGetMainWnd();
+
+	if (m_pFrame)
+	{
+		CString temp_name;
+		temp_name.Format("Job_%d", CountTreeItems(current_item) + 1);
+		CDlgCreateJob pDlg;
+		pDlg.m_strJobName = temp_name;
+		if (pDlg.DoModal() == IDOK)
+		{
+			//	Job 생성
+			CString job_path = m_strProjectPath + "\\JOB\\" + pDlg.m_strJobName + "\\";
+			if (PathFileExists(job_path))
+			{
+				AfxMessageBox("Folder exists. Rename Job");
+				return;
+			}
+
+			AddJobItem(pDlg.m_strJobName);
+			m_pFrame->m_wndFileView.AddItem(pDlg.m_strJobName);
+
+			m_pView->CreateJob(pDlg.m_strJobName);
+		}
+	}
+}
+
+void CClassView::SelectJob(HTREEITEM current_item)
+{
+	CString job_name = m_wndClassView.GetItemText(current_item);
+	if (AfxMessageBox("Reset all setting from [" + job_name + "]", MB_YESNO) == IDYES)
+	{
+		m_pView->SelectJob(job_name);
+	}
+}
+
 void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
@@ -359,76 +443,135 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 			{
 				m_iCurrentToolbar = 0;
 				AdjustLayout();
-				//m_pFrame->m_wndDlgToolbar.SetToolbar(0);
-				//CRect rect;
-				//m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
-				//m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
-				//m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
-				//m_pFrame->m_wndDlgToolbar.SetFocus();
 			}
 			else if (current_item == itemDraftSection || current_item == itemSection)
 			{
 				m_iCurrentToolbar = 1;
 				AdjustLayout();
-				//m_pFrame->m_wndDlgToolbar.SetToolbar(1);
-				//CRect rect;
-				//m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
-				//m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
-				//m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
-				//m_pFrame->m_wndDlgToolbar.SetFocus();
 
-				CDlgDraftSection pDlg(m_pView);
-				pDlg.DoModal();
+				if (!GetDraftStatus())
+				{
+					CDlgDraftSection pDlg(m_pView);
+					pDlg.DoModal();
+				}
 			}
 			else if (current_item == itemCrossSection)
 			{
 				m_iCurrentToolbar = 1;
 				AdjustLayout();
-				//m_pFrame->m_wndDlgToolbar.SetToolbar(1);
-				//CRect rect;
-				//m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
-				//m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
-				//m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
-				//m_pFrame->m_wndDlgToolbar.SetFocus();
-
-				CDlgCrossSection pDlg(m_pView);
-				pDlg.DoModal();
+				if (!GetCrossStatus())
+				{
+					CDlgCrossSection pDlg(m_pView);
+					pDlg.DoModal();
+				}
 			}
 			else if (current_item == itemCondition)
 			{
 				m_iCurrentToolbar = -1;
 				AdjustLayout();
-				//m_pFrame->m_wndDlgToolbar.SetToolbar(1);
-				//CRect rect;
-				//m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
-				//m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
-				//m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
-				//m_pFrame->m_wndDlgToolbar.SetFocus();
+				if (!GetConditionStatus())
+				{
+					CDlgCondition pDlg(m_pView);
+					if (pDlg.DoModal() == IDOK)
+					{
+						SetConditionStatus(true);
+					}
+				}
+			}
+			else if (current_item == itemMaterial)
+			{
+				m_iCurrentToolbar = -1;
+				AdjustLayout();
+				if (!GetMaterialStatus())
+				{
+					CDlgMaterial pDlg(m_pView);
+					if (pDlg.DoModal() == IDOK)
+					{
+						SetMaterialStatus(true);
+					}
+				}
+			}
+			else if (current_item == itemAnalysis)
+			{
+				m_iCurrentToolbar = -1;
+				AdjustLayout();
 
-				CDlgCondition pDlg(m_pView);
-				pDlg.DoModal();
+				if (!GetModelStatus())
+				{
+					AfxMessageBox("Complete All Settting first.");
+					return;
+				}
+
+				CreateJob(current_item);
 			}
 			else
 			{
 				m_iCurrentToolbar = -1;
 				AdjustLayout();
-				//m_pFrame->m_wndDlgToolbar.ShowPane(FALSE, FALSE, FALSE);
+
+				HTREEITEM parent_item = m_wndClassView.GetParentItem(current_item);
+				if (parent_item == itemAnalysis)
+				{
+					//	job 선택
+					SelectJob(current_item);
+				}
 			}
 		}
-		//HTREEITEM parent_item = m_wndClassView.GetParentItem(current_item);
-		//if (parent_item)
-		//{
-		//	CMainFrame* m_pFrame = (CMainFrame*)AfxGetMainWnd();
+	}
+	*pResult = 0;
+}
 
-		//	if (m_pFrame)
-		//	{
-		//		COSSimulatorView* pview = (COSSimulatorView*)(m_pFrame->GetActiveView());
-		//		if (pview)
-		//		{
-		//			pview->SelectResultFromTree(parent_item, current_item);
-		//		}
-		//	}
-		//}
+void CClassView::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
+	HTREEITEM current_item = m_wndClassView.GetSelectedItem();
+	if (current_item)
+	{
+		//CString item_text = m_wndClassView.GetItemText(current_item);
+		CMainFrame* m_pFrame = (CMainFrame*)AfxGetMainWnd();
+
+		if (m_pFrame)
+		{
+			if (current_item == itemDraftSection && GetDraftStatus())
+			{
+				CDlgDraftSection pDlg(m_pView);
+				pDlg.DoModal();
+			}
+			else if (current_item == itemCrossSection && GetCrossStatus())
+			{
+				CDlgCrossSection pDlg(m_pView);
+				pDlg.DoModal();
+			}
+			else if (current_item == itemCondition && GetConditionStatus())
+			{
+				CDlgCondition pDlg(m_pView);
+				if (pDlg.DoModal() == IDOK)
+				{
+					SetConditionStatus(true);
+				}
+			}
+			else if (current_item == itemMaterial && GetMaterialStatus())
+			{
+				CDlgMaterial pDlg(m_pView);
+				if (pDlg.DoModal() == IDOK)
+				{
+					SetMaterialStatus(true);
+				}
+			}
+			else if (current_item == itemAnalysis && GetModelStatus())
+			{
+				CreateJob(current_item);
+			}
+			else
+			{
+				HTREEITEM parent_item = m_wndClassView.GetParentItem(current_item);
+				if (parent_item == itemAnalysis)
+				{
+					//	job 선택
+					SelectJob(current_item);
+				}
+			}
+		}
 	}
 	*pResult = 0;
 }
@@ -472,16 +615,25 @@ void CClassView::SetSectionStatus(bool is_on)
 	}
 }
 
+void CClassView::UpdateStatus()
+{
+	if (itemCrossSectionStatus && itemDraftSectionStatus)
+	{
+		SetSectionStatus(true);
+	}
+
+	if (itemHullStatus && itemSectionStatus && itemMaterialStatus && itemConditionStatus)
+	{
+		SetModelStatus(true);
+	}
+}
 void CClassView::SetDraftStatus(bool is_on)
 {
 	itemDraftSectionStatus = is_on;
 	if (is_on)
 	{
 		m_wndClassView.SetItemText(itemDraftSection, _T("<b>Draft Section <font color = \"green\">[O]</font>"));
-		if (itemCrossSectionStatus)
-		{
-			SetSectionStatus(true);
-		}
+		UpdateStatus();
 	}
 	else
 	{
@@ -495,10 +647,7 @@ void CClassView::SetCrossStatus(bool is_on)
 	if (is_on)
 	{
 		m_wndClassView.SetItemText(itemCrossSection, _T("<b>Cross Section <font color = \"green\">[O]</font>"));
-		if (itemDraftSectionStatus)
-		{
-			SetSectionStatus(true);
-		}
+		UpdateStatus();
 	}
 	else
 	{
@@ -512,6 +661,7 @@ void CClassView::SetMaterialStatus(bool is_on)
 	if (is_on)
 	{
 		m_wndClassView.SetItemText(itemMaterial, _T("<b>Material <font color = \"green\">[O]</font>"));
+		UpdateStatus();
 	}
 	else
 	{
@@ -525,6 +675,7 @@ void CClassView::SetConditionStatus(bool is_on)
 	if (is_on)
 	{
 		m_wndClassView.SetItemText(itemCondition, _T("<b>Condition <font color = \"green\">[O]</font>"));
+		UpdateStatus();
 	}
 	else
 	{

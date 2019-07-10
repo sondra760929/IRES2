@@ -3,6 +3,7 @@
 
 #include "ViewTree.h"
 #include "XHtmlTree.h"
+#include "DlgOutputToolbar.h"
 
 class CFileViewToolBar : public CMFCToolBar
 {
@@ -19,14 +20,18 @@ class CFileView : public CDockablePane
 // 생성입니다.
 public:
 	CFileView() noexcept;
+	CDlgOutputToolbar m_OutputToolbar;
 
 	void AdjustLayout();
 	void OnChangeVisualStyle();
-
+	CXHtmlTree m_wndFileView;
+	HTREEITEM m_itemRoot;
+	int item_count;
+	void Clear();
+	void AddItem(CString job_name);
 // 특성입니다.
 protected:
 
-	CXHtmlTree m_wndFileView;
 	CImageList m_FileViewImages;
 	//CFileViewToolBar m_wndToolBar;
 

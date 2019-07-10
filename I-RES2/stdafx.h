@@ -73,6 +73,11 @@ using namespace std;
 #include <afxwin.h>
 #include <afxwin.h>
 #include <afxwin.h>
+#include <afxwin.h>
+#include <afxwin.h>
+#include <afxwin.h>
+#include <afxwin.h>
+#include <afxwin.h>
 
 #define WM_RETURN_FROM_UI WM_USER+10
 #define WM_OK_FROM_UI WM_USER+11
@@ -92,6 +97,7 @@ using namespace std;
 //#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
 
 extern CString m_strAppPath;
+extern CString m_strProjectPath;
 extern bool m_bUseOutline;
 extern bool m_bUseShadow;
 extern bool m_bUseVBO;

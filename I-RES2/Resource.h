@@ -98,7 +98,11 @@
 #define IDD_DIALOG_CONDITION            325
 #define IDB_BITMAP_TOOLBAR              326
 #define IDD_DIALOG_MATERIAL             326
+#define IDD_DIALOG_CREATE_JOB           328
+#define IDD_DIALOG_OUTPUT_TOOLBAR       329
+#define IDD_DIALOG_GRAPH                330
 #define IDR_TOOLBAR2                    331
+#define IDD_DIALOG_EXCEL                333
 #define IDC_LIST1                       1000
 #define IDC_MFCBUTTON_CLEAR             1000
 #define IDC_PROGRESS1                   1001
@@ -157,6 +161,13 @@
 #define IDC_STATIC2                     1032
 #define IDC_STATIC3                     1033
 #define IDC_STATIC4                     1034
+#define IDC_EDIT1                       1035
+#define IDC_MFCBUTTON_ICE_EXCEL         1036
+#define IDC_MFCBUTTON_ICD_GRAPH         1037
+#define IDC_MFCBUTTON_SPEED_EXCEL       1038
+#define IDC_MFCBUTTON_SPEED_GRAPH       1039
+#define IDC_MPGRAPHCTRL1                1041
+#define IDC_GRID1                       1042
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_BUTTON_OPEN                  32771
 #define ID_BUTTON_SAVE                  32772
@@ -236,9 +247,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        328
+#define _APS_NEXT_RESOURCE_VALUE        335
 #define _APS_NEXT_COMMAND_VALUE         32856
-#define _APS_NEXT_CONTROL_VALUE         1035
+#define _APS_NEXT_CONTROL_VALUE         1043
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

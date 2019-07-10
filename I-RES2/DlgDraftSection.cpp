@@ -131,6 +131,7 @@ void CDlgDraftSection::OnBnClickedMfcbuttonCalculate()
 		m_pView->m_fWaterlinePointGap = m_fAxisDistance * 1000.0f;
 	}
 
+	m_pView->SaveDraftSectionSetting();
 	m_pView->CalculateWaterSectionPoint();
 
 	CDialog::OnOK();
