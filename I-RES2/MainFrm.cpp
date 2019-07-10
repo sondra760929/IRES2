@@ -116,11 +116,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 	}
 
-	if (!m_wndDlgToolbar.Create(_T("Toolbar"), this, CRect(0, 0, 24, 200), TRUE, ID_VIEW_TOOLBAR1, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT))
-	{
-		TRACE0("속성 창을 만들지 못했습니다.\n");
-		return FALSE; // 만들지 못했습니다.
-	}
+	//if (!m_wndDlgToolbar.Create(_T("Toolbar"), this, CRect(0, 0, 24, 200), TRUE, ID_VIEW_TOOLBAR1, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT))
+	//{
+	//	TRACE0("속성 창을 만들지 못했습니다.\n");
+	//	return FALSE; // 만들지 못했습니다.
+	//}
 
 	CTabbedPane::m_bTabsAlwaysTop = TRUE;
 
@@ -131,11 +131,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	DockPane(&m_wndClassView);
 
 	//m_wndToolbar.EnableDocking(CBRS_ALIGN_ANY);
-	DockPane(&m_wndDlgToolbar);
-	m_wndDlgToolbar.EnableGripper(FALSE);
+	//DockPane(&m_wndDlgToolbar);
+	//m_wndDlgToolbar.EnableGripper(FALSE);
 
-	m_wndDlgToolbar.ShowPane(FALSE, FALSE, FALSE);
-	m_wndDlgToolbar.SetToolbar(0);
+	//m_wndDlgToolbar.ShowPane(FALSE, FALSE, FALSE);
+	//m_wndDlgToolbar.SetToolbar(0);
 
 	CDockablePane* pTabbedBar = nullptr;
 	m_wndFileView.AttachToTabWnd(&m_wndClassView, DM_SHOW, TRUE, &pTabbedBar);

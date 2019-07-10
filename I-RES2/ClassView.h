@@ -3,6 +3,9 @@
 
 #include "ViewTree.h"
 #include "XHtmlTree.h"
+#include "DlgMainToolbar.h"
+#include "DlgSectionToolbar.h"
+
 class CIRES2View;
 class CClassToolBar : public CMFCToolBar
 {
@@ -57,6 +60,12 @@ public:
 	int GetAnalysisStatus();
 
 	CIRES2View* m_pView;
+
+	int m_iCurrentToolbar;
+	CDlgMainToolbar m_MainToolbar;
+	CDlgSectionToolbar m_SectionToolbar;
+	void SetToolbar(int index);
+
 protected:
 	//CClassToolBar m_wndToolBar;
 	CXHtmlTree m_wndClassView;

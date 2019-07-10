@@ -91,18 +91,27 @@ public:
 	osg::ref_ptr<osg::Group> MainScene;
 	osg::ref_ptr<osgWidget::WindowManager> m_WindowManager;
 	osg::Camera* m_WindowManagerCamera;
-	map< string, osgWidget::Box* > m_mapNameToToolbar;
-	void MakeToolbar(string name, string image_path);
-	void InsertWidget(osgWidget::Box* box, osgWidget::Widget* widget, int index);
-	//osgWidget::Box* m_widgetObject[5];
-	osgWidget::Box* m_widgetOPTType[5];
-	osgWidget::Box* m_widgetOPTName;
-	osgWidget::Box* m_widgetSimulation;
-	osgWidget::Box* m_widgetCurrentOperator;
-	osgWidget::Label* m_widgetLabels[5];
-	osgWidget::Label* m_widgetSimulationTime;
-	osgWidget::Label* m_widgetCurrentOperatorName;
-	
+	osgWidget::Box* m_widgetHullSizeBox;
+	osgWidget::Label* m_widgetHullSize[4];
+	//map< string, osgWidget::Box* > m_mapNameToToolbar;
+	//void MakeToolbar(string name, string image_path);
+	//void InsertWidget(osgWidget::Box* box, osgWidget::Widget* widget, int index);
+	////osgWidget::Box* m_widgetObject[5];
+	//osgWidget::Box* m_widgetOPTType[5];
+	//osgWidget::Box* m_widgetOPTName;
+	//osgWidget::Box* m_widgetSimulation;
+	//osgWidget::Box* m_widgetCurrentOperator;
+	//osgWidget::Label* m_widgetLabels[5];
+	//osgWidget::Label* m_widgetSimulationTime;
+	//osgWidget::Label* m_widgetCurrentOperatorName;
+	bool m_bViewModeOrtho;
+	double m_fFieldOfView;
+	double m_fAspect;
+	double m_fNearClip;
+	double m_fFarClip;
+	double oHeight;
+	void OnMouseHWheel(UINT nFlags, short zDelta, CPoint pt);
+
 	void OnViewTop();
 	void OnViewBottom();
 	void OnViewLeft();
@@ -110,6 +119,10 @@ public:
 	void OnViewFront();
 	void OnViewRear();
 	void OnViewIso();
+	void OnViewOrtho();
+	void OnViewPerspective();
+	void OnViewAll();
+	void UpdateOrtho();
 	bool mousePush(osgWidget::Event& ev);
 
 private:

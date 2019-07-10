@@ -24,8 +24,10 @@ int CToolbarWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 
 	m_MainToolbar.Create(IDD_DIALOG_MAIN_TOOLBAR, this);
-
 	m_MainToolbar.ShowWindow(SW_HIDE);
+
+	m_SectionToolbar.Create(IDD_DIALOG_SECTION_TOOLBAR, this);
+	m_SectionToolbar.ShowWindow(SW_HIDE);
 
 	return 0;
 }
@@ -36,11 +38,13 @@ void CToolbarWnd::OnSetFocus(CWnd* pOldWnd)
 	CDockablePane::OnSetFocus(pOldWnd);
 
 	m_MainToolbar.SetFocus();
+	m_SectionToolbar.SetFocus();
 }
 
 void CToolbarWnd::SetToolbar(int index)
 {
 	m_MainToolbar.ShowWindow(SW_HIDE);
+	m_SectionToolbar.ShowWindow(SW_HIDE);
 	switch (index)
 	{
 	case 0:
@@ -50,7 +54,8 @@ void CToolbarWnd::SetToolbar(int index)
 	break;
 	case 1:
 	{
-		m_MainToolbar.ShowWindow(SW_SHOW);
+		m_SectionToolbar.Init();
+		m_SectionToolbar.ShowWindow(SW_SHOW);
 	}
 	break;
 	case 2:
@@ -77,5 +82,6 @@ void CToolbarWnd::OnSize(UINT nType, int cx, int cy)
 	if (m_MainToolbar)
 	{
 		m_MainToolbar.MoveWindow(0, 0, cx, cy);
+		m_SectionToolbar.MoveWindow(0, 0, cx, cy);
 	}
 }

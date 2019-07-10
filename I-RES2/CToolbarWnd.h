@@ -1,6 +1,7 @@
 #pragma once
 #include <afxdockablepane.h>
 #include "DlgMainToolbar.h"
+#include "DlgSectionToolbar.h"
 
 class CToolbarWnd :
 	public CDockablePane
@@ -10,6 +11,7 @@ public:
 	~CToolbarWnd();
 
 	CDlgMainToolbar m_MainToolbar;
+	CDlgSectionToolbar m_SectionToolbar;
 
 	void SetToolbar(int index);
 	DECLARE_MESSAGE_MAP()

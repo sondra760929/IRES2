@@ -87,16 +87,18 @@ BEGIN_MESSAGE_MAP(CIRES2View, CView)
 	ON_WM_LBUTTONDOWN()
 	ON_COMMAND(ID_BUTTON_Nurbs_Conversion, &CIRES2View::OnButtonNurbsConversion)
 	ON_UPDATE_COMMAND_UI(ID_BUTTON_Nurbs_Conversion, &CIRES2View::OnUpdateButtonNurbsConversion)
-	ON_COMMAND(ID_BUTTONFront, &CIRES2View::OnButtonfront)
-	ON_COMMAND(ID_BUTTONTop, &CIRES2View::OnButtontop)
-	ON_COMMAND(ID_BUTTONLeft, &CIRES2View::OnButtonleft)
-	ON_COMMAND(ID_BUTTONBack, &CIRES2View::OnButtonback)
-	ON_COMMAND(ID_BUTTONRight, &CIRES2View::OnButtonright)
-	ON_COMMAND(ID_BUTTONBottom, &CIRES2View::OnButtonbottom)
-	ON_COMMAND(ID_BUTTONAxo, &CIRES2View::OnButtonaxo)
-	ON_COMMAND(ID_BUTTONReset, &CIRES2View::OnButtonreset)
-	ON_COMMAND(ID_BUTTONZoomWin, &CIRES2View::OnButtonzoomwin)
-	ON_COMMAND(ID_BUTTONZoomAll, &CIRES2View::OnButtonzoomall)
+	ON_COMMAND(ID_BUTTON_VIEW_FRONT, &CIRES2View::OnButtonfront)
+	ON_COMMAND(ID_BUTTON_VIEW_TOP, &CIRES2View::OnButtontop)
+	ON_COMMAND(ID_BUTTON_VIEW_LEFT, &CIRES2View::OnButtonleft)
+	ON_COMMAND(ID_BUTTON_VIEW_REAR, &CIRES2View::OnButtonback)
+	ON_COMMAND(ID_BUTTON_VIEW_RIGHT, &CIRES2View::OnButtonright)
+	ON_COMMAND(ID_BUTTON_VIEW_BOTTOM, &CIRES2View::OnButtonbottom)
+	ON_COMMAND(ID_BUTTON_VIEW_ISO, &CIRES2View::OnButtonaxo)
+	ON_COMMAND(ID_BUTTON_VIEW_PERSPECTIVE, &CIRES2View::OnButtonViewPerspective)
+	ON_COMMAND(ID_BUTTON_VIEW_ORTHO, &CIRES2View::OnButtonViewOrtho)
+	//ON_COMMAND(ID_BUTTON_VIEW_FRONT, &CIRES2View::OnButtonreset)
+	//ON_COMMAND(ID_BUTTON_VIEW_FRONT, &CIRES2View::OnButtonzoomwin)
+	ON_COMMAND(ID_BUTTON_VIEW_ALL, &CIRES2View::OnButtonzoomall)
 	ON_WM_LBUTTONUP()
 	ON_COMMAND(ID_CHECK_DISTANCE_FOR_AXIS, &CIRES2View::OnCheckDistanceForAxis)
 	ON_UPDATE_COMMAND_UI(ID_CHECK_DISTANCE_FOR_AXIS, &CIRES2View::OnUpdateCheckDistanceForAxis)
@@ -119,6 +121,7 @@ BEGIN_MESSAGE_MAP(CIRES2View, CView)
 	ON_COMMAND(ID_EDIT_NUMBER_WATERLINE, &CIRES2View::OnEditNumberWaterline)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_NUMBER_WATERLINE, &CIRES2View::OnUpdateEditNumberWaterline)
 	ON_COMMAND(ID_BUTTON_DEFINE, &CIRES2View::OnButtonDefine)
+	ON_WM_MOUSEHWHEEL()
 END_MESSAGE_MAP()
 
 int N_FRAME;
@@ -217,7 +220,6 @@ CIRES2View::CIRES2View()
 	, m_bShowSectionData(true)
 	, m_bShowWaterline(true)
 	, m_bShowWaterlineData(true)
-	, m_iCurrentStep(0)
 	, m_bSetCenterPoint(false)
 	, m_bSetFlipNormal(false)
 	, m_bSelectWindow(false)
@@ -225,6 +227,11 @@ CIRES2View::CIRES2View()
 	, m_bUseDistanceForAxis(false)
 	, m_bUseDistanceForAxisWaterline(false)
 	, m_fWaterlinePointGap(500.0f)
+	, m_pMainFrame(0)
+	, m_bViewEdge(false)
+	, m_fCrossSectionOffset(5000.0f)
+	, m_fCrossSectionPointGap(500.0f)
+	, m_bConditionConstant(false)
 {
 	//m_iHULLPos[0] = 0;
 	//m_iHULLPos[1] = 0;
@@ -489,9 +496,14 @@ void CIRES2View::OnDestroy()
 void CIRES2View::OnInitialUpdate()
 {
 	CView::OnInitialUpdate();
-	CMainFrame *pFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
-	if (pFrame)
+	m_pMainFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
+	if (m_pMainFrame)
 	{
+		//m_pMainFrame->m_wndDlgToolbar.m_MainToolbar.m_pView = this;
+		//m_pMainFrame->m_wndDlgToolbar.m_SectionToolbar.m_pView = this;
+		m_pMainFrame->m_wndClassView.m_pView = this;
+		m_pMainFrame->m_wndClassView.m_MainToolbar.m_pView = this;
+		m_pMainFrame->m_wndClassView.m_SectionToolbar.m_pView = this;
 		//m_pEditStart = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START));
 		//m_pEditEnd = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END));
 		//m_pEditSpace = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE));
@@ -616,7 +628,7 @@ void CIRES2View::OnButtonImportHull()
 					//osgHull->addChild(geode);
 
 					ClearSections();
-					SetCurrentStep(1);
+					m_pMainFrame->m_wndClassView.SetHulllStatus(true);
 				}
 			}
 		}
@@ -639,7 +651,7 @@ void CIRES2View::OnButtonImportHull()
 				//osgHull->addChild(geo_node);
 
 				ClearSections();
-				SetCurrentStep(1);
+				m_pMainFrame->m_wndClassView.SetHulllStatus(true);
 			}
 		}
 
@@ -765,11 +777,14 @@ bool CIRES2View::LoadShapesGeo(const TopoDS_Shape& aShape, osg::Geode* geode)
 		//}
 		//else
 		//{
+		if (m_bViewEdge)
+		{
 			osg::Geometry* geo = CurveToGeometry(s, m_fEdgeDeflection);
 			if (geo)
 			{
 				geode->addChild(geo);
 			}
+		}
 		//}
 	}
 	break;
@@ -812,24 +827,27 @@ bool CIRES2View::LoadShapesGeo(const TopoDS_Shape& aShape, osg::Geode* geode)
 			geode->addChild(geo);
 		}
 
-		TopExp_Explorer Ex4(f, TopAbs_EDGE);
-		while (Ex4.More())
+		if (m_bViewEdge)
 		{
-			TopoDS_Edge s = TopoDS::Edge((Ex4.Current()));
-			geo = CurveToGeometry(s, f);
-			if (geo)
+			TopExp_Explorer Ex4(f, TopAbs_EDGE);
+			while (Ex4.More())
 			{
-				osg::StateSet *ss = geo->getOrCreateStateSet();
-				osg::Material *mtl = new osg::Material();
-				mtl->setDiffuse(osg::Material::FRONT_AND_BACK,
-					osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
-				ss->setAttributeAndModes(mtl, osg::StateAttribute::ON |
-					osg::StateAttribute::OVERRIDE);
+				TopoDS_Edge s = TopoDS::Edge((Ex4.Current()));
+				geo = CurveToGeometry(s, f);
+				if (geo)
+				{
+					osg::StateSet *ss = geo->getOrCreateStateSet();
+					osg::Material *mtl = new osg::Material();
+					mtl->setDiffuse(osg::Material::FRONT_AND_BACK,
+						osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+					ss->setAttributeAndModes(mtl, osg::StateAttribute::ON |
+						osg::StateAttribute::OVERRIDE);
 
-				geode->addChild(geo);
+					geode->addChild(geo);
+				}
+
+				Ex4.Next();
 			}
-
-			Ex4.Next();
 		}
 		find_child = false;
 	}
@@ -1195,7 +1213,7 @@ void CIRES2View::FindLimits(const Adaptor3d_Curve& aCurve,
 void CIRES2View::FitWorld()
 {
 	mOSG->getViewer()->home();
-	mOSG->OnViewIso();
+	//mOSG->OnViewIso();
 }
 
 void CIRES2View::OnRButtonDblClk(UINT nFlags, CPoint point)
@@ -1383,7 +1401,7 @@ void CIRES2View::UpdateGlobalAxis(float length)
 {
 	osg::Geode* geode = new osg::Geode;
 
-	osg::LineWidth* lineWidth = new osg::LineWidth(2);
+	osg::LineWidth* lineWidth = new osg::LineWidth(1);
 	geode->getOrCreateStateSet()->setAttributeAndModes(lineWidth, osg::StateAttribute::ON);
 	geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
@@ -1499,7 +1517,7 @@ void CIRES2View::ClearSections()
 	osgSectionPosList.clear();
 	osgSectionEnable.clear();
 
-	ClearSectionPoints();
+	//ClearSectionPoints();
 }
 
 void CIRES2View::DefineSections()
@@ -1710,8 +1728,8 @@ void CIRES2View::DefineSections()
 		}
 	}
 
-	SetCurrentStep(2);
-	ClearSectionPoints();
+	//SetCurrentStep(2);
+	//ClearSectionPoints();
 }
 
 
@@ -2388,23 +2406,42 @@ void CIRES2View::AddSectionGeo(vector< vector< osg::Vec3 > >& pt_list, osg::Grou
 	group->addChild(base_plane);
 }
 
-void CIRES2View::ClearSectionPoints()
+void CIRES2View::ClearWaterLine()
 {
 	m_aWaterLine.clear();
 	m_aWaterLinePointData.clear();
-
-	m_aSectionLine.clear();
-	m_aSectionPointDataList.clear();
-
 	PreFrameUpdateData pf(osgWaterlineSection, NULL);
 	m_QRemoveChild.push(pf);
+}
 
+void CIRES2View::ClearCrossSectionLine()
+{
+	m_aSectionLine.clear();
+	m_aSectionPointDataList.clear();
 	for each(auto section in osgSectionsData)
 	{
 		PreFrameUpdateData pf(section, NULL);
 		m_QRemoveChild.push(pf);
 	}
 }
+
+//void CIRES2View::ClearSectionPoints()
+//{
+//	m_aWaterLine.clear();
+//	m_aWaterLinePointData.clear();
+//
+//	m_aSectionLine.clear();
+//	m_aSectionPointDataList.clear();
+//
+//	PreFrameUpdateData pf(osgWaterlineSection, NULL);
+//	m_QRemoveChild.push(pf);
+//
+//	for each(auto section in osgSectionsData)
+//	{
+//		PreFrameUpdateData pf(section, NULL);
+//		m_QRemoveChild.push(pf);
+//	}
+//}
 
 void CIRES2View::OnButtonCalculateSectionPoints()
 {
@@ -2537,7 +2574,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 		}
 	}
 
-	ClearSectionPoints();
+	//ClearSectionPoints();
 
 	m_aWaterLine.clear();
 	m_aSectionLine.clear();
@@ -2601,7 +2638,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	}
 	//fclose(FileLog);
 	EndProgress();
-	SetCurrentStep(3);
+	//SetCurrentStep(3);
 }
 
 void CIRES2View::CalculateOutputResult(bool refresh)
@@ -3719,7 +3756,7 @@ void CIRES2View::OnButtonSaveHull()
 
 void CIRES2View::PreFrameUpdate()
 {
-	//mOSG->ResizeToolbar(screen_width, screen_height);
+	mOSG->ResizeToolbar(screen_width, screen_height);
 
 	while (!m_QRemoveChild.empty())
 	{
@@ -3757,6 +3794,13 @@ void CIRES2View::PreFrameUpdate()
 			osg::ComputeBoundsVisitor cbbv;
 			osgHull_Center->accept(cbbv);
 			bbHull = cbbv.getBoundingBox();
+			char temp_str[200];
+			sprintf_s(temp_str, 200, "X: Max %.2lfm  Min %.2lfm", bbHull.xMax()/1000.0f, bbHull.xMin()/1000.0f);
+			mOSG->m_widgetHullSize[1]->setLabel(temp_str);
+			sprintf_s(temp_str, 200, "Y: Max %.2lfm  Min %.2lfm", bbHull.yMax()/1000.0f, bbHull.yMin()/1000.0f);
+			mOSG->m_widgetHullSize[2]->setLabel(temp_str);
+			sprintf_s(temp_str, 200, "Z: Max %.2lfm  Min %.2lfm", bbHull.zMax()/1000.0f, bbHull.zMin()/1000.0f);
+			mOSG->m_widgetHullSize[3]->setLabel(temp_str);
 
 			//CString temp_string;
 			//temp_string.Format("%lf, %lf, %lf, %lf, %lf, %lf", bbHull.xMin(), bbHull.xMax(), bbHull.yMin(), bbHull.yMax(), bbHull.zMin(), bbHull.zMax());
@@ -3792,6 +3836,9 @@ void CIRES2View::PreFrameUpdate()
 			v_array->push_back(osg::Vec3(-bbLength[0], bbLength[1], 0));
 
 			m_iWaterLinePos.set(bbHull.center().x(), bbHull.center().y(), bbHull.center().z());
+			m_fDraftValue = bbHull.center().z() / 1000.0f;
+			m_fCrossSectionStart = bbHull.xMax();
+			m_fCrossSectionEnd = bbHull.xMin();
 			//UpdateWaterlinePos();
 
 			osg::Matrix tr;
@@ -3852,14 +3899,15 @@ void CIRES2View::PreFrameUpdate()
 	}
 }
 
-void CIRES2View::SetCurrentStep(int i_step)
-{
-	mOSG->m_widgetOPTType[m_iCurrentStep]->hide();
-	m_iCurrentStep = i_step;
-	mOSG->m_widgetOPTType[m_iCurrentStep]->show();
-	mOSG->ResizeToolbar(screen_width, screen_height);
-}
-
+//void CIRES2View::SetCurrentStep(int i_step)
+//{
+//	m_pMainFrame->m_wndClassView.SetHulllStatus(true);
+//	//mOSG->m_widgetOPTType[m_iCurrentStep]->hide();
+//	m_iCurrentStep = i_step;
+//	//mOSG->m_widgetOPTType[m_iCurrentStep]->show();
+//	mOSG->ResizeToolbar(screen_width, screen_height);
+//}
+//
 void CIRES2View::OnTimer(UINT_PTR nIDEvent)
 {
 	if (nIDEvent == 1)
@@ -3903,7 +3951,7 @@ void CIRES2View::OnButtonAnalysis()
 	}
 
 	CalculateOutputResult();
-	SetCurrentStep(4);
+	//SetCurrentStep(4);
 }
 
 
@@ -3922,6 +3970,7 @@ void CIRES2View::OnSize(UINT nType, int cx, int cy)
 	if (m_bInitialize)
 	{
 		m_cameraStatus->setProjectionMatrixAsOrtho2D(0, mOSG->getViewer()->getCamera()->getViewport()->width(), 0, mOSG->getViewer()->getCamera()->getViewport()->height());
+		mOSG->m_fAspect = mOSG->getViewer()->getCamera()->getViewport()->width() / mOSG->getViewer()->getCamera()->getViewport()->height();
 	}
 }
 
@@ -4203,6 +4252,7 @@ void CIRES2View::OnMouseMove(UINT nFlags, CPoint point)
 		}
 	}
 
+	mOSG->UpdateOrtho();
 	CView::OnMouseMove(nFlags, point);
 }
 
@@ -4368,42 +4418,45 @@ void CIRES2View::OnButtonfront()
 	mOSG->OnViewFront();
 }
 
-
 void CIRES2View::OnButtontop()
 {
 	mOSG->OnViewTop();
 }
-
 
 void CIRES2View::OnButtonleft()
 {
 	mOSG->OnViewLeft();
 }
 
-
 void CIRES2View::OnButtonback()
 {
 	mOSG->OnViewRear();
 }
-
 
 void CIRES2View::OnButtonright()
 {
 	mOSG->OnViewRight();
 }
 
-
 void CIRES2View::OnButtonbottom()
 {
 	mOSG->OnViewBottom();
 }
-
 
 void CIRES2View::OnButtonaxo()
 {
 	mOSG->OnViewIso();
 }
 
+void CIRES2View::OnButtonViewPerspective()
+{
+	mOSG->OnViewPerspective();
+}
+
+void CIRES2View::OnButtonViewOrtho()
+{
+	mOSG->OnViewOrtho();
+}
 
 void CIRES2View::OnButtonreset()
 {
@@ -4419,7 +4472,7 @@ void CIRES2View::OnButtonzoomwin()
 
 void CIRES2View::OnButtonzoomall()
 {
-	FitWorld();
+	mOSG->OnViewAll();
 }
 
 
@@ -4681,5 +4734,122 @@ void CIRES2View::OnButtonDefine()
 
 void CIRES2View::CalculateWaterSectionPoint()
 {
+	UnSetFlipNormal();
+	UnSetCenterPoint();
 
+	if ((m_pMainFrame->m_wndClassView.GetHulllStatus() == false) || (osgHull->getNumChildren() < 1))
+	{
+		AfxMessageBox("Import HULL data first.");
+		return;
+	}
+
+	ClearWaterLine();
+
+	m_iTotal = (osgSectionPosList.size() + 1) * 100;
+	m_iStatus = 0;
+	m_strStatus.Format("Calculate Section Points : Waterline");
+	BeginProgress();
+
+	osg::Matrix m;
+	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iWaterLinePos);
+	m.setRotate(q);
+	osg::Vec3 n(0, 0, 1);
+	n = m.preMult(n) - m_iWaterLinePos;
+
+	CalculateSectionWaterline(n, m_iWaterLinePos, 0, m_aWaterLinePointData, m_bUseDistanceForAxisWaterline, m_fWaterlinePointGap, m_aWaterLine, false, m_fWaterlineStartPos, m_fWaterlineEndPos);
+	AddSectionDataGeo(m_aWaterLinePointData, osgWaterlineSection);
+	AddSectionGeo(m_aWaterLine, osgWaterlineSection);
+
+	EndProgress();
+
+	m_pMainFrame->m_wndClassView.SetDraftStatus(true);
+}
+
+void CIRES2View::CalculateSectionPoint()
+{
+	UnSetFlipNormal();
+	UnSetCenterPoint();
+
+	if ((m_pMainFrame->m_wndClassView.GetHulllStatus() == false) || (osgHull->getNumChildren() < 1))
+	{
+		AfxMessageBox("Import HULL data first.");
+		return;
+	}
+
+	ClearCrossSectionLine();
+
+	m_aSectionStart.clear();
+	m_aSectionEnd.clear();
+	m_aSectionOffset.clear();
+
+	m_aSectionStart.push_back(m_fCrossSectionStart);
+	m_aSectionEnd.push_back(m_fCrossSectionEnd);
+	m_aSectionOffset.push_back(m_fCrossSectionOffset);
+
+	ClearSections();
+	DefineSections();
+
+	m_iTotal = (osgSectionPosList.size() + 1) * 100;
+	m_iStatus = 0;
+	m_strStatus.Format("Calculate Section Points : Waterline");
+	BeginProgress();
+
+	osg::Matrix m;
+	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+	m.setTrans(m_iWaterLinePos);
+	m.setRotate(q);
+	osg::Vec3 n(0, 0, 1);
+	n = m.preMult(n) - m_iWaterLinePos;
+
+	osg::Vec3 normal;
+	osg::Matrix m1;
+
+	if (m_bBowBreaking)
+	{
+		osg::Quat q1(0, osg::Vec3(1, 0, 0), m_iSectionRot[1], osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+		m1.setRotate(q1);
+		osg::Vec3 n(1, 0, 0);
+		normal = m1.preMult(n);
+	}
+	else
+	{
+		osg::Quat q1(m_iSectionRot[0], osg::Vec3(1, 0, 0), 0, osg::Vec3(0, 1, 0), m_iSectionRot[2], osg::Vec3(0, 0, 1));
+		m1.setRotate(q1);
+		osg::Vec3 n(0, 1, 0);
+		normal = m1.preMult(n);
+	}
+
+	for (int i = 0; i < osgSectionPosList.size(); i++)
+	{
+		m_strStatus.Format("Calculate Section Points : Section [%d / %d]", i+1, osgSectionPosList.size());
+		if (osgSectionEnable[i])
+		{
+			vector< PointData > section_point_data;
+			vector< vector< osg::Vec3 > > section_line;
+			//float m_iSectionRot[3];
+			CalculateSectionWaterline(normal, osgSectionPosList[i], 1, section_point_data, m_bUseDistanceForAxis, m_fCrossSectionPointGap, section_line);
+			if (section_point_data.size() > 0)
+			{
+				m_aSectionLine.push_back(section_line);
+				m_aSectionPointDataList.push_back(section_point_data);
+				AddSectionDataGeo(section_point_data, osgSectionsData[i]);
+				AddSectionGeo(section_line, osgSectionsData[i]);
+			}
+		}
+		else
+		{
+			m_iStatus += 100;
+		}
+	}
+	//fclose(FileLog);
+	EndProgress();
+
+	m_pMainFrame->m_wndClassView.SetCrossStatus(true);
+}
+
+void CIRES2View::OnMouseHWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+	mOSG->OnMouseHWheel(nFlags, zDelta, pt);
+	CView::OnMouseHWheel(nFlags, zDelta, pt);
 }

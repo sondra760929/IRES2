@@ -16,6 +16,8 @@
 #include "I-RES2Doc.h"
 #include "MFC_OSG2.h"
 #include "CDlgProgress.h"
+class CMainFrame;
+
 class PointData
 {
 public:
@@ -72,6 +74,7 @@ protected: // serialization에서만 만들어집니다.
 public:
 	CIRES2Doc* GetDocument() const;
 	cOSG2* mOSG;
+	CMainFrame* m_pMainFrame;
 	osg::TessellationHints* hints;
 	bool LoadShapesGeo(const TopoDS_Shape& aShape, osg::Geode* goede);
 	osg::Geometry* FaceToGeometry(const TopoDS_Face& aFace, float face_deflection);
@@ -121,8 +124,8 @@ public:
 	void AddSectionDataGeo(vector< PointData >& pt_list, osg::Group* group);
 	void AddSectionGeo(vector< vector< osg::Vec3 > >& pt_list, osg::Group* group);
 	void ClearSections();
-	void ClearSectionPoints();
-	void SetCurrentStep(int i_step);
+	//void ClearSectionPoints();
+	//void SetCurrentStep(int i_step);
 	bool m_bSetCenterPoint;
 	bool m_bSetFlipNormal;
 	CPoint m_ptStart;
@@ -138,6 +141,7 @@ public:
 	//FILE* FileLog;
 	bool m_bProgressing;
 	CString m_strStatus;
+	bool m_bConditionConstant;
 	int m_iStatus;
 	int m_iTotal;
 	CDlgProgress* m_DlgProgress;
@@ -150,6 +154,7 @@ public:
 	float m_fDraftValue;
 	float m_fWaterlinePointGap;
 	void CalculateWaterSectionPoint();
+	void CalculateSectionPoint();
 	//CMFCRibbonEdit* m_pEditStart;
 	//CMFCRibbonEdit* m_pEditEnd;
 	//CMFCRibbonEdit* m_pEditSpace;
@@ -179,7 +184,13 @@ public:
 
 	//CMFCRibbonEdit* m_pWaterlineSpinXRot;
 	//CMFCRibbonEdit* m_pWaterlineSpinYRot;
+	void ClearWaterLine();
+	void ClearCrossSectionLine();
 
+	float m_fCrossSectionStart;
+	float m_fCrossSectionEnd;
+	float m_fCrossSectionOffset;
+	float m_fCrossSectionPointGap;
 	osg::Vec3 m_iHULLPos;
 	osg::Vec3 m_iHULLRot;
 	osg::Vec3 m_iSectionRot;
@@ -201,7 +212,7 @@ public:
 
 	int screen_width;
 	int screen_height;
-
+	bool m_bViewEdge;
 	vector< vector< osg::Vec3 > > m_aWaterLine;
 	vector< PointData> m_aWaterLinePointData;
 	vector< vector< vector< osg::Vec3 > > > m_aSectionLine;
@@ -293,6 +304,8 @@ public:
 	afx_msg void OnButtonreset();
 	afx_msg void OnButtonzoomwin();
 	afx_msg void OnButtonzoomall();
+	afx_msg void OnButtonViewPerspective();
+	afx_msg void OnButtonViewOrtho();
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnCheckDistanceForAxis();
 	afx_msg void OnUpdateCheckDistanceForAxis(CCmdUI *pCmdUI);
@@ -317,6 +330,7 @@ public:
 	afx_msg void OnUpdateEditNumberWaterline(CCmdUI *pCmdUI);
 	afx_msg void OnButtonDefineSectionsWaterline();
 	afx_msg void OnButtonDefine();
+	afx_msg void OnMouseHWheel(UINT nFlags, short zDelta, CPoint pt);
 };
 
 #ifndef _DEBUG  // I-RES2View.cpp의 디버그 버전

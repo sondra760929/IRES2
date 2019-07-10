@@ -93,8 +93,11 @@
 #define IDB_BITMAP_TRANS                321
 #define IDD_DIALOG_DRAFTSECTION         322
 #define IDD_DIALOG_CROSSSECTION         323
+#define IDD_DIALOG_SECTION_TOOLBAR      324
 #define IDB_BITMAP_CALC                 325
+#define IDD_DIALOG_CONDITION            325
 #define IDB_BITMAP_TOOLBAR              326
+#define IDD_DIALOG_MATERIAL             326
 #define IDR_TOOLBAR2                    331
 #define IDC_LIST1                       1000
 #define IDC_MFCBUTTON_CLEAR             1000
@@ -125,8 +128,10 @@
 #define IDC_EDIT_INITIAL_THICKNESS      1013
 #define IDC_SPIN6                       1014
 #define IDC_EDIT_MAXIMUM_THICKNESS      1015
+#define IDC_SPIN11                      1015
 #define IDC_SPIN7                       1016
 #define IDC_EDIT_THICKNESS_INCREMENTS   1017
+#define IDC_EDIT_MAXIMUM_THICKNESS2     1017
 #define IDC_SPIN8                       1018
 #define IDC_EDIT_LENGTH                 1019
 #define IDC_EDIT_E_SIGMA                1019
@@ -140,33 +145,31 @@
 #define IDC_EDIT_WATER_DENSITY          1023
 #define IDC_EDIT_MAXIMUM_SPEED          1024
 #define IDC_EDIT_SPEED_INCREMENTS       1025
+#define IDC_CHECK_VIEW_DRAFT_PLANE      1026
+#define IDC_EDIT_THICKNESS_INCREMENTS2  1026
+#define IDC_CHECK_VIEW_DRAFT_POINTS     1027
+#define IDC_SPIN12                      1027
+#define IDC_CHECK_VIEW_CROSS_PLANE      1028
+#define IDC_RADIO_CONSTANT              1028
+#define IDC_CHECK_VIEW_CROSS_POINTS     1029
+#define IDC_RADIO_PARAMETRIC            1029
+#define IDC_STATIC1                     1031
+#define IDC_STATIC2                     1032
+#define IDC_STATIC3                     1033
+#define IDC_STATIC4                     1034
 #define ID_WRITE_PASTEASHYPERLINK       32770
-#define ID_BUTTONZoomProg               32771
 #define ID_BUTTON_OPEN                  32771
-#define ID_BUTTONZoomWin                32772
 #define ID_BUTTON_SAVE                  32772
-#define ID_BUTTONZoomAll                32773
 #define ID_BUTTON_SAVE_IMAGE            32773
-#define ID_BUTTONPan                    32774
 #define ID_BUTTON_VIEW_FRONT            32774
-#define ID_BUTTONPanGlo                 32775
 #define ID_BUTTON_VIEW_REAR             32775
-#define ID_BUTTONRot                    32776
 #define ID_BUTTON_VIEW_LEFT             32776
-#define ID_BUTTONReset                  32777
 #define ID_BUTTON_VIEW_RIGHT            32777
-#define ID_BUTTONFront                  32778
 #define ID_BUTTON_VIEW_TOP              32778
-#define ID_BUTTONTop                    32779
 #define ID_BUTTON_VIEW_BOTTOM           32779
 #define ID_BUTTON_VIEW_ISO              32780
-#define ID_BUTTONLeft                   32781
 #define ID_BUTTON_VIEW_PERSPECTIVE      32781
-#define ID_BUTTONBack                   32782
 #define ID_BUTTON_VIEW_ORTHO            32782
-#define ID_BUTTONRight                  32783
-#define ID_BUTTONBottom                 32784
-#define ID_BUTTONAxo                    32785
 #define ID_CONVERT_TO_IGES              32786
 #define ID_BUTTON_PRINCIPAL_DIMENSIONS  32787
 #define ID_BUTTON_ICE_DATA              32788
@@ -226,14 +229,16 @@
 #define ID_EDIT_NUMBER_WATERLINE        32851
 #define ID_BUTTON_DEFINE                32853
 #define ID_VIEW_TOOLBAR1                32854
+#define ID_BUTTON_VIEW_ALL              32855
+#define IDC_STATIC5                     65535
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        324
-#define _APS_NEXT_COMMAND_VALUE         32855
-#define _APS_NEXT_CONTROL_VALUE         1026
+#define _APS_NEXT_RESOURCE_VALUE        328
+#define _APS_NEXT_COMMAND_VALUE         32856
+#define _APS_NEXT_CONTROL_VALUE         1035
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

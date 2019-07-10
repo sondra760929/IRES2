@@ -201,10 +201,12 @@
     <ClInclude Include="CToolbarWnd.h" />
     <ClInclude Include="Dlg1.h" />
     <ClInclude Include="Dlg2.h" />
+    <ClInclude Include="DlgCondition.h" />
     <ClInclude Include="DlgCrossSection.h" />
     <ClInclude Include="DlgDefineInp.h" />
     <ClInclude Include="DlgDraftSection.h" />
     <ClInclude Include="DlgMainToolbar.h" />
+    <ClInclude Include="DlgSectionToolbar.h" />
     <ClInclude Include="FileView.h" />
     <ClInclude Include="I-RES2.h" />
     <ClInclude Include="I-RES2Doc.h" />
@@ -229,6 +231,7 @@
     <ClInclude Include="XTrace.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CDlgCondition.cpp" />
     <ClCompile Include="CDlgProgress.cpp" />
     <ClCompile Include="CDlgSelectSections.cpp" />
     <ClCompile Include="ClassView.cpp" />
@@ -236,10 +239,12 @@
     <ClCompile Include="CToolbarWnd.cpp" />
     <ClCompile Include="Dlg1.cpp" />
     <ClCompile Include="Dlg2.cpp" />
+    <ClCompile Include="DLGCONDITION.CPP" />
     <ClCompile Include="DlgCrossSection.cpp" />
     <ClCompile Include="DlgDefineInp.cpp" />
     <ClCompile Include="DlgDraftSection.cpp" />
     <ClCompile Include="DlgMainToolbar.cpp" />
+    <ClCompile Include="DlgSectionToolbar.cpp" />
     <ClCompile Include="FileView.cpp" />
     <ClCompile Include="I-RES2.cpp" />
     <ClCompile Include="I-RES2Doc.cpp" />

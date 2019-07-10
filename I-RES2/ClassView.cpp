@@ -6,6 +6,7 @@
 #include "I-RES2.h"
 #include "DlgDraftSection.h"
 #include "DlgCrossSection.h"
+#include "DlgCondition.h"
 
 class CClassViewMenuButton : public CMFCToolBarMenuButton
 {
@@ -49,6 +50,7 @@ CClassView::CClassView() noexcept
 	itemMaterialStatus = false;
 	itemConditionStatus = false;
 	itemAnalysisStatus = false;
+	m_iCurrentToolbar = -1;
 }
 
 CClassView::~CClassView()
@@ -78,6 +80,12 @@ int CClassView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CDockablePane::OnCreate(lpCreateStruct) == -1)
 		return -1;
+
+	m_MainToolbar.Create(IDD_DIALOG_MAIN_TOOLBAR, this);
+	m_MainToolbar.ShowWindow(SW_HIDE);
+
+	m_SectionToolbar.Create(IDD_DIALOG_SECTION_TOOLBAR, this);
+	m_SectionToolbar.ShowWindow(SW_HIDE);
 
 	CRect rectDummy;
 	rectDummy.SetRectEmpty();
@@ -145,6 +153,7 @@ void CClassView::FillClassView()
 	itemMaterial = m_wndClassView.InsertItem(_T("<b>Material <font color = \"red\">[?]</font>"), 3, 1, itemModel);
 	itemCondition = m_wndClassView.InsertItem(_T("<b>Condition <font color = \"red\">[?]</font>"), 4, 1, itemModel);
 	m_wndClassView.Expand(itemModel, TVE_EXPAND);
+	m_wndClassView.Expand(itemSection, TVE_EXPAND);
 
 	itemAnalysis = m_wndClassView.InsertItem(_T("Analysis"), 0, 0);
 }
@@ -203,9 +212,33 @@ void CClassView::AdjustLayout()
 	GetClientRect(rectClient);
 
 	//int cyTlb = m_wndToolBar.CalcFixedLayout(FALSE, TRUE).cy;
-
-	//m_wndToolBar.SetWindowPos(nullptr, rectClient.left, rectClient.top, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
-	m_wndClassView.SetWindowPos(nullptr, rectClient.left + 1, rectClient.top + 1, rectClient.Width() - 2, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+	int toolbar_width = 35;
+	m_MainToolbar.ShowWindow(SW_HIDE);
+	m_SectionToolbar.ShowWindow(SW_HIDE);
+	if (m_iCurrentToolbar > -1)
+	{
+		m_wndClassView.SetWindowPos(nullptr, rectClient.left + 1, rectClient.top + 1, rectClient.Width() - 2 - toolbar_width, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+		switch (m_iCurrentToolbar)
+		{
+		case 0:
+		{
+			m_MainToolbar.ShowWindow(SW_SHOW);
+			m_MainToolbar.SetWindowPos(nullptr, rectClient.left + rectClient.Width() - toolbar_width, rectClient.top + 1,toolbar_width, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+		}
+		break;
+		case 1:
+		{
+			m_SectionToolbar.Init();
+			m_SectionToolbar.ShowWindow(SW_SHOW);
+			m_SectionToolbar.SetWindowPos(nullptr, rectClient.left + rectClient.Width() - toolbar_width, rectClient.top + 1,toolbar_width, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+		}
+		break;
+		}
+	}
+	else
+	{
+		m_wndClassView.SetWindowPos(nullptr, rectClient.left + 1, rectClient.top + 1, rectClient.Width() - 2, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+	}
 }
 
 BOOL CClassView::PreTranslateMessage(MSG* pMsg)
@@ -324,40 +357,62 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 		{
 			if (current_item == itemHull)
 			{
-				m_pFrame->m_wndDlgToolbar.SetToolbar(0);
-				CRect rect;
-				m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
-				m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
-				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
-				m_pFrame->m_wndDlgToolbar.SetFocus();
+				m_iCurrentToolbar = 0;
+				AdjustLayout();
+				//m_pFrame->m_wndDlgToolbar.SetToolbar(0);
+				//CRect rect;
+				//m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
+				//m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
+				//m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
+				//m_pFrame->m_wndDlgToolbar.SetFocus();
 			}
 			else if (current_item == itemDraftSection || current_item == itemSection)
 			{
-				m_pFrame->m_wndDlgToolbar.SetToolbar(1);
-				CRect rect;
-				m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
-				m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
-				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
-				m_pFrame->m_wndDlgToolbar.SetFocus();
+				m_iCurrentToolbar = 1;
+				AdjustLayout();
+				//m_pFrame->m_wndDlgToolbar.SetToolbar(1);
+				//CRect rect;
+				//m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
+				//m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
+				//m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
+				//m_pFrame->m_wndDlgToolbar.SetFocus();
 
 				CDlgDraftSection pDlg(m_pView);
 				pDlg.DoModal();
 			}
 			else if (current_item == itemCrossSection)
 			{
-				m_pFrame->m_wndDlgToolbar.SetToolbar(1);
-				CRect rect;
-				m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
-				m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
-				m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
-				m_pFrame->m_wndDlgToolbar.SetFocus();
+				m_iCurrentToolbar = 1;
+				AdjustLayout();
+				//m_pFrame->m_wndDlgToolbar.SetToolbar(1);
+				//CRect rect;
+				//m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
+				//m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
+				//m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
+				//m_pFrame->m_wndDlgToolbar.SetFocus();
 
 				CDlgCrossSection pDlg(m_pView);
 				pDlg.DoModal();
 			}
+			else if (current_item == itemCondition)
+			{
+				m_iCurrentToolbar = -1;
+				AdjustLayout();
+				//m_pFrame->m_wndDlgToolbar.SetToolbar(1);
+				//CRect rect;
+				//m_pFrame->m_wndDlgToolbar.GetWindowRect(&rect);
+				//m_pFrame->m_wndDlgToolbar.MoveWindow(CRect(rect.left, rect.top, rect.left + 30, rect.bottom));
+				//m_pFrame->m_wndDlgToolbar.ShowPane(TRUE, FALSE, TRUE);
+				//m_pFrame->m_wndDlgToolbar.SetFocus();
+
+				CDlgCondition pDlg(m_pView);
+				pDlg.DoModal();
+			}
 			else
 			{
-				m_pFrame->m_wndDlgToolbar.ShowPane(FALSE, FALSE, FALSE);
+				m_iCurrentToolbar = -1;
+				AdjustLayout();
+				//m_pFrame->m_wndDlgToolbar.ShowPane(FALSE, FALSE, FALSE);
 			}
 		}
 		//HTREEITEM parent_item = m_wndClassView.GetParentItem(current_item);
@@ -423,6 +478,10 @@ void CClassView::SetDraftStatus(bool is_on)
 	if (is_on)
 	{
 		m_wndClassView.SetItemText(itemDraftSection, _T("<b>Draft Section <font color = \"green\">[O]</font>"));
+		if (itemCrossSectionStatus)
+		{
+			SetSectionStatus(true);
+		}
 	}
 	else
 	{
@@ -436,6 +495,10 @@ void CClassView::SetCrossStatus(bool is_on)
 	if (is_on)
 	{
 		m_wndClassView.SetItemText(itemCrossSection, _T("<b>Cross Section <font color = \"green\">[O]</font>"));
+		if (itemDraftSectionStatus)
+		{
+			SetSectionStatus(true);
+		}
 	}
 	else
 	{

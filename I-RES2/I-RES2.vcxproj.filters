@@ -117,6 +117,12 @@
     <ClInclude Include="DlgMainToolbar.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="DlgSectionToolbar.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgCondition.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="I-RES2.cpp">
@@ -207,6 +213,15 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="DlgMainToolbar.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgSectionToolbar.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlgCondition.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DLGCONDITION.CPP">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
