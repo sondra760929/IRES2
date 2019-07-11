@@ -40,6 +40,9 @@
 #include "CDlgSelectSections.h"
 #include "DlgDefineInp.h"
 #include "zip.h"
+#include "FrameContainer.h""
+#include "PosterPrinter.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -479,6 +482,13 @@ int CIRES2View::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	osg::Geode* geode = new osg::Geode;
 	geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+
+	//osg::MatrixTransform* frame_tr = new osg::MatrixTransform();
+	//FrameContainer* frameContainer = new FrameContainer;
+	//frameContainer->setFrameSize(40.0f);
+	//frameContainer->setFrame(frame_tr);
+	//frame_tr->addChild(geode);
+	//osgHull_Center->addChild(frameContainer);
 	osgHull_Center->addChild(geode);
 
 	double pyramidBaseZ = 100.0f;
@@ -602,6 +612,7 @@ void CIRES2View::OnInitialUpdate()
 		m_pMainFrame->m_wndClassView.m_pView = this;
 		m_pMainFrame->m_wndClassView.m_MainToolbar.m_pView = this;
 		m_pMainFrame->m_wndClassView.m_SectionToolbar.m_pView = this;
+		m_pMainFrame->m_wndFileView.m_pView = this;
 		//m_pEditStart = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START));
 		//m_pEditEnd = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END));
 		//m_pEditSpace = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE));
@@ -815,6 +826,46 @@ void CIRES2View::OnButtonSave()
 
 void CIRES2View::OnButtonSaveImage()
 {
+	osg::Vec4 bgColor(1.0f, 1.0f, 1.0f, 1.0f);
+	osg::Camera::RenderTargetImplementation renderImplementation = osg::Camera::FRAME_BUFFER_OBJECT;
+
+	CFileDialog pDlg(FALSE, "bmp", "post.bmp");
+	if (pDlg.DoModal() == IDOK)
+	{
+		CRect rect;
+		GetClientRect(&rect);
+		int tileWidth = rect.Width(), tileHeight = rect.Height();
+		int posterWidth = tileWidth * 2, posterHeight = tileHeight * 2;
+
+		osg::ref_ptr<osg::Camera> camera = new osg::Camera;
+		camera->setClearColor(bgColor);
+		camera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		camera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
+		camera->setRenderOrder(osg::Camera::PRE_RENDER);
+		camera->setRenderTargetImplementation(renderImplementation);
+		camera->setViewport(0, 0, tileWidth, tileHeight);
+
+
+		camera->addChild(mOSG->mRoot);
+
+		osg::ref_ptr<PosterPrinter> printer = new PosterPrinter;
+		printer->setTileSize(tileWidth, tileHeight);
+		printer->setPosterSize(posterWidth, posterHeight);
+		printer->setCamera(camera.get());
+
+		osg::ref_ptr<osg::Image> posterImage = 0;
+
+		posterImage = new osg::Image;
+		posterImage->allocateImage(posterWidth, posterHeight, 1, GL_RGBA, GL_UNSIGNED_BYTE);
+		printer->setFinalPoster(posterImage.get());
+		printer->setOutputPosterName(string(pDlg.GetPathName()));
+
+		mOSG->MainScene->addChild(camera.get());
+
+		printer->init(mOSG->getViewer()->getCamera());
+
+		mOSG->getCapture(printer);
+	}
 }
 
 void CIRES2View::OnButtonImportHull()
@@ -4140,6 +4191,7 @@ void CIRES2View::PreFrameUpdate()
 
 			UpdateGlobalAxis(max(max(bbHull.xMax(), bbHull.yMax()), bbHull.zMax()));
 
+			OnButtonzoomall();
 			SetTimer(1, 10, NULL);
 			//if (m_pEditStart)
 			//{
@@ -5255,4 +5307,215 @@ bool CIRES2View::CreateJob(CString job_name)
 	//CopyFile(m_strAppPath + "\\DRAFT_SECTION.INP", m_strAppPath + "\\JOB\\" + job_name + "\\DRAFT_SECTION.INP", FALSE);
 
 	return true;
+}
+
+void CIRES2View::HideOutputSummury()
+{
+	if (mOSG->m_bShowSummury)
+	{
+		mOSG->m_bShowSummury = false;
+		mOSG->m_WindowManager->removeChild(mOSG->m_widgetOutputSumurry);
+	}
+}
+
+void CIRES2View::ShowOutputSummury(CString job_name)
+{
+	CString job_path = m_strProjectPath + "\\JOB\\" + job_name + "\\ICE_INPUT.inp";
+
+	char temp_str[1024];
+	mOSG->m_widgetOutputSumurryString[0]->setLabel("1. ship size");
+	sprintf_s(temp_str, 1024, "    X: Max %.2lfm  Min %.2lfm", bbHull.xMax()/1000.0f, bbHull.xMin()/1000.0f);
+	mOSG->m_widgetOutputSumurryString[1]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "     Y: Max %.2lfm  Min %.2lfm", bbHull.yMax() / 1000.0f, bbHull.yMin() / 1000.0f);
+	mOSG->m_widgetOutputSumurryString[2]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "     Z: Max %.2lfm  Min %.2lfm", bbHull.zMax() / 1000.0f, bbHull.zMin() / 1000.0f);
+	mOSG->m_widgetOutputSumurryString[3]->setLabel(temp_str);
+
+	mOSG->m_widgetOutputSumurryString[4]->setLabel("2. section info");
+	mOSG->m_widgetOutputSumurryString[5]->setLabel("     Draft section info");
+	float f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11;
+	bool is_bool;
+	FILE* fp_draft;
+	fopen_s(&fp_draft, m_strProjectPath + "\\JOB\\" + job_name + "\\DRAFT_SECTION.INP", "rt");
+	if (fp_draft)
+	{
+		COptImportExportBase ifp;
+		ifp.m_fp_input = fp_draft;
+		ifp.m_array_strSplit.push_back(' ');
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			f1 = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			is_bool = (atoi(ifp.m_array_strOutput[0]) == 1);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			f2 = atof(ifp.m_array_strOutput[0]);
+		}
+	}
+	sprintf_s(temp_str, 1024, "        DRAFT: %.2lfm", f1);
+	mOSG->m_widgetOutputSumurryString[6]->setLabel(temp_str);
+	if(is_bool)
+		mOSG->m_widgetOutputSumurryString[7]->setLabel("        Point Distance");
+	else
+		mOSG->m_widgetOutputSumurryString[7]->setLabel("        Axis Distance");
+	sprintf_s(temp_str, 1024, "     Distance Value: %.2lfm", f2);
+	mOSG->m_widgetOutputSumurryString[8]->setLabel(temp_str);
+
+	mOSG->m_widgetOutputSumurryString[9]->setLabel("     Cross section info");
+		FILE* fp_cross;
+	fopen_s(&fp_cross, m_strProjectPath + "\\JOB\\" + job_name + "\\CROSS_SECTION.INP", "rt");
+	if (fp_cross)
+	{
+		COptImportExportBase ifp;
+		ifp.m_fp_input = fp_cross;
+		ifp.m_array_strSplit.push_back(' ');
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			f1 = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			f2 = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			f3 = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			is_bool = (atoi(ifp.m_array_strOutput[0]) == 1);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			f4 = atof(ifp.m_array_strOutput[0]);
+		}
+	}
+	sprintf_s(temp_str, 1024, "        Start: %.2lfm", f1);
+	mOSG->m_widgetOutputSumurryString[10]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "        End: %.2lfm", f2);
+	mOSG->m_widgetOutputSumurryString[11]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "        Interval: %.2lfm", f3);
+	mOSG->m_widgetOutputSumurryString[12]->setLabel(temp_str);
+	if(is_bool)
+		mOSG->m_widgetOutputSumurryString[13]->setLabel("        Point Distance");
+	else
+		mOSG->m_widgetOutputSumurryString[13]->setLabel("        Axis Distance");
+	sprintf_s(temp_str, 1024, "     Distance Value: %.2lfm", f4);
+	mOSG->m_widgetOutputSumurryString[14]->setLabel(temp_str);
+
+
+	mOSG->m_widgetOutputSumurryString[15]->setLabel("3. Material info");
+
+	FILE* fp;
+	fopen_s(&fp, m_strProjectPath + "\\JOB\\" + job_name + "\\ICE_INPUT.inp", "rt");
+	if (fp)
+	{
+		COptImportExportBase ifp;
+		ifp.m_fp_input = fp;
+		ifp.m_array_strSplit.push_back(' ');
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			HULL_TYPE = atoi(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 0)
+		{
+			f2 = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 2)
+		{
+			f1 = atof(ifp.m_array_strOutput[0]);
+		}
+		if (ifp.ReadOneLineFromFile() > 2)
+		{
+			f9 = atof(ifp.m_array_strOutput[0]);
+			f10 = atof(ifp.m_array_strOutput[1]);
+			f11 = atof(ifp.m_array_strOutput[2]);
+		}
+		ifp.ReadOneLineFromFile();
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+		}
+		if (ifp.ReadOneLineFromFile() > 2)
+		{
+			f6 = atof(ifp.m_array_strOutput[0]);
+			f7 = atof(ifp.m_array_strOutput[1]);
+			f8 = atof(ifp.m_array_strOutput[2]);
+		}
+	}
+
+	fopen_s(&fp, m_strProjectPath + "\\JOB\\" + job_name + "\\ICECOFF_INPUT.inp", "rt");
+	if (fp)
+	{
+		COptImportExportBase ifp;
+		ifp.m_fp_input = fp;
+		ifp.m_array_strSplit.push_back(' ');
+		ifp.m_array_strSplit.push_back(':');
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+		}
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+		}
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+		}
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+		}
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+		}
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+		}
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+		}
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+			f5 = atof(ifp.m_array_strOutput[1]);
+		}
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+			f4 = atof(ifp.m_array_strOutput[1]);
+		}
+		if (ifp.ReadOneLineFromFile() > 1)
+		{
+			f3 = atof(ifp.m_array_strOutput[1]) / 1000000.0f;
+		}
+	}
+
+	sprintf_s(temp_str, 1024, "     flexural strength: %.2lfm", f1);
+	mOSG->m_widgetOutputSumurryString[16]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "     Friction Coeff.: %.2lfm", f2);
+	mOSG->m_widgetOutputSumurryString[17]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "     E/sigma: %.2lfm", f3);
+	mOSG->m_widgetOutputSumurryString[18]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "     Icd Density (kg/m3): %.2lfm", f4);
+	mOSG->m_widgetOutputSumurryString[19]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "     Water Density (kg/m3): %.2lfm", f5);
+	mOSG->m_widgetOutputSumurryString[20]->setLabel(temp_str);
+	
+	mOSG->m_widgetOutputSumurryString[21]->setLabel("4. Condition info");
+	sprintf_s(temp_str, 1024, "     Initial Ship speed (knots): %.2lfm", f6);
+	mOSG->m_widgetOutputSumurryString[22]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "     Max. Ship speed (knots): %.2lfm", f7);
+	mOSG->m_widgetOutputSumurryString[23]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "     Increments Ship speed (knots): %.2lfm", f8);
+	mOSG->m_widgetOutputSumurryString[24]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "     Initial Thickness (m): %.2lfm", f9);
+	mOSG->m_widgetOutputSumurryString[25]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "     Maximum Thickness (m): %.2lfm", f10);
+	mOSG->m_widgetOutputSumurryString[26]->setLabel(temp_str);
+	sprintf_s(temp_str, 1024, "     Thickness Increments (m): %.2lfm", f11);
+	mOSG->m_widgetOutputSumurryString[27]->setLabel(temp_str);
+
+	if (mOSG->m_bShowSummury == false)
+	{
+		mOSG->m_bShowSummury = true;
+		mOSG->m_WindowManager->addChild(mOSG->m_widgetOutputSumurry);
+	}
 }

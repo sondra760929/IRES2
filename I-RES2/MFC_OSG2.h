@@ -35,6 +35,8 @@
 #include <osgWidget/Label>
 #include <osgWidget/ViewerEventHandlers>
 #include <osgGA/StateSetManipulator>
+#include "PosterPrinter.h"
+
 class CIRES2View;
 
 
@@ -93,6 +95,10 @@ public:
 	osg::Camera* m_WindowManagerCamera;
 	osgWidget::Box* m_widgetHullSizeBox;
 	osgWidget::Label* m_widgetHullSize[4];
+
+	osgWidget::Box* m_widgetOutputSumurry;
+	bool m_bShowSummury;
+	vector< osgWidget::Label* > m_widgetOutputSumurryString;
 	//map< string, osgWidget::Box* > m_mapNameToToolbar;
 	//void MakeToolbar(string name, string image_path);
 	//void InsertWidget(osgWidget::Box* box, osgWidget::Widget* widget, int index);
@@ -124,6 +130,8 @@ public:
 	void OnViewAll();
 	void UpdateOrtho();
 	bool mousePush(osgWidget::Event& ev);
+	void getCapture(PosterPrinter* printer);
+	osg::ref_ptr<PosterPrinter> _printer;
 
 private:
 	bool m_bOnManipulate;
@@ -133,6 +141,7 @@ private:
     osgViewer::Viewer* mViewer;
     //osg::ref_ptr<osg::Node> mModel;
     osg::ref_ptr<osgGA::KeySwitchMatrixManipulator> keyswitchManipulator;
+	bool _started;
 };
 
 class CRenderingThread : public OpenThreads::Thread

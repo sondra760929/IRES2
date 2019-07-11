@@ -436,6 +436,8 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 	{
 		//CString item_text = m_wndClassView.GetItemText(current_item);
 		CMainFrame* m_pFrame = (CMainFrame*)AfxGetMainWnd();
+		if(m_pView)
+			m_pView->HideOutputSummury();
 
 		if (m_pFrame)
 		{

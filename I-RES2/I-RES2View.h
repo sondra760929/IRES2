@@ -205,7 +205,8 @@ public:
 	osg::Vec3 m_iWaterLineRot;
 	//void UpdateHullPos();
 	//void UpdateWaterlinePos();
-
+	void ShowOutputSummury(CString job_name);
+	void HideOutputSummury();
 	vector< float > m_aSectionStart;
 	vector< float > m_aSectionEnd;
 	vector< float > m_aSectionOffset;

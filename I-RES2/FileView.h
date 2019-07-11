@@ -4,6 +4,7 @@
 #include "ViewTree.h"
 #include "XHtmlTree.h"
 #include "DlgOutputToolbar.h"
+class CIRES2View;
 
 class CFileViewToolBar : public CMFCToolBar
 {
@@ -29,6 +30,10 @@ public:
 	int item_count;
 	void Clear();
 	void AddItem(CString job_name);
+	bool m_bSetJobName;
+	CString m_strJobName;
+	CIRES2View* m_pView;
+
 // 특성입니다.
 protected:
 
@@ -57,5 +62,7 @@ protected:
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
 
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult);
 };
 

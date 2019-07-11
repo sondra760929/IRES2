@@ -8,11 +8,11 @@ Skeleton Class for a Derived MyCug
 #include "MainFrm.h"
 #include "resource.h"
 #include "MyCug.h"
-#include "PatternDBDlg.h"
-#include "DlgPortFields.h"
-#include "DlgSignalField.h"
-#include "DlgConnectPortField.h"
-#include "DlgSetMaterial.h"
+//#include "PatternDBDlg.h"
+//#include "DlgPortFields.h"
+//#include "DlgSignalField.h"
+//#include "DlgConnectPortField.h"
+//#include "DlgSetMaterial.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -369,60 +369,60 @@ int MyCug::OnEditFinish(int col, long row, CWnd * edit, LPCTSTR string, BOOL can
 	UNREFERENCED_PARAMETER(edit);
 
 	
-	/*if (string != origin_name)
-	{*/
-		int result;
-		int result2;
+	///*if (string != origin_name)
+	//{*/
+	//	int result;
+	//	int result2;
 
-		CUGCell cell;
-		GetCellIndirect(col, row, &cell);
-		if (cancelFlag != TRUE)
-		{
-			if (m_sMyCugName == "SignalField")
-			{
-				CDlgSignalField* dlg_sigfield = (CDlgSignalField*)m_pParentDlg;
-				result = dlg_sigfield->PortNameCheck(string);
-				result2 = dlg_sigfield->SignalNameCheck(string);
-				if (result == 1 && result == 1)
-				{
-					dlg_sigfield->SetRowData(col, row, string);
-					return TRUE;
-				}
-				else
-				{
-					edit->SetWindowTextA(origin_name);
-					return false;
-				}
-			}
-			else if (m_sMyCugName == "PortField")
-			{
-				//port fields
-				CDlgPortFields* dlg_portfield = (CDlgPortFields*)m_pParentDlg;
-				result = dlg_portfield->PortNameCheck(string);
-				result2 = dlg_portfield->SignalNameCheck(string);
-				if (result > -1 && result2 > -1)
-				{
-					//같은 이름이 있으면
-					edit->SetWindowTextA(origin_name);
-					return false;
-				}
-				else
-				{
-					dlg_portfield->SetRowData(col, row, string);
-					return TRUE;
-				}
-			}
-			else if (m_sMyCugName == "MaterialField")
-			{
-				CDlgSetMaterial* dlg_material = (CDlgSetMaterial*)m_pParentDlg;
-				dlg_material->SetRowData(col, row, string);
-				return TRUE;
-			}
-			else
-			{
-				return true;
-			}
-		}
+	//	CUGCell cell;
+	//	GetCellIndirect(col, row, &cell);
+	//	if (cancelFlag != TRUE)
+	//	{
+	//		if (m_sMyCugName == "SignalField")
+	//		{
+	//			CDlgSignalField* dlg_sigfield = (CDlgSignalField*)m_pParentDlg;
+	//			result = dlg_sigfield->PortNameCheck(string);
+	//			result2 = dlg_sigfield->SignalNameCheck(string);
+	//			if (result == 1 && result == 1)
+	//			{
+	//				dlg_sigfield->SetRowData(col, row, string);
+	//				return TRUE;
+	//			}
+	//			else
+	//			{
+	//				edit->SetWindowTextA(origin_name);
+	//				return false;
+	//			}
+	//		}
+	//		else if (m_sMyCugName == "PortField")
+	//		{
+	//			//port fields
+	//			CDlgPortFields* dlg_portfield = (CDlgPortFields*)m_pParentDlg;
+	//			result = dlg_portfield->PortNameCheck(string);
+	//			result2 = dlg_portfield->SignalNameCheck(string);
+	//			if (result > -1 && result2 > -1)
+	//			{
+	//				//같은 이름이 있으면
+	//				edit->SetWindowTextA(origin_name);
+	//				return false;
+	//			}
+	//			else
+	//			{
+	//				dlg_portfield->SetRowData(col, row, string);
+	//				return TRUE;
+	//			}
+	//		}
+	//		else if (m_sMyCugName == "MaterialField")
+	//		{
+	//			CDlgSetMaterial* dlg_material = (CDlgSetMaterial*)m_pParentDlg;
+	//			dlg_material->SetRowData(col, row, string);
+	//			return TRUE;
+	//		}
+	//		else
+	//		{
+	//			return true;
+	//		}
+	//	}
 	//}
 	//else
 	//{
@@ -430,6 +430,6 @@ int MyCug::OnEditFinish(int col, long row, CWnd * edit, LPCTSTR string, BOOL can
 	//	return true;
 	//}
 	
-	
+	return FALSE;
 	
 }

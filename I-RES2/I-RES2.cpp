@@ -20,6 +20,8 @@
 
 #include "I-RES2Doc.h"
 #include "I-RES2View.h"
+#include "CMPGraphCtrl.h"
+#include "CMPGraphCtrl0.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

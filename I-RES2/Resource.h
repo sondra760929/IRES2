@@ -103,6 +103,8 @@
 #define IDD_DIALOG_GRAPH                330
 #define IDR_TOOLBAR2                    331
 #define IDD_DIALOG_EXCEL                333
+#define IDB_BITMAP_EXCEL                336
+#define IDB_BITMAP_GRAPH                337
 #define IDC_LIST1                       1000
 #define IDC_MFCBUTTON_CLEAR             1000
 #define IDC_PROGRESS1                   1001
@@ -247,7 +249,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        335
+#define _APS_NEXT_RESOURCE_VALUE        338
 #define _APS_NEXT_COMMAND_VALUE         32856
 #define _APS_NEXT_CONTROL_VALUE         1043
 #define _APS_NEXT_SYMED_VALUE           310

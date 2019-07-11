@@ -5,7 +5,7 @@
 #include "I-RES2.h"
 #include "DlgExcelView.h"
 #include "afxdialogex.h"
-
+#include "OptImportExportBase.h"
 
 // CDlgExcelView 대화 상자
 
@@ -47,6 +47,47 @@ BOOL CDlgExcelView::OnInitDialog()
 	CRect rect;
 	GetClientRect(&rect);
 	SetSize(rect.Width(), rect.Height());
+
+	CString job_file;
+	job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\ice_result.OUT";
+	if (PathFileExists(job_file))
+	{
+		m_wndExcelView.SetNumberCols(7);
+		FILE* fp;
+		fopen_s(&fp, job_file, "rt");
+		if (fp)
+		{
+			COptImportExportBase ifp;
+			ifp.m_fp_input = fp;
+			ifp.m_array_strSplit.push_back(' ');
+			int row_count = 0;
+			if (ifp.ReadOneLineFromFile() > 6)
+			{
+				m_wndExcelView.QuickSetText(0, -1, ifp.m_array_strOutput[0]);
+				m_wndExcelView.QuickSetText(1, -1, ifp.m_array_strOutput[1]);
+				m_wndExcelView.QuickSetText(2, -1, ifp.m_array_strOutput[2]);
+				m_wndExcelView.QuickSetText(3, -1, ifp.m_array_strOutput[3]);
+				m_wndExcelView.QuickSetText(4, -1, ifp.m_array_strOutput[4]);
+				m_wndExcelView.QuickSetText(5, -1, ifp.m_array_strOutput[5]);
+				m_wndExcelView.QuickSetText(6, -1, ifp.m_array_strOutput[6]);
+			}
+			while (ifp.ReadOneLineFromFile() > 6)
+			{
+				row_count++;
+				m_wndExcelView.SetNumberRows(row_count);
+				m_wndExcelView.QuickSetNumber(-1, row_count - 1, row_count);
+				m_wndExcelView.QuickSetText(0, row_count-1, ifp.m_array_strOutput[0]);
+				m_wndExcelView.QuickSetText(1, row_count-1, ifp.m_array_strOutput[1]);
+				m_wndExcelView.QuickSetText(2, row_count-1, ifp.m_array_strOutput[2]);
+				m_wndExcelView.QuickSetText(3, row_count-1, ifp.m_array_strOutput[3]);
+				m_wndExcelView.QuickSetText(4, row_count-1, ifp.m_array_strOutput[4]);
+				m_wndExcelView.QuickSetText(5, row_count-1, ifp.m_array_strOutput[5]);
+				m_wndExcelView.QuickSetText(6, row_count-1, ifp.m_array_strOutput[6]);
+			}
+		}
+	}
+
+
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.

@@ -196,7 +196,14 @@
   <ItemGroup>
     <ClInclude Include="CDlgProgress.h" />
     <ClInclude Include="CDlgSelectSections.h" />
+    <ClInclude Include="CIMPGraphCtrlEvents.h" />
     <ClInclude Include="ClassView.h" />
+    <ClInclude Include="CMPGraphAnnotation.h" />
+    <ClInclude Include="CMPGraphAxis.h" />
+    <ClInclude Include="CMPGraphCollection.h" />
+    <ClInclude Include="CMPGraphCtrl0.h" />
+    <ClInclude Include="CMPGraphCursor.h" />
+    <ClInclude Include="CMPGraphElement.h" />
     <ClInclude Include="CreateCheckboxImageList.h" />
     <ClInclude Include="CToolbarWnd.h" />
     <ClInclude Include="Dlg1.h" />
@@ -213,6 +220,8 @@
     <ClInclude Include="DlgOutputToolbar.h" />
     <ClInclude Include="DlgSectionToolbar.h" />
     <ClInclude Include="FileView.h" />
+    <ClInclude Include="FrameContainer.h" />
+    <ClInclude Include="GraphController.h" />
     <ClInclude Include="I-RES2.h" />
     <ClInclude Include="I-RES2Doc.h" />
     <ClInclude Include="I-RES2View.h" />
@@ -222,6 +231,7 @@
     <ClInclude Include="OptImportExportBase.h" />
     <ClInclude Include="OptMultiTouchTrackballManipulator.h" />
     <ClInclude Include="OutputWnd.h" />
+    <ClInclude Include="PosterPrinter.h" />
     <ClInclude Include="PropertiesWnd.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -297,6 +307,7 @@
     <ClCompile Include="CDlgProgress.cpp" />
     <ClCompile Include="CDlgSelectSections.cpp" />
     <ClCompile Include="ClassView.cpp" />
+    <ClCompile Include="CMPGraphCtrl0.cpp" />
     <ClCompile Include="CreateCheckboxImageList.cpp" />
     <ClCompile Include="CToolbarWnd.cpp" />
     <ClCompile Include="Dlg1.cpp" />
@@ -313,6 +324,7 @@
     <ClCompile Include="DlgOutputToolbar.cpp" />
     <ClCompile Include="DlgSectionToolbar.cpp" />
     <ClCompile Include="FileView.cpp" />
+    <ClCompile Include="GraphController.cpp" />
     <ClCompile Include="I-RES2.cpp" />
     <ClCompile Include="I-RES2Doc.cpp" />
     <ClCompile Include="I-RES2View.cpp" />
@@ -322,6 +334,9 @@
     <ClCompile Include="OptImportExportBase.cpp" />
     <ClCompile Include="OptMultiTouchTrackballManipulator.cpp" />
     <ClCompile Include="OutputWnd.cpp" />
+    <ClCompile Include="PosterPrinter.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="PropertiesWnd.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -411,6 +426,8 @@
     <ResourceCompile Include="I-RES2.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\bitmap3.bmp" />
+    <Image Include="res\bmp00001.bmp" />
     <Image Include="res\buttons.bmp" />
     <Image Include="res\calc.bmp" />
     <Image Include="res\classview.bmp" />
@@ -418,6 +435,7 @@
     <Image Include="res\class_view.ico" />
     <Image Include="res\class_view_hc.ico" />
     <Image Include="res\datum.bmp" />
+    <Image Include="res\Excel App.png" />
     <Image Include="res\explorer.bmp" />
     <Image Include="res\explorer_hc.bmp" />
     <Image Include="res\filelarge.bmp" />
@@ -461,7 +479,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties RESOURCE_FILE="I-RES2.rc" />
+      <UserProperties _x007B_CAC3B4DD-754A-4C86-AEB8-BECB1113A6A2_x007D_="CMPGraphCtrl" RESOURCE_FILE="I-RES2.rc" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

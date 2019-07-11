@@ -17,6 +17,8 @@ static char THIS_FILE[]=__FILE__;
 CFileView::CFileView() noexcept
 {
 	item_count = 0;
+	m_bSetJobName = false;
+	m_pView = NULL;
 }
 
 CFileView::~CFileView()
@@ -36,6 +38,7 @@ BEGIN_MESSAGE_MAP(CFileView, CDockablePane)
 	ON_COMMAND(ID_EDIT_CLEAR, OnEditClear)
 	ON_WM_PAINT()
 	ON_WM_SETFOCUS()
+	ON_NOTIFY(TVN_SELCHANGED, 4, &CFileView::OnTvnSelchanged)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -142,8 +145,17 @@ void CFileView::AdjustLayout()
 
 	//int cyTlb = m_wndToolBar.CalcFixedLayout(FALSE, TRUE).cy;
 	int toolbar_width = 35;
-	m_wndFileView.SetWindowPos(nullptr, rectClient.left + 1, rectClient.top + 1, rectClient.Width() - 2 - toolbar_width, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
-	m_OutputToolbar.SetWindowPos(nullptr, rectClient.left + rectClient.Width() - toolbar_width, rectClient.top + 1, toolbar_width, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+	if (m_bSetJobName)
+	{
+		m_OutputToolbar.ShowWindow(SW_SHOW);
+		m_wndFileView.SetWindowPos(nullptr, rectClient.left + 1, rectClient.top + 1, rectClient.Width() - 2 - toolbar_width, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+		m_OutputToolbar.SetWindowPos(nullptr, rectClient.left + rectClient.Width() - toolbar_width, rectClient.top + 1, toolbar_width, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+	}
+	else
+	{
+		m_OutputToolbar.ShowWindow(SW_HIDE);
+		m_wndFileView.SetWindowPos(nullptr, rectClient.left + 1, rectClient.top + 1, rectClient.Width() - 2, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
+	}
 
 	//m_wndToolBar.SetWindowPos(nullptr, rectClient.left, rectClient.top, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
 	//m_wndFileView.SetWindowPos(nullptr, rectClient.left + 1, rectClient.top + 1, rectClient.Width() - 2, rectClient.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
@@ -252,6 +264,7 @@ void CFileView::Clear()
 	CString temp_string;
 	temp_string.Format(_T("Output <font color = \"green\">[%d]</font></b>"), item_count);
 	m_wndFileView.SetItemText(m_itemRoot, temp_string);
+	m_bSetJobName = false;
 }
 
 void CFileView::AddItem(CString job_name)
@@ -262,4 +275,37 @@ void CFileView::AddItem(CString job_name)
 	CString temp_string;
 	temp_string.Format(_T("Output <font color = \"green\">[%d]</font></b>"), item_count);
 	m_wndFileView.SetItemText(m_itemRoot, temp_string);
+}
+
+void CFileView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
+	HTREEITEM current_item = m_wndFileView.GetSelectedItem();
+	if (current_item)
+	{
+		//CString item_text = m_wndClassView.GetItemText(current_item);
+		CMainFrame* m_pFrame = (CMainFrame*)AfxGetMainWnd();
+
+		if (m_pFrame)
+		{
+			if (current_item == m_itemRoot)
+			{
+				m_bSetJobName = false;
+				AdjustLayout();
+				if(m_pView)
+					m_pView->HideOutputSummury();
+			}
+			else
+			{
+				m_bSetJobName = true;
+				m_strJobName = m_wndFileView.GetItemText(current_item);
+				m_OutputToolbar.m_strJobName = this->m_strJobName;
+				AdjustLayout();
+
+				if(m_pView)
+					m_pView->ShowOutputSummury(m_strJobName);
+			}
+		}
+	}
+	*pResult = 0;
 }

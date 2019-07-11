@@ -158,6 +158,10 @@ IDB_BITMAP_DATUM        BITMAP                  "res\\datum.bmp"
 
 IDB_BITMAP_CALC         BITMAP                  "res\\calc.bmp"
 
+IDB_BITMAP_EXCEL        BITMAP                  "res\\bitmap3.bmp"
+
+IDB_BITMAP_GRAPH        BITMAP                  "res\\bmp00001.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -594,7 +598,7 @@ BEGIN
     CONTROL         "",IDC_SPIN10,"msctls_updown32",UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,312,54,11,14
     DEFPUSHBUTTON   "확인",IDOK,240,84,42,13
     PUSHBUTTON      "취소",IDCANCEL,288,84,42,13
-    LTEXT           "Initial Strength (Pa)",IDC_STATIC,12,18,84,12,SS_CENTERIMAGE
+    LTEXT           "flexural strength (Pa)",IDC_STATIC,12,18,84,12,SS_CENTERIMAGE
     LTEXT           "Friction Coeff.",IDC_STATIC,12,36,66,12,SS_CENTERIMAGE
     LTEXT           "E/sigma (x10^6)",IDC_STATIC,12,54,66,12,SS_CENTERIMAGE
     LTEXT           "Icd Density (kg/m3)",IDC_STATIC,180,36,66,12,SS_CENTERIMAGE

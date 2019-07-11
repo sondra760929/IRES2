@@ -312,6 +312,36 @@
     <ClInclude Include="Mycug.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="GraphController.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CIMPGraphCtrlEvents.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CMPGraphAnnotation.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CMPGraphAxis.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CMPGraphCollection.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CMPGraphCursor.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CMPGraphElement.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CMPGraphCtrl0.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameContainer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PosterPrinter.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="I-RES2.cpp">
@@ -590,6 +620,15 @@
     <ClCompile Include="Mycug.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="GraphController.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CMPGraphCtrl0.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="PosterPrinter.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="I-RES2.rc">
@@ -715,6 +754,15 @@
       <Filter>리소스 파일</Filter>
     </Image>
     <Image Include="res\calc.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\Excel App.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\bitmap3.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="res\bmp00001.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

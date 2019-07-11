@@ -152,7 +152,7 @@ cOSG2::cOSG2(HWND hwnd) :
 {
 	m_bViewModeOrtho = false;
 	m_fFieldOfView = 45.0f;
-
+	m_bShowSummury = false;
 }
 
 cOSG2::~cOSG2()
@@ -504,7 +504,7 @@ void cOSG2::InitCameraConfig(void)
 	MainScene->addChild(mRoot2.get());
 
 	mRoot->getOrCreateStateSet()->setMode(osg::PolygonMode::FRONT, osg::PolygonMode::FILL);
-	mRoot->getOrCreateStateSet()->setMode(osg::PolygonMode::BACK, osg::PolygonMode::LINE);
+	mRoot->getOrCreateStateSet()->setMode(osg::PolygonMode::BACK, osg::PolygonMode::FILL);
 
 	//if (m_bUseBasePlane)
 	//{
@@ -699,6 +699,23 @@ void cOSG2::InitCameraConfig(void)
 	m_widgetHullSizeBox->addWidget(m_widgetHullSize[0]);
 	m_widgetHullSizeBox->getBackground()->setColor(1.0f, 1.0f, 1.0f, 0.0f);
 	m_WindowManager->addChild(m_widgetHullSizeBox);
+
+	m_widgetOutputSumurry = new osgWidget::Box("OUTPUT", osgWidget::Box::VERTICAL, false);
+	//vector< osgWidget::Label* > m_widgetOutputSumurryString;
+	for (int i = 0; i < 28; i++)
+	{
+		osgWidget::Label* _label = AddLabel("text", "", 12, false);
+		_label->setColor(1.0f, 1.0f, 1.0f, 0.0f);
+		_label->setSize(300, 20);
+		_label->setAlignHorizontal(osgWidget::Widget::HorizontalAlignment::HA_LEFT);
+		m_widgetOutputSumurryString.push_back(_label);
+	}
+
+	for (int i = 27; i > -1; i--)
+	{
+		m_widgetOutputSumurry->addWidget(m_widgetOutputSumurryString[i]);
+	}
+	m_widgetOutputSumurry->getBackground()->setColor(1.0f, 1.0f, 1.0f, 0.0f);
 
 	m_WindowManagerCamera = m_WindowManager->createParentOrthoCamera();
 	MainScene->addChild(m_WindowManagerCamera);
@@ -1009,12 +1026,30 @@ osg::Geode* cOSG2::createAxesGeometry()
 
 void cOSG2::PreFrameUpdate()
 {
+	if (_printer.valid())
+	{
+		_printer->frame(getViewer()->getFrameStamp(), getViewer()->getSceneData());
+		if (_started && _printer->done())
+		{
+			_started = false;
+
+			MainScene->removeChild((osg::Node*)_printer->getCamera());
+			_printer = 0;
+		}
+	}
+
 	m_pView->PreFrameUpdate();
 }
 
 void cOSG2::PostFrameUpdate()
 {
 	// Due any postframe updates in this routine
+}
+
+void cOSG2::getCapture(PosterPrinter* printer)
+{
+	_printer = printer;
+	_started = true;
 }
 
 /*void cOSG2::Render(void* ptr)
@@ -1276,6 +1311,7 @@ void cOSG2::ResizeToolbar(int cx, int cy)
 		//osg::Vec2 size = m_widgetSimulationCurrentTime->getSize();
 		m_widgetHullSizeBox->setOrigin((cx - 200), cy - 110);
 		//m_widgetCurrentOperator->setOrigin(100, 100);
+		m_widgetOutputSumurry->setOrigin(20, cy - 700);
 	}
 
 	int offset = 10;

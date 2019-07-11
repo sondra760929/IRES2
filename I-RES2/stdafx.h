@@ -78,6 +78,8 @@ using namespace std;
 #include <afxwin.h>
 #include <afxwin.h>
 #include <afxwin.h>
+#include <afxdisp.h>
+#include <afxdisp.h>
 
 #define WM_RETURN_FROM_UI WM_USER+10
 #define WM_OK_FROM_UI WM_USER+11

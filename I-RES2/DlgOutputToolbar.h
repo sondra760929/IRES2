@@ -10,6 +10,7 @@ class CDlgOutputToolbar : public CDialog
 public:
 	CDlgOutputToolbar(CWnd* pParent = nullptr);   // 표준 생성자입니다.
 	virtual ~CDlgOutputToolbar();
+	CString m_strJobName;
 
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
@@ -29,4 +30,5 @@ public:
 	afx_msg void OnBnClickedMfcbuttonIcdGraph();
 	afx_msg void OnBnClickedMfcbuttonSpeedExcel();
 	afx_msg void OnBnClickedMfcbuttonSpeedGraph();
+	virtual BOOL OnInitDialog();
 };
