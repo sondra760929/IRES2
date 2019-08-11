@@ -4784,6 +4784,7 @@ void CIRES2View::OnButtonzoomwin()
 void CIRES2View::OnButtonzoomall()
 {
 	mOSG->OnViewAll();
+	OnButtonaxo();
 }
 
 

@@ -566,8 +566,8 @@ void cOSG2::InitCameraConfig(void)
 	//m_WindowManager->addChild(m_widgetOPTType[3]);
 	//m_WindowManager->addChild(m_widgetOPTType[4]);
 
-	string str_app_path(m_strAppPath);
-	str_app_path += "/";
+	//string str_app_path(m_strAppPath);
+	//str_app_path += "/";
 
 	//m_widgetOPTType[0]->addWidget(AddButton("Import HULL", str_app_path + "switch-off-16.png"));
 	//m_widgetOPTType[0]->addWidget(AddButton("Define Section", str_app_path + "switch-off-16.png"));
