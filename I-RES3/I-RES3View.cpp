@@ -1292,35 +1292,43 @@ bool CIRES3View::GetNormal(PointData& pd)
 	}
 
 	double pt_normal[3];
-	bool hasCellNormals = GetCellNormals(polyHull[current_poly_index], current_cell_id, pt_normal);
-	if (!hasCellNormals)
+	bool hasCellNormals = false;
+	if (polyHullToNormal.find(polyHull[current_poly_index]) != polyHullToNormal.end())
 	{
-		std::cout << "No cell normals were found. Computing normals..." << std::endl;
-
-		// Generate normals
-		vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
-		normalGenerator->SetInputData(polyHull[current_poly_index]);
-		normalGenerator->ComputePointNormalsOff();
-		normalGenerator->ComputeCellNormalsOn();
-		normalGenerator->Update();
-		/*
-		// Optional settings
-		normalGenerator->SetFeatureAngle(0.1);
-		normalGenerator->SetSplitting(1);
-		normalGenerator->SetConsistency(0);
-		normalGenerator->SetAutoOrientNormals(0);
-		normalGenerator->SetComputePointNormals(1);
-		normalGenerator->SetComputeCellNormals(0);
-		normalGenerator->SetFlipNormals(0);
-		normalGenerator->SetNonManifoldTraversal(1);
-		*/
-
-		polyHull[current_poly_index] = normalGenerator->GetOutput();
-
-		// Try to read normals again
+		hasCellNormals = GetCellNormals(polyHullToNormal[polyHull[current_poly_index]], current_cell_id, pt_normal);
+	}
+	else
+	{
 		hasCellNormals = GetCellNormals(polyHull[current_poly_index], current_cell_id, pt_normal);
+		if (!hasCellNormals)
+		{
+			std::cout << "No cell normals were found. Computing normals..." << std::endl;
 
-		std::cout << "On the second try, has cell normals? " << hasCellNormals << std::endl;
+			// Generate normals
+			vtkPolyDataNormals* normalGenerator = vtkPolyDataNormals::New();
+			normalGenerator->SetInputData(polyHull[current_poly_index]);
+			normalGenerator->ComputePointNormalsOff();
+			normalGenerator->ComputeCellNormalsOn();
+			normalGenerator->Update();
+			/*
+			// Optional settings
+			normalGenerator->SetFeatureAngle(0.1);
+			normalGenerator->SetSplitting(1);
+			normalGenerator->SetConsistency(0);
+			normalGenerator->SetAutoOrientNormals(0);
+			normalGenerator->SetComputePointNormals(1);
+			normalGenerator->SetComputeCellNormals(0);
+			normalGenerator->SetFlipNormals(0);
+			normalGenerator->SetNonManifoldTraversal(1);
+			*/
+
+			//polyHull[current_poly_index] = normalGenerator->GetOutput();
+			polyHullToNormal[polyHull[current_poly_index]] = normalGenerator->GetOutput();
+			// Try to read normals again
+			hasCellNormals = GetCellNormals(polyHullToNormal[polyHull[current_poly_index]], current_cell_id, pt_normal);
+
+			std::cout << "On the second try, has cell normals? " << hasCellNormals << std::endl;
+		}
 	}
 
 	if (hasCellNormals)

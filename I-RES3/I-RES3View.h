@@ -193,6 +193,7 @@ public:
 	double m_dHullSize[6];
 	vtkAssembly* actHull;
 	vector< vtkPolyData* > polyHull;
+	map< vtkPolyData*, vtkPolyData* > polyHullToNormal;
 	int m_iClientWidth, m_iClientHeight;
 
 	vector< float > m_aSectionStart;
