@@ -1311,7 +1311,7 @@ void cOSG2::ResizeToolbar(int cx, int cy)
 		//osg::Vec2 size = m_widgetSimulationCurrentTime->getSize();
 		m_widgetHullSizeBox->setOrigin((cx - 200), cy - 110);
 		//m_widgetCurrentOperator->setOrigin(100, 100);
-		m_widgetOutputSumurry->setOrigin(20, cy - 700);
+		m_widgetOutputSumurry->setOrigin(20, cy - 800);
 	}
 
 	int offset = 10;
