@@ -1184,23 +1184,29 @@ void cOSG2::OnViewIso()
 
 void cOSG2::OnViewOrtho()
 {
-	float distance = trackball->getDistance();
+	if (!m_bViewModeOrtho)
+	{
+		float distance = trackball->getDistance();
 
-	mViewer->getCamera()->getProjectionMatrixAsPerspective(m_fFieldOfView, m_fAspect, m_fNearClip, m_fFarClip);
+		mViewer->getCamera()->getProjectionMatrixAsPerspective(m_fFieldOfView, m_fAspect, m_fNearClip, m_fFarClip);
 
-	oHeight = distance * tan(osg::DegreesToRadians(m_fFieldOfView / 2.0f)) * 1.2f;;
-	mViewer->getCamera()->setProjectionMatrixAsOrtho(-oHeight * m_fAspect, oHeight * m_fAspect, -oHeight, oHeight, m_fNearClip, m_fFarClip);
-	m_bViewModeOrtho = true;
+		oHeight = distance * tan(osg::DegreesToRadians(m_fFieldOfView / 2.0f)) * 1.2f;;
+		mViewer->getCamera()->setProjectionMatrixAsOrtho(-oHeight * m_fAspect, oHeight * m_fAspect, -oHeight, oHeight, m_fNearClip, m_fFarClip);
+		m_bViewModeOrtho = true;
+	}
 }
 
 void cOSG2::OnViewPerspective()
 {
-	float distance = trackball->getDistance();
+	if (m_bViewModeOrtho)
+	{
+		float distance = trackball->getDistance();
 
-	mViewer->getCamera()->setProjectionMatrixAsPerspective(m_fFieldOfView, m_fAspect, m_fNearClip, m_fFarClip);
-	mViewer->getCamera()->setClearMask(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		mViewer->getCamera()->setProjectionMatrixAsPerspective(m_fFieldOfView, m_fAspect, m_fNearClip, m_fFarClip);
+		mViewer->getCamera()->setClearMask(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	m_bViewModeOrtho = false;
+		m_bViewModeOrtho = false;
+	}
 }
 
 void cOSG2::UpdateOrtho()
@@ -1234,7 +1240,7 @@ void cOSG2::OnViewAll()
 	else
 	{
 		mViewer->home();
-		OnViewIso();
+//		OnViewIso();
 	}
 }
 
