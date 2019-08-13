@@ -99,6 +99,7 @@ using namespace std;
 //#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
 
 extern CString m_strAppPath;
+extern CString m_strEnvPath;
 extern CString m_strProjectPath;
 extern bool m_bUseOutline;
 extern bool m_bUseShadow;
@@ -107,6 +108,10 @@ extern COLORREF m_colorUp;
 extern COLORREF m_colorDown;
 extern float m_fFaceDeflection;
 extern float m_fEdgeDeflection;
+extern vector< CString > m_aAnalysisInput;
+extern vector< CString > m_aAnalysisOutput;
+extern vector< CString > m_aAnalysisCommand;
+extern vector< CString > m_aAnalysisPGM;
 
 #ifdef _UNICODE
 #if defined _M_IX86

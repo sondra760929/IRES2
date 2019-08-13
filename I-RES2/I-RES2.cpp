@@ -22,6 +22,7 @@
 #include "I-RES2View.h"
 #include "CMPGraphCtrl.h"
 #include "CMPGraphCtrl0.h"
+#include "OptImportExportBase.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -125,8 +126,29 @@ BOOL CIRES2App::InitInstance()
 	m_strAppPath = path;
 	int i = m_strAppPath.ReverseFind('\\');//실행 파일 이름을 지우기 위해서 왼쪽에 있는 '/'를 찾는다.
 	m_strAppPath = m_strAppPath.Left(i);
+	m_strEnvPath = m_strAppPath + "\\env.txt";
 	//	초기 프로젝트 폴더는 실행 파일 폴더
 	m_strProjectPath = m_strAppPath;
+
+	FILE* env_fp;
+	fopen_s(&env_fp, m_strEnvPath, "rt");
+	if (env_fp)
+	{
+		COptImportExportBase ifp;
+		ifp.m_fp_input = env_fp;
+		ifp.m_array_strSplit.push_back(',');
+		int count = ifp.ReadOneLineFromFile();
+		while (count > 3)
+		{
+			m_aAnalysisCommand.push_back(ifp.m_array_strOutput[0].Trim());
+			m_aAnalysisPGM.push_back(ifp.m_array_strOutput[1].Trim());
+			m_aAnalysisInput.push_back(ifp.m_array_strOutput[2].Trim());
+			m_aAnalysisOutput.push_back(ifp.m_array_strOutput[3].Trim());
+
+			count = ifp.ReadOneLineFromFile();
+		}
+	}
+
 	// 응용 프로그램의 문서 템플릿을 등록합니다.  문서 템플릿은
 	//  문서, 프레임 창 및 뷰 사이의 연결 역할을 합니다.
 	CSingleDocTemplate* pDocTemplate;

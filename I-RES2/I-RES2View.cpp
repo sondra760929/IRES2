@@ -604,6 +604,7 @@ void CIRES2View::OnDestroy()
 void CIRES2View::OnInitialUpdate()
 {
 	CView::OnInitialUpdate();
+
 	m_pMainFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
 	if (m_pMainFrame)
 	{
@@ -686,6 +687,33 @@ void CIRES2View::OnInitialUpdate()
 	OnButtonzoomall();
 }
 
+void CIRES2View::RunExecute(CString command_string)
+{
+	STARTUPINFO si;
+	SECURITY_ATTRIBUTES sa;
+	PROCESS_INFORMATION pi;
+
+	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+	sa.lpSecurityDescriptor = NULL;
+	sa.bInheritHandle = TRUE;
+
+	ZeroMemory(&si, sizeof(STARTUPINFO));
+	si.cb = sizeof(STARTUPINFO);
+	si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+	si.hStdOutput = NULL;
+	si.hStdInput = NULL;
+	si.hStdError = NULL;
+	si.wShowWindow = SW_HIDE;       /* 눈에 보이지 않는 상태로 프로세스 시작 */
+
+	DWORD ret = CreateProcess(NULL, command_string.GetBuffer(), NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
+	if (ret)
+	{
+		WaitForSingleObject(pi.hProcess, 0xffffffff);
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
+}
+
 void CIRES2View::OnButtonOpen()
 {
 	CFileDialog dlg(TRUE,
@@ -702,29 +730,8 @@ void CIRES2View::OnButtonOpen()
 
 		CString command_string;
 		command_string = m_strAppPath + "\\unzip.exe " + dlg.GetPathName() + " -d " + m_strProjectPath;
-		STARTUPINFO si;
-		SECURITY_ATTRIBUTES sa;
-		PROCESS_INFORMATION pi;
-
-		sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-		sa.lpSecurityDescriptor = NULL;
-		sa.bInheritHandle = TRUE;
-
-		ZeroMemory(&si, sizeof(STARTUPINFO));
-		si.cb = sizeof(STARTUPINFO);
-		si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-		si.hStdOutput = NULL;
-		si.hStdInput = NULL;
-		si.hStdError = NULL;
-		si.wShowWindow = SW_HIDE;       /* 눈에 보이지 않는 상태로 프로세스 시작 */
-
-		DWORD ret = CreateProcess(NULL, command_string.GetBuffer(), NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
-		if (ret)
-		{
-			WaitForSingleObject(pi.hProcess, 0xffffffff);
-			CloseHandle(pi.hThread);
-			CloseHandle(pi.hProcess);
-		}
+		
+		RunExecute(command_string);
 
 		CString temp_string;
 		temp_string = m_strProjectPath + "\\hull.osg";
@@ -3158,6 +3165,13 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 		fclose(fp_15);
 	}
 
+	for (int i = 0; i < m_aAnalysisPGM.size(); i++)
+	{
+		CString command_string;
+		command_string = m_strAppPath + "\\" + m_aAnalysisPGM[i] + " '" + m_aAnalysisInput[i] + "' '" + m_aAnalysisOutput[i];
+
+		RunExecute(command_string);
+	}
 	//ShellExecute(NULL, "open", m_strAppPath + "\\ice_result.OUT", NULL, NULL, SW_SHOW);
 }
 

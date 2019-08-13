@@ -162,6 +162,7 @@ public:
 	void SaveDraftSectionSetting();
 	void LoadCrossSectionSetting();
 	void SaveCrossSectionSetting();
+	void RunExecute(CString command_string);
 	//CMFCRibbonEdit* m_pEditStart;
 	//CMFCRibbonEdit* m_pEditEnd;
 	//CMFCRibbonEdit* m_pEditSpace;
