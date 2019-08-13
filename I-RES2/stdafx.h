@@ -112,6 +112,7 @@ extern vector< CString > m_aAnalysisInput;
 extern vector< CString > m_aAnalysisOutput;
 extern vector< CString > m_aAnalysisCommand;
 extern vector< CString > m_aAnalysisPGM;
+extern void SetButtons(CMFCButton* btn, UINT img, CString tooltip);
 
 #ifdef _UNICODE
 #if defined _M_IX86

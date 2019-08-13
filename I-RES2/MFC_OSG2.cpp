@@ -1240,8 +1240,8 @@ void cOSG2::OnViewAll()
 	else
 	{
 		mViewer->home();
-//		OnViewIso();
 	}
+	OnViewIso();
 }
 
 osgWidget::Widget* cOSG2::AddButton(string name, string path, int size)

@@ -9,6 +9,8 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "SetupIRES", "SetupIRES\Setu
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "I-RES3", "I-RES3\I-RES3.vcxproj", "{059AAF3A-5027-4B06-BCBE-BF538BB4C0C5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestCalc", "TestCalc\TestCalc.vcxproj", "{BFE1D210-D5BE-4901-8E7B-5669CE599033}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -37,6 +39,14 @@ Global
 		{059AAF3A-5027-4B06-BCBE-BF538BB4C0C5}.Release|Win32.Build.0 = Release|Win32
 		{059AAF3A-5027-4B06-BCBE-BF538BB4C0C5}.Release|x64.ActiveCfg = Release|x64
 		{059AAF3A-5027-4B06-BCBE-BF538BB4C0C5}.Release|x64.Build.0 = Release|x64
+		{BFE1D210-D5BE-4901-8E7B-5669CE599033}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BFE1D210-D5BE-4901-8E7B-5669CE599033}.Debug|Win32.Build.0 = Debug|Win32
+		{BFE1D210-D5BE-4901-8E7B-5669CE599033}.Debug|x64.ActiveCfg = Debug|x64
+		{BFE1D210-D5BE-4901-8E7B-5669CE599033}.Debug|x64.Build.0 = Debug|x64
+		{BFE1D210-D5BE-4901-8E7B-5669CE599033}.Release|Win32.ActiveCfg = Release|Win32
+		{BFE1D210-D5BE-4901-8E7B-5669CE599033}.Release|Win32.Build.0 = Release|Win32
+		{BFE1D210-D5BE-4901-8E7B-5669CE599033}.Release|x64.ActiveCfg = Release|x64
+		{BFE1D210-D5BE-4901-8E7B-5669CE599033}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

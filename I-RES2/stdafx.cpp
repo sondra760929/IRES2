@@ -32,3 +32,16 @@ vector< CString > m_aAnalysisInput;
 vector< CString > m_aAnalysisOutput;
 vector< CString > m_aAnalysisCommand;
 vector< CString > m_aAnalysisPGM;
+
+void SetButtons(CMFCButton* btn, UINT img, CString tooltip)
+{
+	CImage btn_image1;
+	btn_image1.LoadFromResource(AfxGetInstanceHandle(), img);
+	HBITMAP hBit1;
+	hBit1 = btn_image1.Detach();
+
+	btn->SetImage(hBit1, TRUE, hBit1);
+
+	btn->SetTooltip(tooltip);
+	btn->EnableFullTextTooltip(FALSE);
+}

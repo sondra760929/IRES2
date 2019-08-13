@@ -34,4 +34,5 @@ public:
 	//afx_msg void OnBnClickedMfcbuttonSpeedGraph();
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 };

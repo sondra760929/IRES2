@@ -164,10 +164,6 @@
 #define IDC_STATIC3                     1033
 #define IDC_STATIC4                     1034
 #define IDC_EDIT1                       1035
-#define IDC_MFCBUTTON_ICE_EXCEL         1036
-#define IDC_MFCBUTTON_ICD_GRAPH         1037
-#define IDC_MFCBUTTON_SPEED_EXCEL       1038
-#define IDC_MFCBUTTON_SPEED_GRAPH       1039
 #define IDC_MPGRAPHCTRL1                1041
 #define IDC_GRID1                       1042
 #define ID_WRITE_PASTEASHYPERLINK       32770
