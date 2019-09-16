@@ -27,3 +27,7 @@ x64/Release/I-RES3.pdb
 x64/Release/I-RES3.lib
 x64/Release/I-RES3.exp
 x64/Release/I-RES3.exe
+TestCalc/x64/Release/
+*.pdb
+*.ipdb
+*.iobj

@@ -94,18 +94,34 @@ BOOL CDlgOutputToolbar::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	for (int i = 0; i < m_aAnalysisCommand.size(); i++)
+	//for (int i = 0; i < m_aAnalysisCommand.size(); i++)
+	//{
+	//	CMFCButton* btn_excel = new CMFCButton();
+	//	CMFCButton* btn_graph = new CMFCButton();
+
+	//	btn_excel->Create(m_aAnalysisCommand[i], WS_CHILD | WS_VISIBLE, CRect(10, 10, 10, 10), this, i * 2 + 100);
+	//	btn_graph->Create(m_aAnalysisCommand[i], WS_CHILD | WS_VISIBLE, CRect(10, 10, 10, 10), this, i * 2 + 101);
+	//	btn_excel->ShowWindow(SW_SHOW);
+	//	btn_graph->ShowWindow(SW_SHOW);
+
+	//	SetButtons(btn_excel, IDB_BITMAP_EXCEL, m_aAnalysisCommand[i]);
+	//	SetButtons(btn_graph, IDB_BITMAP_GRAPH, m_aAnalysisCommand[i]);
+
+	//	m_aExcelButton.push_back(btn_excel);
+	//	m_aGraphButton.push_back(btn_graph);
+	//}
+	for (int i = 0; i < 2; i++)
 	{
 		CMFCButton* btn_excel = new CMFCButton();
 		CMFCButton* btn_graph = new CMFCButton();
 
-		btn_excel->Create(m_aAnalysisCommand[i], WS_CHILD | WS_VISIBLE, CRect(10, 10, 10, 10), this, i * 2 + 100);
-		btn_graph->Create(m_aAnalysisCommand[i], WS_CHILD | WS_VISIBLE, CRect(10, 10, 10, 10), this, i * 2 + 101);
+		btn_excel->Create("test", WS_CHILD | WS_VISIBLE, CRect(10, 10, 10, 10), this, i * 2 + 100);
+		btn_graph->Create("test", WS_CHILD | WS_VISIBLE, CRect(10, 10, 10, 10), this, i * 2 + 101);
 		btn_excel->ShowWindow(SW_SHOW);
 		btn_graph->ShowWindow(SW_SHOW);
 
-		SetButtons(btn_excel, IDB_BITMAP_EXCEL, m_aAnalysisCommand[i]);
-		SetButtons(btn_graph, IDB_BITMAP_GRAPH, m_aAnalysisCommand[i]);
+		SetButtons(btn_excel, IDB_BITMAP_EXCEL, "test");
+		SetButtons(btn_graph, IDB_BITMAP_GRAPH, "test");
 
 		m_aExcelButton.push_back(btn_excel);
 		m_aGraphButton.push_back(btn_graph);
@@ -136,7 +152,7 @@ BOOL CDlgOutputToolbar::OnCommand(WPARAM wParam, LPARAM lParam)
 			//	graph
 			CDlgGraph pDlg;
 			pDlg.m_strJobName = this->m_strJobName;
-			pDlg.m_strInputFile = m_aAnalysisOutput[index1];
+			//pDlg.m_strInputFile = m_aAnalysisOutput[index1];
 			pDlg.DoModal();
 		}
 		else
@@ -144,7 +160,7 @@ BOOL CDlgOutputToolbar::OnCommand(WPARAM wParam, LPARAM lParam)
 			//	excel
 			CDlgExcelView pDlg;
 			pDlg.m_strJobName = this->m_strJobName;
-			pDlg.m_strInputFile = m_aAnalysisOutput[index1];
+			//pDlg.m_strInputFile = m_aAnalysisOutput[index1];
 			pDlg.DoModal();
 		}
 	}

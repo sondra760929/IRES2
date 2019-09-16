@@ -54,39 +54,50 @@ BOOL CDlgGraph::OnInitDialog()
 	//m_pGraphController->Set_GraphStyle( GS_Displacement );
 	//m_pGraphController->Set_DeviceStyle( DS_Transfer_Crossbar_Feeding );
 	//m_pGraphController->Set_XAxisUnit( XAU_MG_Angle );
-	CString job_file;
-	job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\ice_result.OUT";
-	if (PathFileExists(job_file))
+	long i;
+	for (i = 0; i < 100; i++)
 	{
-		FILE* fp;
-		fopen_s(&fp, job_file, "rt");
-		if (fp)
-		{
-			COptImportExportBase ifp;
-			ifp.m_fp_input = fp;
-			ifp.m_array_strSplit.push_back(' ');
-			int row_count = 0;
-			float prev_x = 0;
-			if (ifp.ReadOneLineFromFile() > 6)
-			{
-			}
-			while (ifp.ReadOneLineFromFile() > 6)
-			{
-				float x = atof(ifp.m_array_strOutput[1]);
-				if (x < prev_x)
-				{
+		double x, y;
+		x = i / 10.;
+		y = sin(x);
 
-				}
-
-				element1.PlotXY(x, atof(ifp.m_array_strOutput[3]));
-				element2.PlotXY(x, atof(ifp.m_array_strOutput[4]));
-				element3.PlotXY(x, atof(ifp.m_array_strOutput[5]));
-				element4.PlotXY(x, atof(ifp.m_array_strOutput[6]));
-				prev_x = x;
-			}
-		}
+		element1.PlotXY(x, y);
 	}
+
 	m_ctrlGraph.AutoRange();
+	//CString job_file;
+	//job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\ice_result.OUT";
+	//if (PathFileExists(job_file))
+	//{
+	//	FILE* fp;
+	//	fopen_s(&fp, job_file, "rt");
+	//	if (fp)
+	//	{
+	//		COptImportExportBase ifp;
+	//		ifp.m_fp_input = fp;
+	//		ifp.m_array_strSplit.push_back(' ');
+	//		int row_count = 0;
+	//		float prev_x = 0;
+	//		if (ifp.ReadOneLineFromFile() > 6)
+	//		{
+	//		}
+	//		while (ifp.ReadOneLineFromFile() > 6)
+	//		{
+	//			float x = atof(ifp.m_array_strOutput[1]);
+	//			if (x < prev_x)
+	//			{
+
+	//			}
+
+	//			element1.PlotXY(x, atof(ifp.m_array_strOutput[3]));
+	//			element2.PlotXY(x, atof(ifp.m_array_strOutput[4]));
+	//			element3.PlotXY(x, atof(ifp.m_array_strOutput[5]));
+	//			element4.PlotXY(x, atof(ifp.m_array_strOutput[6]));
+	//			prev_x = x;
+	//		}
+	//	}
+	//}
+	//m_ctrlGraph.AutoRange();
 
 	//IDispatchPtr			pIDisPatch = NULL;
 	//IMPGraphElement *		pIGraphElement = NULL;

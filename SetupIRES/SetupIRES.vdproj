@@ -177,6 +177,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_1A7DF737DE0E4CE88A109EB7BE127601"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_1AF0BC9B8C04448694A1E78C5B52B1AE"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -525,6 +531,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_8B7259425E0144999022C186F7433515"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_8C15FF1CCE6841AC96DF5631E7E11B3C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -688,6 +700,12 @@
         "Entry"
         {
         "MsmKey" = "8:_C20D84EAF34C49FC92488C17BE259693"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C6CE2F9FD38F461992346D8F1C6D64B0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -1434,6 +1452,26 @@
             "SharedLegacy" = "11:FALSE"
             "PackageAs" = "3:1"
             "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1A7DF737DE0E4CE88A109EB7BE127601"
+            {
+            "SourcePath" = "8:..\\..\\MotionPlanner_Src\\x64\\Release\\MPGraph.ocx"
+            "TargetName" = "8:MPGraph.ocx"
+            "Tag" = "8:"
+            "Folder" = "8:_4D0D819D27A04F9798F01A5920D07344"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:4"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
@@ -2578,6 +2616,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8B7259425E0144999022C186F7433515"
+            {
+            "SourcePath" = "8:..\\x64\\Release\\zip.exe"
+            "TargetName" = "8:zip.exe"
+            "Tag" = "8:"
+            "Folder" = "8:_4D0D819D27A04F9798F01A5920D07344"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8C15FF1CCE6841AC96DF5631E7E11B3C"
             {
             "SourcePath" = "8:..\\x64\\Release\\TKXSBase.dll"
@@ -3138,6 +3196,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C6CE2F9FD38F461992346D8F1C6D64B0"
+            {
+            "SourcePath" = "8:..\\x64\\Release\\unzip.exe"
+            "TargetName" = "8:unzip.exe"
+            "Tag" = "8:"
+            "Folder" = "8:_4D0D819D27A04F9798F01A5920D07344"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CBDDC1FD0C1745DB8978AF67A2A630AE"
             {
             "SourcePath" = "8:..\\x64\\Release\\osg157-osgDB.dll"
@@ -3604,9 +3682,9 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:I-RES"
+        "ProductName" = "8:I-RES_2019"
         "ProductCode" = "8:{A739AD99-9ABD-40B2-9225-6E6607EB0DCA}"
-        "PackageCode" = "8:{7C927860-E82A-4C49-A052-2A8FACE85BD0}"
+        "PackageCode" = "8:{3748FC60-328A-462B-8EC1-2EB3BCF83324}"
         "UpgradeCode" = "8:{D377B8C5-F312-4ACB-966E-B4547C974E5C}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -3617,7 +3695,7 @@
         "Manufacturer" = "8:인하대학교"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
-        "Title" = "8:I-RES"
+        "Title" = "8:I-RES 2019"
         "Subject" = "8:"
         "ARPCONTACT" = "8:윤소프트"
         "Keywords" = "8:"
@@ -3728,7 +3806,7 @@
         {
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_58BE4458397E44668A1009DCCA6C66A2"
             {
-            "Name" = "8:I-RES"
+            "Name" = "8:I-RES 2019"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"

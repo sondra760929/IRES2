@@ -96,7 +96,7 @@ public:
 	osgWidget::Box* m_widgetHullSizeBox;
 	osgWidget::Label* m_widgetHullSize[4];
 
-	osgWidget::Box* m_widgetOutputSumurry;
+	osg::ref_ptr < osgWidget::Box > m_widgetOutputSumurry;
 	bool m_bShowSummury;
 	vector< osgWidget::Label* > m_widgetOutputSumurryString;
 	//map< string, osgWidget::Box* > m_mapNameToToolbar;

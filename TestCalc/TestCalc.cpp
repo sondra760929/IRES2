@@ -6,7 +6,6 @@
 #include <afx.h>
 #include <afxwin.h>
 #include <string.h>
-#include "..\I-RES2\OptImportExportBase.h"
 
 int main(int arg, char** argv)
 {
@@ -14,7 +13,6 @@ int main(int arg, char** argv)
 	{
 		CString input_file(argv[1]);
 		CString output_file(argv[2]);
-		COptImportExportBase import;
 	}
 }
 
