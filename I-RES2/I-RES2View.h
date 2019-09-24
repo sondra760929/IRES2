@@ -16,6 +16,7 @@
 #include "I-RES2Doc.h"
 #include "MFC_OSG2.h"
 #include "CDlgProgress.h"
+#include "DlgTranslation.h"
 class CMainFrame;
 
 class PointData
@@ -231,6 +232,8 @@ public:
 	queue < PreFrameUpdateData > m_QRemoveChild;
 	// 작업입니다.
 	bool m_isCreateFolder;
+
+	CDlgTranslation* m_pTranslationDlg;
 public:
 
 // 재정의입니다.

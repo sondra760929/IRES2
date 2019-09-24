@@ -45,3 +45,59 @@ void SetButtons(CMFCButton* btn, UINT img, CString tooltip)
 	btn->SetTooltip(tooltip);
 	btn->EnableFullTextTooltip(FALSE);
 }
+
+void char_to_utf8(char* strMultibyte, char* out)
+{
+	memset(out, 0, 512);
+	wchar_t strUni[512] = { 0, };
+	int nLen = MultiByteToWideChar(CP_ACP, 0, strMultibyte, (int)strlen(strMultibyte), NULL, NULL);
+	MultiByteToWideChar(CP_ACP, 0, strMultibyte, (int)strlen(strMultibyte), strUni, nLen);
+
+	nLen = WideCharToMultiByte(CP_UTF8, 0, strUni, lstrlenW(strUni), NULL, 0, NULL, NULL);
+	WideCharToMultiByte(CP_UTF8, 0, strUni, lstrlenW(strUni), out, nLen, NULL, NULL);
+}
+
+void lpctstr_to_utf8(LPCTSTR in, char* out)
+{
+	char    strMultibyte[512] = { 0, };
+	strcpy_s(strMultibyte, 512, CT2A(in));
+	char_to_utf8(strMultibyte, out);
+}
+
+wstring utf_to_unicode(string in)
+{
+	wstring return_string;
+	wchar_t strUnicode[1024] = { 0, };
+	char    strUTF8[1024] = { 0, };
+	strcpy_s(strUTF8, 1024, in.c_str());// 이건 사실 멀티바이트지만 UTF8이라고 생각해주세요 -_-;;
+	if (strlen(strUTF8) > 0)
+	{
+		int nLen = MultiByteToWideChar(CP_UTF8, 0, strUTF8, (int)strlen(strUTF8), NULL, NULL);
+		MultiByteToWideChar(CP_UTF8, 0, strUTF8, (int)strlen(strUTF8), strUnicode, nLen);
+
+		wstring strMulti(strUnicode);
+		return strMulti;
+	}
+	return return_string;
+}
+
+string utf_to_multibyte(string in)
+{
+	string strMulti;
+	wstring strUni = utf_to_unicode(in);
+	strMulti.assign(strUni.begin(), strUni.end());
+	return strMulti;
+	//string strMulti(CW2A(utf_to_unicode(in)));
+	//wchar_t strUnicode[1024] = { 0, };
+	//char    strUTF8[1024] = { 0, };
+	//strcpy_s(strUTF8, 1024, in.c_str());// 이건 사실 멀티바이트지만 UTF8이라고 생각해주세요 -_-;;
+	//if (strlen(strUTF8) > 0)
+	//{
+	//	int nLen = MultiByteToWideChar(CP_UTF8, 0, strUTF8, strlen(strUTF8), NULL, NULL);
+	//	MultiByteToWideChar(CP_UTF8, 0, strUTF8, strlen(strUTF8), strUnicode, nLen);
+
+	//	string strMulti = CW2A(strUnicode);
+	//	return strMulti;
+	//}
+	//return "";
+}

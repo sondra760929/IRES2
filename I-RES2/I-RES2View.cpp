@@ -328,6 +328,7 @@ CIRES2View::CIRES2View()
 	, m_fCrossSectionPointGap(500.0f)
 	, m_bConditionConstant(false)
 	, m_isCreateFolder(false)
+	, m_pTranslationDlg(0)
 {
 	//m_iHULLPos[0] = 0;
 	//m_iHULLPos[1] = 0;
@@ -684,6 +685,11 @@ void CIRES2View::OnInitialUpdate()
 	m_DlgProgress = new CDlgProgress();
 	m_DlgProgress->Create(IDD_DIALOG_PROGRESS);
 
+
+	m_pTranslationDlg = new CDlgTranslation();
+	m_pTranslationDlg->Create(IDD_DIALOG_TRANSLATE);
+	m_pTranslationDlg->ShowWindow(SW_SHOW);
+
 	OnButtonzoomall();
 }
 
@@ -898,9 +904,10 @@ void CIRES2View::OnButtonImportHull()
 		if (ext_str == "iges" || ext_str == "igs")
 		{
 			time(&start_time);
-			TCollection_AsciiString aFileName((const char*)dlg.GetPathName());
+			char strUtf8[512] = { 0, };
+			lpctstr_to_utf8(dlg.GetPathName(), strUtf8);
 			IGESControl_Reader Reader;
-			Standard_Integer status = Reader.ReadFile(aFileName.ToCString());
+			Standard_Integer status = Reader.ReadFile(strUtf8);
 			if (status == IFSelect_RetDone)
 			{
 				Reader.TransferRoots();
@@ -4296,6 +4303,13 @@ void CIRES2View::OnSize(UINT nType, int cx, int cy)
 	{
 		m_cameraStatus->setProjectionMatrixAsOrtho2D(0, mOSG->getViewer()->getCamera()->getViewport()->width(), 0, mOSG->getViewer()->getCamera()->getViewport()->height());
 		mOSG->m_fAspect = mOSG->getViewer()->getCamera()->getViewport()->width() / mOSG->getViewer()->getCamera()->getViewport()->height();
+	}
+
+	if (m_pTranslationDlg)
+	{
+		CRect rect;
+		GetWindowRect(&rect);
+		m_pTranslationDlg->MoveWindow(rect.left + 100, rect.bottom - 32, cx - 200, 25);
 	}
 }
 

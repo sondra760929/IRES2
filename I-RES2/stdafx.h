@@ -80,6 +80,7 @@ using namespace std;
 #include <afxwin.h>
 #include <afxdisp.h>
 #include <afxdisp.h>
+#include <afxwin.h>
 
 #define WM_RETURN_FROM_UI WM_USER+10
 #define WM_OK_FROM_UI WM_USER+11
@@ -113,6 +114,10 @@ extern vector< CString > m_aAnalysisOutput;
 extern vector< CString > m_aAnalysisCommand;
 extern vector< CString > m_aAnalysisPGM;
 extern void SetButtons(CMFCButton* btn, UINT img, CString tooltip);
+extern void char_to_utf8(char* strMultibyte, char* out);
+extern void lpctstr_to_utf8(LPCTSTR in, char* out);
+extern wstring utf_to_unicode(string in);
+extern string utf_to_multibyte(string in);
 
 #ifdef _UNICODE
 #if defined _M_IX86

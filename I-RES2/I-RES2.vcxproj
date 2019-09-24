@@ -219,6 +219,7 @@
     <ClInclude Include="DlgMaterial.h" />
     <ClInclude Include="DlgOutputToolbar.h" />
     <ClInclude Include="DlgSectionToolbar.h" />
+    <ClInclude Include="DlgTranslation.h" />
     <ClInclude Include="FileView.h" />
     <ClInclude Include="FrameContainer.h" />
     <ClInclude Include="GraphController.h" />
@@ -323,6 +324,7 @@
     <ClCompile Include="DlgMaterial.cpp" />
     <ClCompile Include="DlgOutputToolbar.cpp" />
     <ClCompile Include="DlgSectionToolbar.cpp" />
+    <ClCompile Include="DlgTranslation.cpp" />
     <ClCompile Include="FileView.cpp" />
     <ClCompile Include="GraphController.cpp" />
     <ClCompile Include="I-RES2.cpp" />

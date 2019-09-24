@@ -640,6 +640,14 @@ BEGIN
     LTEXT           "Static",IDC_GRID1,7,7,19,8
 END
 
+IDD_DIALOG_TRANSLATE DIALOGEX 0, 0, 624, 14
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_BORDER | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CTEXT           "  << Select a start point for the translation vector or enter X, Y, Z:",IDC_STATIC_CAPTION,0,1,211,12,SS_CENTERIMAGE
+    EDITTEXT        IDC_EDIT1,216,0,408,14,ES_AUTOHSCROLL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -803,6 +811,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 169
     END
+
+    IDD_DIALOG_TRANSLATE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 617
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 7
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -891,6 +907,11 @@ BEGIN
 END
 
 IDD_DIALOG_EXCEL AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_TRANSLATE AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
