@@ -217,6 +217,7 @@ BEGIN_MESSAGE_MAP(CIRES2View, CView)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_NUMBER_WATERLINE, &CIRES2View::OnUpdateEditNumberWaterline)
 	ON_COMMAND(ID_BUTTON_DEFINE, &CIRES2View::OnButtonDefine)
 	ON_WM_MOUSEHWHEEL()
+	ON_WM_MOVE()
 END_MESSAGE_MAP()
 
 int N_FRAME;
@@ -5545,5 +5546,17 @@ void CIRES2View::ShowOutputSummury(CString job_name)
 	{
 		mOSG->m_bShowSummury = true;
 		mOSG->m_WindowManager->addChild(mOSG->m_widgetOutputSumurry);
+	}
+}
+
+void CIRES2View::OnMove(int x, int y)
+{
+	CView::OnMove(x, y);
+
+	if (m_pTranslationDlg)
+	{
+		CRect rect;
+		GetWindowRect(&rect);
+		m_pTranslationDlg->MoveWindow(rect.left + 100, rect.bottom - 32, rect.Width() - 200, 25);
 	}
 }

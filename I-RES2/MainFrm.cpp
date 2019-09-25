@@ -32,6 +32,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CMainFrame::OnFilePrintPreview)
 	ON_UPDATE_COMMAND_UI(ID_FILE_PRINT_PREVIEW, &CMainFrame::OnUpdateFilePrintPreview)
 	ON_WM_SETTINGCHANGE()
+	ON_WM_MOVE()
 END_MESSAGE_MAP()
 
 // CMainFrame »ý¼º/¼Ò¸ê
@@ -278,4 +279,15 @@ void CMainFrame::OnSettingChange(UINT uFlags, LPCTSTR lpszSection)
 {
 	CFrameWndEx::OnSettingChange(uFlags, lpszSection);
 	//m_wndOutput.UpdateFonts();
+}
+
+
+void CMainFrame::OnMove(int x, int y)
+{
+	CFrameWndEx::OnMove(x, y);
+
+	if (m_pViewActive)
+	{
+		m_pViewActive->SendMessage(WM_MOVE, 0, MAKELPARAM(x, y));
+	}
 }

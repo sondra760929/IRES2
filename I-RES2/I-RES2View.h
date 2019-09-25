@@ -347,6 +347,7 @@ public:
 	afx_msg void OnButtonDefineSectionsWaterline();
 	afx_msg void OnButtonDefine();
 	afx_msg void OnMouseHWheel(UINT nFlags, short zDelta, CPoint pt);
+	afx_msg void OnMove(int x, int y);
 };
 
 #ifndef _DEBUG  // I-RES2View.cpp의 디버그 버전

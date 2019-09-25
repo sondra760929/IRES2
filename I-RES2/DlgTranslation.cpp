@@ -46,20 +46,28 @@ BOOL CDlgTranslation::OnInitDialog()
 	m_strCaption = "   << Select a start point for the translation vector or enter X, Y, Z ";
 	UpdateData(FALSE);
 
+	CRect rect;
+	GetClientRect(&rect);
+	ResizeControl(rect.Width(), rect.Height());
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
 }
 
+void CDlgTranslation::ResizeControl(int cx, int cy)
+{
+	CWnd* p_cpation = GetDlgItem(IDC_STATIC_CAPTION);
+	if (p_cpation)
+	{
+		int width = 400;
+		int button_width = 40;
+		p_cpation->MoveWindow(0, 0, width, cy);
+		GetDlgItem(IDC_EDIT1)->MoveWindow(width, 0, cx-width - button_width, cy);
+		GetDlgItem(IDC_BUTTON_OK)->MoveWindow(cx - button_width, 0, button_width, cy);
+	}
+}
 
 void CDlgTranslation::OnSize(UINT nType, int cx, int cy)
 {
 	CDialog::OnSize(nType, cx, cy);
-
-	CWnd* p_cpation = GetDlgItem(IDC_STATIC_CAPTION);
-	if (p_cpation)
-	{
-		int width = 350;
-		p_cpation->MoveWindow(0, 0, width, cy);
-		GetDlgItem(IDC_EDIT1)->MoveWindow(width, 0, cx-width, cy);
-	}
+	ResizeControl(cx, cy);
 }

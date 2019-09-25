@@ -642,10 +642,11 @@ END
 
 IDD_DIALOG_TRANSLATE DIALOGEX 0, 0, 624, 14
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_BORDER | WS_SYSMENU
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
+FONT 10, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
-    CTEXT           "  << Select a start point for the translation vector or enter X, Y, Z:",IDC_STATIC_CAPTION,0,1,211,12,SS_CENTERIMAGE
-    EDITTEXT        IDC_EDIT1,216,0,408,14,ES_AUTOHSCROLL
+    CTEXT           "  << Select a start point for the translation vector or enter X, Y, Z:",IDC_STATIC_CAPTION,0,1,211,8,SS_CENTERIMAGE
+    EDITTEXT        IDC_EDIT1,216,0,367,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "ют╥б",IDC_BUTTON_OK,573,0,50,14
 END
 
 
