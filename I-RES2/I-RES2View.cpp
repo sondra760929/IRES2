@@ -306,7 +306,6 @@ FILE* fp_8 = NULL;
 FILE* fp_9 = NULL;
 FILE* fp_10 = NULL;
 FILE* fp_15 = NULL;
-
 // CIRES2View 생성/소멸
 
 CIRES2View::CIRES2View()
@@ -316,9 +315,6 @@ CIRES2View::CIRES2View()
 	, m_bShowSectionData(true)
 	, m_bShowWaterline(true)
 	, m_bShowWaterlineData(true)
-	, m_bSetCenterPoint(false)
-	, m_bSetFlipNormal(false)
-	, m_bSelectWindow(false)
 	, m_bInitialize(false)
 	, m_bUseDistanceForAxis(false)
 	, m_bUseDistanceForAxisWaterline(false)
@@ -330,6 +326,7 @@ CIRES2View::CIRES2View()
 	, m_bConditionConstant(false)
 	, m_isCreateFolder(false)
 	, m_pTranslationDlg(0)
+	, m_iSelectionMode(SELECTION_NONE)
 {
 	//m_iHULLPos[0] = 0;
 	//m_iHULLPos[1] = 0;
@@ -346,6 +343,7 @@ CIRES2View::CIRES2View()
 	//m_iWaterLineRot[0] = 0;
 	//m_iWaterLineRot[1] = 0;
 	//m_iWaterLineRot[2] = 0;
+	m_pCurrentView = this;
 }
 
 CIRES2View::~CIRES2View()
@@ -632,28 +630,28 @@ void CIRES2View::OnInitialUpdate()
 		//m_pHULLSpinXPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_X_POS));
 		//m_pHULLSpinXPos->EnableSpinButtons(-100000000, 100000000);
 		//m_pHULLSpinXPos->SetEditText("0");
-		m_iHULLPos[0] = 0;
+		//m_iHULLPos[0] = 0;
 		//m_pHULLSpinYPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Y_POS));
 		//m_pHULLSpinYPos->EnableSpinButtons(-100000000, 100000000);
 		//m_pHULLSpinYPos->SetEditText("0");
-		m_iHULLPos[1] = 0;
+		//m_iHULLPos[1] = 0;
 		//m_pHULLSpinZPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Z_POS));
 		//m_pHULLSpinZPos->EnableSpinButtons(-100000000, 100000000);
 		//m_pHULLSpinZPos->SetEditText("0");
-		m_iHULLPos[2] = 0;
+		//m_iHULLPos[2] = 0;
 
 		//m_pHULLSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_X_ANGLE));
 		//m_pHULLSpinXRot->EnableSpinButtons(-360, 360);
 		//m_pHULLSpinXRot->SetEditText("0");
-		m_iHULLRot[0] = 0;
+		//m_iHULLRot[0] = 0;
 		//m_pHULLSpinYRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Y_ANGLE));
 		//m_pHULLSpinYRot->EnableSpinButtons(-360, 360);
 		//m_pHULLSpinYRot->SetEditText("0");
-		m_iHULLRot[1] = 0;
+		//m_iHULLRot[1] = 0;
 		//m_pHULLSpinZRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_HULL_Z_Angle));
 		//m_pHULLSpinZRot->EnableSpinButtons(-360, 360);
 		//m_pHULLSpinZRot->SetEditText("0");
-		m_iHULLRot[2] = 0;
+		//m_iHULLRot[2] = 0;
 
 		//m_pSectionSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_SECTION_X));
 		//m_pSectionSpinXRot->EnableSpinButtons(-360, 360);
@@ -689,7 +687,8 @@ void CIRES2View::OnInitialUpdate()
 
 	m_pTranslationDlg = new CDlgTranslation();
 	m_pTranslationDlg->Create(IDD_DIALOG_TRANSLATE);
-	m_pTranslationDlg->ShowWindow(SW_SHOW);
+
+	ResizeControl(0, 0);
 
 	OnButtonzoomall();
 }
@@ -771,6 +770,8 @@ void CIRES2View::OnButtonOpen()
 				m_pMainFrame->m_wndFileView.Clear();
 				m_pMainFrame->m_wndClassView.ClearJobList();
 
+				//LoadDatumFile();
+
 				temp_string = m_strProjectPath + "\\JOB";
 				CFileFind file;
 				BOOL b = file.FindFile(temp_string + _T("\\*.*"));		// 모든 확장자를 다 사용.
@@ -809,6 +810,8 @@ void CIRES2View::OnButtonSave()
 		if (dlg.DoModal() == IDOK)
 		{
 			SetCurrentDirectory(m_strProjectPath);
+			SaveDatumFile();
+
 			CString command_string;
 			command_string = m_strAppPath + "\\zip.exe -r " + dlg.GetPathName() + " *";
 			STARTUPINFO si;
@@ -880,6 +883,40 @@ void CIRES2View::OnButtonSaveImage()
 
 		mOSG->getCapture(printer);
 	}
+}
+
+void CIRES2View::OnButtonRotate()
+{
+	if (osgHull->getNumChildren() < 1)
+	{
+		AfxMessageBox("Import HULL data first.");
+		CalculateOutputResult(false);
+		return;
+	}
+
+	PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+	m_QAddChild.push(pf);
+	m_iCurrentStatus = 0;
+	m_iSelectionMode = SELECTION_ROTATION;
+	m_pTranslationDlg->SetCaption(" << Select a center point for the rotation vector or enter X, Y, Z (m)");
+	m_pTranslationDlg->ShowWindow(SW_SHOW);
+}
+
+void CIRES2View::OnButtonTranslate()
+{
+	if (osgHull->getNumChildren() < 1)
+	{
+		AfxMessageBox("Import HULL data first.");
+		CalculateOutputResult(false);
+		return;
+	}
+
+	PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+	m_QAddChild.push(pf);
+	m_iCurrentStatus = 0;
+	m_iSelectionMode = SELECTION_TRANSLATION;
+	m_pTranslationDlg->SetCaption(" << Select a start point for the translation vector or enter X, Y, Z (m)");
+	m_pTranslationDlg->ShowWindow(SW_SHOW);
 }
 
 void CIRES2View::OnButtonImportHull()
@@ -1039,13 +1076,13 @@ void CIRES2View::OnButtonImportHull()
 		//	if (m_pEditStart)
 		//	{
 		//		CString temp_string;
-		//		temp_string.Format("%g", bbHull.xMin() / 1000.0f);
+		//		temp_string.Format("%g", bbHull.xMin() * UNIT_TO_M);
 		//		m_pEditStart->SetEditText(temp_string);
 
-		//		temp_string.Format("%g", bbHull.xMax() / 1000.0f);
+		//		temp_string.Format("%g", bbHull.xMax() * UNIT_TO_M);
 		//		m_pEditEnd->SetEditText(temp_string);
 
-		//		//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 / 1000.0f);
+		//		//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 * UNIT_TO_M);
 		//		m_pEditSpace->SetEditText("0.5");
 		//	}
 
@@ -1560,46 +1597,52 @@ void CIRES2View::SetCenterView(double x, double y)
 
 osg::Node* CIRES2View::OnSelectPoint(double x, double y, osg::Vec3d& hit_pt)
 {
+	y = mOSG->getViewer()->getCamera()->getViewport()->height() - y;
 	//if (sel_type == OPT_PATH || sel_type == OPT_TAG || sel_type == OPT_FRAME)
 	//{
-	//	osgUtil::PolytopeIntersector::Intersections intersections;
-	//	y = mOSG->getViewer()->getCamera()->getViewport()->height() - y;
-	//	double w = 5.0f;
-	//	double h = 5.0f;
-	//	osg::ref_ptr< osgUtil::PolytopeIntersector > picker = new osgUtil::PolytopeIntersector(osgUtil::Intersector::WINDOW, x - w, y - h, x + w, y + h);
-	//	osgUtil::IntersectionVisitor iv(picker.get());
-	//	mOSG->getViewer()->getCamera()->accept(iv);
-	//	if (picker->containsIntersections())
-	//	{
-	//		intersections = picker->getIntersections();
-	//		//if (view->computeIntersections(x,y,intersections))
-	//		//{
-	//		for (osgUtil::PolytopeIntersector::Intersections::iterator hitr = intersections.begin();
-	//			hitr != intersections.end();
-	//			++hitr)
-	//		{
-	//			const osg::NodePath& nodePath = hitr->nodePath;
-	//			unsigned int idx = nodePath.size();
-	//			while (idx--){
-	//				osg::MatrixTransform* mt = dynamic_cast<osg::MatrixTransform*>(nodePath[idx]);
-	//				if (mt == NULL)
-	//					continue;
+		osgUtil::PolytopeIntersector::Intersections poly_intersections;
+		double w = 5.0f;
+		double h = 5.0f;
+		osg::ref_ptr< osgUtil::PolytopeIntersector > poly_picker = new osgUtil::PolytopeIntersector(osgUtil::Intersector::WINDOW, x - w, y - h, x + w, y + h);
+		osgUtil::IntersectionVisitor poly_iv(poly_picker.get());
+		mOSG->getViewer()->getCamera()->accept(poly_iv);
+		if (poly_picker->containsIntersections())
+		{
+			poly_intersections = poly_picker->getIntersections();
+			//if (view->computeIntersections(x,y,intersections))
+			//{
+			for (osgUtil::PolytopeIntersector::Intersections::iterator hitr = poly_intersections.begin();
+				hitr != poly_intersections.end();
+				++hitr)
+			{
+				const osg::NodePath& nodePath = hitr->nodePath;
+				unsigned int idx = nodePath.size();
+				while (idx--){
+					osg::MatrixTransform* mt = dynamic_cast<osg::MatrixTransform*>(nodePath[idx]);
+					if (mt == NULL)
+						continue;
 
-	//				if (m_mapGeoToEntity2.find(mt) != m_mapGeoToEntity2.end())
-	//				{
-	//					if (m_mapGeoToEntity2[mt]->GetType() == sel_type || OPT_ELEMENT == sel_type)
-	//					{
-	//						return m_mapGeoToEntity2[mt];
-	//					}
-	//				}
-	//			}
-	//		}
-	//	}
+					if (mt->getName() == "DATUM")
+					{
+						osg::Matrix tr = osg::computeLocalToWorld(hitr->nodePath);
+						hit_pt = tr.getTrans();
+						m_geoVertex = hit_pt;
+						return mt;
+					}
+					//if (m_mapGeoToEntity2.find(mt) != m_mapGeoToEntity2.end())
+					//{
+					//	if (m_mapGeoToEntity2[mt]->GetType() == sel_type || OPT_ELEMENT == sel_type)
+					//	{
+					//		return m_mapGeoToEntity2[mt];
+					//	}
+					//}
+				}
+			}
+		}
 	//}
 	//else
 	//{
 		osgUtil::LineSegmentIntersector::Intersections intersections;
-		y = mOSG->getViewer()->getCamera()->getViewport()->height() - y;
 		osg::ref_ptr< osgUtil::LineSegmentIntersector > picker = new osgUtil::LineSegmentIntersector(osgUtil::Intersector::WINDOW, x, y);
 		osgUtil::IntersectionVisitor iv(picker.get());
 		mOSG->getViewer()->getCamera()->accept(iv);
@@ -1801,13 +1844,13 @@ void CIRES2View::OnButtonDefineSections()
 	//	m_aSectionOffset.clear();
 
 	//	temp_string = m_pEditStart->GetEditText();
-	//	m_aSectionStart.push_back(atof(temp_string) * 1000.0f);
+	//	m_aSectionStart.push_back(atof(temp_string) * M_TO_UNIT);
 
 	//	temp_string = m_pEditEnd->GetEditText();
-	//	m_aSectionEnd.push_back(atof(temp_string) * 1000.0f);
+	//	m_aSectionEnd.push_back(atof(temp_string) * M_TO_UNIT);
 
 	//	temp_string = m_pEditSpace->GetEditText();
-	//	m_aSectionOffset.push_back(atof(temp_string) * 1000.0f);
+	//	m_aSectionOffset.push_back(atof(temp_string) * M_TO_UNIT);
 
 	//	ClearSections();
 	//	DefineSections();
@@ -1922,7 +1965,7 @@ void CIRES2View::DefineSections()
 
 				base_plane->addDrawable(base_palne_geo);
 
-				sprintf_s(label_txt, 255, "%.2lf", center_pnt.x() / 1000.0f);
+				sprintf_s(label_txt, 255, "%.2lf", center_pnt.x() * UNIT_TO_M);
 				osgText::Text* text = new  osgText::Text;
 				osgText::Font* normal_font = osgText::readFontFile("fonts/arial.ttf");
 				text->setFont(normal_font);
@@ -2019,7 +2062,7 @@ void CIRES2View::DefineSections()
 
 				base_plane->addDrawable(base_palne_geo);
 
-				sprintf_s(label_txt, 255, "%.2lf", center_pnt.y() / 1000.0f);
+				sprintf_s(label_txt, 255, "%.2lf", center_pnt.y() * UNIT_TO_M);
 				osgText::Text* text = new  osgText::Text;
 				osgText::Font* normal_font = osgText::readFontFile("fonts/arial.ttf");
 				text->setFont(normal_font);
@@ -2438,7 +2481,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								PointData pd;
 								step_length += remain_length;
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if ((pd.pnt.z() / 1000.0f <= m_fDraftValue) && ((use_start_end == false) || (pd.pnt.x() <= start_pos && pd.pnt.x() >= end_pos)))
+								if ((pd.pnt.z() * UNIT_TO_M <= m_fDraftValue) && ((use_start_end == false) || (pd.pnt.x() <= start_pos && pd.pnt.x() >= end_pos)))
 								{
 									if(GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2463,7 +2506,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
-						float current_x = floor(section_line[j][0].x() / 1000.0f) * 1000.0f + point_distance;
+						float current_x = floor(section_line[j][0].x() * UNIT_TO_M) * M_TO_UNIT + point_distance;
 						while (current_x > section_line[j][0].x())
 						{
 							current_x -= point_distance;
@@ -2484,7 +2527,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
 								vec *= ratio;
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+								if (pd.pnt.z()  * UNIT_TO_M <= m_fDraftValue)
 								{
 									if (GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2527,7 +2570,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								step_length += remain_length;
 								//fprintf(FileLog, "add > \tcl : %lf, \tsl : %lf, \trl : %lf ", current_length, step_length, remain_length);
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+								if (pd.pnt.z() * UNIT_TO_M <= m_fDraftValue)
 								{
 									if (GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2567,7 +2610,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
 								vec *= ratio;
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+								if (pd.pnt.z() * UNIT_TO_M <= m_fDraftValue)
 								{
 									if (GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2606,7 +2649,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								PointData pd;
 								step_length += remain_length;
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+								if (pd.pnt.z() * UNIT_TO_M <= m_fDraftValue)
 								{
 									if (GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2629,7 +2672,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].z()];
-						float current_z = floor(section_line[j][0].z() / 1000.0f) * 1000.0f - point_distance;
+						float current_z = floor(section_line[j][0].z() * UNIT_TO_M) * M_TO_UNIT - point_distance;
 						while (current_z < section_line[j][0].z())
 						{
 							current_z += point_distance;
@@ -2644,7 +2687,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
 								vec *= ratio;
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z() / 1000.0f <= m_fDraftValue)
+								if (pd.pnt.z() * UNIT_TO_M <= m_fDraftValue)
 								{
 									if (GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2820,7 +2863,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	//	{
 	//		CString temp_string;
 	//		temp_string = m_pEditPointsDistance->GetEditText();
-	//		points_gap = atof(temp_string) * 1000.0f;
+	//		points_gap = atof(temp_string) * M_TO_UNIT;
 	//	}
 	//}
 	//else
@@ -2829,7 +2872,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	//	{
 	//		CString temp_string;
 	//		temp_string = m_pEditPointsNumber->GetEditText();
-	//		points_gap = atof(temp_string) * 1000.0f;
+	//		points_gap = atof(temp_string) * M_TO_UNIT;
 	//	}
 	//}
 
@@ -2839,7 +2882,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	//	{
 	//		CString temp_string;
 	//		temp_string = m_pEditPointsDistanceWaterline->GetEditText();
-	//		points_gap_waterline = atof(temp_string) * 1000.0f;
+	//		points_gap_waterline = atof(temp_string) * M_TO_UNIT;
 	//	}
 	//}
 	//else
@@ -2848,7 +2891,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	//	{
 	//		CString temp_string;
 	//		temp_string = m_pEditPointsNumberWaterline->GetEditText();
-	//		points_gap_waterline = atof(temp_string) * 1000.0f;
+	//		points_gap_waterline = atof(temp_string) * M_TO_UNIT;
 	//	}
 	//}
 
@@ -2856,13 +2899,13 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	//{
 	//	CString temp_string;
 	//	temp_string = m_pEditStartWaterline->GetEditText();
-	//	m_fWaterlineStartPos = atof(temp_string) * 1000.0f;
+	//	m_fWaterlineStartPos = atof(temp_string) * M_TO_UNIT;
 	//}
 	//if (m_pEditEndWaterline)
 	//{
 	//	CString temp_string;
 	//	temp_string = m_pEditEndWaterline->GetEditText();
-	//	m_fWaterlineEndPos = atof(temp_string) * 1000.0f;
+	//	m_fWaterlineEndPos = atof(temp_string) * M_TO_UNIT;
 	//}
 
 	//if (m_pEditSpaceWaterline)
@@ -2876,7 +2919,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	//{
 	//	CString temp_string;
 	//	temp_string = m_pEditPointsGap->GetEditText();
-	//	points_gap = atof(temp_string) * 1000.0f;
+	//	points_gap = atof(temp_string) * M_TO_UNIT;
 	//}
 
 	if (osgHull->getNumChildren() < 1)
@@ -2991,9 +3034,9 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 				for (int i = 0; i < m_aWaterLinePointData.size(); i++)
 				{
 					fprintf_s(save_file, "   %.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\n",
-						m_aWaterLinePointData[i].pnt.x() / 1000.0f,
-						m_aWaterLinePointData[i].pnt.y() / 1000.0f,
-						m_aWaterLinePointData[i].pnt.z() / 1000.0f,
+						m_aWaterLinePointData[i].pnt.x() * UNIT_TO_M,
+						m_aWaterLinePointData[i].pnt.y() * UNIT_TO_M,
+						m_aWaterLinePointData[i].pnt.z() * UNIT_TO_M,
 						m_aWaterLinePointData[i].normal.x(),
 						m_aWaterLinePointData[i].normal.y(),
 						m_aWaterLinePointData[i].normal.z(),
@@ -3002,11 +3045,11 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 						m_aWaterLinePointData[i].angle_gamma);
 					if (i == 0)
 					{
-						max_y = m_aWaterLinePointData[i].pnt.y() / 1000.0f;
+						max_y = m_aWaterLinePointData[i].pnt.y()  * UNIT_TO_M;
 					}
 					else
 					{
-						float current_y = m_aWaterLinePointData[i].pnt.y() / 1000.0f;
+						float current_y = m_aWaterLinePointData[i].pnt.y() * UNIT_TO_M;
 						if (current_y > max_y)
 						{
 							max_y = current_y;
@@ -3037,17 +3080,17 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 				for (int i = 0; i < m_aSectionPointDataList.size(); i++)
 				{
 					fprintf_s(save_file, "\n");
-					fprintf_s(save_file, "   %.3lf   %d\n", m_aSectionPointDataList[i][0].pnt.x() / 1000.0f, m_aSectionPointDataList[i].size());
+					fprintf_s(save_file, "   %.3lf   %d\n", m_aSectionPointDataList[i][0].pnt.x() * UNIT_TO_M, m_aSectionPointDataList[i].size());
 					fprintf_s(save_file, "   ");
 					for (int j = 0; j < m_aSectionPointDataList[i].size(); j++)
 					{
-						fprintf_s(save_file, "   %.3lf", abs(m_aSectionPointDataList[i][j].pnt.y()) / 1000.0f);
+						fprintf_s(save_file, "   %.3lf", abs(m_aSectionPointDataList[i][j].pnt.y()) * UNIT_TO_M);
 					}
 					fprintf_s(save_file, "\n");
 					fprintf_s(save_file, "   ");
 					for (int j = 0; j < m_aSectionPointDataList[i].size(); j++)
 					{
-						fprintf_s(save_file, "   %.3lf", m_aSectionPointDataList[i][j].pnt.z() / 1000.0f);
+						fprintf_s(save_file, "   %.3lf", m_aSectionPointDataList[i][j].pnt.z() * UNIT_TO_M);
 					}
 					fprintf_s(save_file, "\n");
 					fprintf_s(save_file, "   ");
@@ -3925,7 +3968,7 @@ void CIRES2View::WRITE_OUT()
 				fprintf_s(fp_8, " IV = %d   SIGMA = %d   THICK = %d\n", IV, IS, IH);
 				R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
 				fprintf_s(fp_7, "%9.2lf%10.2lf%10.2lf%10.1lf%10.1lf%10.1lf%10.1lf\n",
-					VSP[IV], THCK[IH], SIGMA[IS] / 1000.0f, R_BREAK[IH][IS] / 1000.0f, R_CLEAR[IH][IV] / 1000.0f, R_BOUYA[IH] / 1000.0f, R_TOTAL / 1000.0f);
+					VSP[IV], THCK[IH], SIGMA[IS] * UNIT_TO_M, R_BREAK[IH][IS] * UNIT_TO_M, R_CLEAR[IH][IV] * UNIT_TO_M, R_BOUYA[IH] * UNIT_TO_M, R_TOTAL * UNIT_TO_M);
 			}
 		}
 	}
@@ -4092,7 +4135,8 @@ void CIRES2View::PreFrameUpdate()
 		{
 			if (pd.child_node != NULL)
 			{
-				pd.parent_node->removeChild(pd.child_node);
+				if(pd.parent_node->containsNode(pd.child_node))
+					pd.parent_node->removeChild(pd.child_node);
 			}
 			else
 			{
@@ -4110,8 +4154,11 @@ void CIRES2View::PreFrameUpdate()
 	while (!m_QAddChild.empty())
 	{
 		PreFrameUpdateData pd = m_QAddChild.front();
-		if(pd.parent_node != NULL && pd.child_node != NULL)
+		if (pd.parent_node != NULL && pd.child_node != NULL)
+		{
+			if(!(pd.parent_node->containsNode(pd.child_node)))
 			pd.parent_node->addChild(pd.child_node);
+		}
 		m_QAddChild.pop();
 		
 		if (pd.parent_node == osgHull)
@@ -4127,11 +4174,11 @@ void CIRES2View::PreFrameUpdate()
 			osgHull_Center->accept(cbbv);
 			bbHull = cbbv.getBoundingBox();
 			char temp_str[200];
-			sprintf_s(temp_str, 200, "X: Max %.2lfm  Min %.2lfm", bbHull.xMax()/1000.0f, bbHull.xMin()/1000.0f);
+			sprintf_s(temp_str, 200, "X: Max %.2lfm  Min %.2lfm", bbHull.xMax() * UNIT_TO_M, bbHull.xMin() * UNIT_TO_M);
 			mOSG->m_widgetHullSize[1]->setLabel(temp_str);
-			sprintf_s(temp_str, 200, "Y: Max %.2lfm  Min %.2lfm", bbHull.yMax()/1000.0f, bbHull.yMin()/1000.0f);
+			sprintf_s(temp_str, 200, "Y: Max %.2lfm  Min %.2lfm", bbHull.yMax() * UNIT_TO_M, bbHull.yMin() * UNIT_TO_M);
 			mOSG->m_widgetHullSize[2]->setLabel(temp_str);
-			sprintf_s(temp_str, 200, "Z: Max %.2lfm  Min %.2lfm", bbHull.zMax()/1000.0f, bbHull.zMin()/1000.0f);
+			sprintf_s(temp_str, 200, "Z: Max %.2lfm  Min %.2lfm", bbHull.zMax() * UNIT_TO_M, bbHull.zMin() * UNIT_TO_M);
 			mOSG->m_widgetHullSize[3]->setLabel(temp_str);
 
 			//CString temp_string;
@@ -4168,7 +4215,7 @@ void CIRES2View::PreFrameUpdate()
 			v_array->push_back(osg::Vec3(-bbLength[0], bbLength[1], 0));
 
 			m_iWaterLinePos.set(bbHull.center().x(), bbHull.center().y(), bbHull.center().z());
-			m_fDraftValue = bbHull.center().z() / 1000.0f;
+			m_fDraftValue = bbHull.center().z() * UNIT_TO_M;
 			m_fCrossSectionStart = bbHull.xMax();
 			m_fCrossSectionEnd = bbHull.xMin();
 			//UpdateWaterlinePos();
@@ -4213,18 +4260,20 @@ void CIRES2View::PreFrameUpdate()
 
 			UpdateGlobalAxis(max(max(bbHull.xMax(), bbHull.yMax()), bbHull.zMax()));
 
+			LoadDatumFile();
+
 			OnButtonzoomall();
 			SetTimer(1, 10, NULL);
 			//if (m_pEditStart)
 			//{
 			//	CString temp_string;
-			//	temp_string.Format("%g", bbHull.xMin() / 1000.0f);
+			//	temp_string.Format("%g", bbHull.xMin() * UNIT_TO_M);
 			//	m_pEditStart->SetEditText(temp_string);
 
-			//	temp_string.Format("%g", bbHull.xMax() / 1000.0f);
+			//	temp_string.Format("%g", bbHull.xMax() * UNIT_TO_M);
 			//	m_pEditEnd->SetEditText(temp_string);
 
-			//	//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 / 1000.0f);
+			//	//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 * UNIT_TO_M);
 			//	m_pEditSpace->SetEditText("0.5");
 			//}
 
@@ -4248,15 +4297,15 @@ void CIRES2View::OnTimer(UINT_PTR nIDEvent)
 		//if (m_pEditStart)
 		//{
 		//	CString temp_string;
-		//	temp_string.Format("%g", bbHull.xMax() / 1000.0f);
+		//	temp_string.Format("%g", bbHull.xMax() * UNIT_TO_M);
 		//	m_pEditStart->SetEditText(temp_string);
 		//	m_pEditStartWaterline->SetEditText(temp_string);
 
-		//	temp_string.Format("%g", bbHull.xMin() / 1000.0f);
+		//	temp_string.Format("%g", bbHull.xMin() * UNIT_TO_M);
 		//	m_pEditEnd->SetEditText(temp_string);
 		//	m_pEditEndWaterline->SetEditText(temp_string);
 
-		//	//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 / 1000.0f);
+		//	//temp_string.Format("%g", (m_fBoundingSize[0][1] - m_fBoundingSize[0][0]) / 10.0 * UNIT_TO_M);
 		//	m_pEditSpace->SetEditText("0.5");
 
 		//	UpdateWaterlinePos();
@@ -4287,6 +4336,15 @@ void CIRES2View::OnButtonAnalysis()
 	//SetCurrentStep(4);
 }
 
+void CIRES2View::ResizeControl(int cx, int cy)
+{
+	if (m_pTranslationDlg)
+	{
+		CRect rect;
+		GetWindowRect(&rect);
+		m_pTranslationDlg->MoveWindow(rect.left + 100, rect.bottom - 32, rect.Width() - 200, 25);
+	}
+}
 
 void CIRES2View::OnSize(UINT nType, int cx, int cy)
 {
@@ -4306,12 +4364,7 @@ void CIRES2View::OnSize(UINT nType, int cx, int cy)
 		mOSG->m_fAspect = mOSG->getViewer()->getCamera()->getViewport()->width() / mOSG->getViewer()->getCamera()->getViewport()->height();
 	}
 
-	if (m_pTranslationDlg)
-	{
-		CRect rect;
-		GetWindowRect(&rect);
-		m_pTranslationDlg->MoveWindow(rect.left + 100, rect.bottom - 32, cx - 200, 25);
-	}
+	ResizeControl(cx, cy);
 }
 
 
@@ -4331,7 +4384,7 @@ void CIRES2View::OnButtonSelectSection()
 //{
 //	CString str_x = m_pHULLSpinXPos->GetEditText();
 //	str_x.Replace(",", "");
-//	m_iHULLPos[0] = atof(str_x) * 1000.0f;
+//	m_iHULLPos[0] = atof(str_x) * M_TO_UNIT;
 //	osg::Matrix m;
 //	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
 //	m.setTrans(m_iHULLPos);
@@ -4344,7 +4397,7 @@ void CIRES2View::OnButtonSelectSection()
 //{
 //	CString str_x = m_pHULLSpinYPos->GetEditText();
 //	str_x.Replace(",", "");
-//	m_iHULLPos[1] = atof(str_x) * 1000.0f;
+//	m_iHULLPos[1] = atof(str_x) * M_TO_UNIT;
 //	osg::Matrix m;
 //	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
 //	m.setTrans(m_iHULLPos);
@@ -4357,7 +4410,7 @@ void CIRES2View::OnButtonSelectSection()
 //{
 //	CString str_x = m_pHULLSpinZPos->GetEditText();
 //	str_x.Replace(",", "");
-//	m_iHULLPos[2] = atof(str_x) * 1000.0f;
+//	m_iHULLPos[2] = atof(str_x) * M_TO_UNIT;
 //	osg::Matrix m;
 //	osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
 //	m.setTrans(m_iHULLPos);
@@ -4466,7 +4519,7 @@ void CIRES2View::OnButtonSelectSection()
 //{
 //	CString str_z = m_pWaterlineSpinZPos->GetEditText();
 //	str_z.Replace(",", "");
-//	m_iWaterLinePos[2] = atof(str_z) * 1000.0f;
+//	m_iWaterLinePos[2] = atof(str_z) * M_TO_UNIT;
 //
 //	osg::Matrix m;
 //	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
@@ -4536,7 +4589,7 @@ void CIRES2View::OnButtonHullPointToPoint()
 
 	PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
 	m_QAddChild.push(pf);
-	m_bSetCenterPoint = true;
+	m_iSelectionMode = SELECTION_CENTER;
 }
 
 void CIRES2View::SetSelectionWindow(CPoint start, CPoint end)
@@ -4564,11 +4617,11 @@ void CIRES2View::SetSelectionWindow(CPoint start, CPoint end)
 
 void CIRES2View::OnMouseMove(UINT nFlags, CPoint point)
 {
-	if (m_bSelectWindow)
+	switch (m_iSelectionMode)
 	{
-		SetSelectionWindow(m_ptStart, point);
-	}
-	else if (m_bSetCenterPoint)
+	case SELECTION_NONE:
+		break;
+	case SELECTION_CENTER:
 	{
 		osg::Vec3d hit_pt;
 		osg::Node* p_element = OnSelectPoint(point.x, point.y, hit_pt);
@@ -4579,7 +4632,14 @@ void CIRES2View::OnMouseMove(UINT nFlags, CPoint point)
 			osgSelectPoint->setMatrix(m);
 		}
 	}
-	else if (m_bSetFlipNormal)
+		break;
+	case SELECTION_WINDOW:
+	{
+		SetSelectionWindow(m_ptStart, point);
+	}
+	break;
+	case SELECTION_NORMAL:
+	case SELECTION_MAKEDATUM:
 	{
 		osg::Vec3d hit_pt;
 		osg::Node* p_element = OnSelectPoint(point.x, point.y, hit_pt);
@@ -4587,9 +4647,28 @@ void CIRES2View::OnMouseMove(UINT nFlags, CPoint point)
 		{
 			osg::Matrix m;
 			m.setTrans(hit_pt);
+			selection_point = hit_pt;
 			TRACE("%lf, %lf, %lf\n", hit_pt.x(), hit_pt.y(), hit_pt.z());
 			osgSelectPoint->setMatrix(m);
 		}
+	}
+	break;
+	case SELECTION_TRANSLATION:
+	case SELECTION_ROTATION:
+	{
+		osg::Vec3d hit_pt;
+		osg::Node* p_element = OnSelectPoint(point.x, point.y, hit_pt);
+		if (p_element)
+		{
+			osg::Matrix m;
+			selection_point = m_geoVertex;
+			m.setTrans(m_geoVertex);
+			osgSelectPoint->setMatrix(m);
+		}
+	}
+	break;
+	default:
+		break;
 	}
 
 	mOSG->UpdateOrtho();
@@ -4599,7 +4678,35 @@ void CIRES2View::OnMouseMove(UINT nFlags, CPoint point)
 
 void CIRES2View::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	if (m_bSelectWindow)
+	switch (m_iSelectionMode)
+	{
+	case SELECTION_CENTER:
+	{
+		//osg::Matrix current_tr = osgHull_Center->getMatrix();
+		//osg::Matrix inv_tr;
+		//inv_tr.invert(current_tr);
+		//osg::Vec3 diff = inv_tr.preMult(m_geoVertex);
+		////osg::Vec3 diff = m_geoVertex - m_iHULLPos;
+		//m_iHULLPos = m_geoVertex;
+
+		//osg::Matrix m;
+		//osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
+		//m.setTrans(m_iHULLPos);
+		//m.setRotate(q);
+		//osgHull_Center->setMatrix(m);
+
+		//m.makeIdentity();
+		//m.setTrans(osgHull->getMatrix().getTrans() - diff);
+		//osgHull->setMatrix(m);
+
+		////UpdateHullPos();
+
+		//PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+		//m_QRemoveChild.push(pf);
+		m_iSelectionMode = SELECTION_NONE;
+	}
+	break;
+	case SELECTION_WINDOW:
 	{
 		::SetCursor(::LoadCursor(NULL, IDC_CROSS));
 		mOSG->SetCruise(false);
@@ -4608,79 +4715,83 @@ void CIRES2View::OnLButtonDown(UINT nFlags, CPoint point)
 		PreFrameUpdateData pf(mOSG->mRoot, m_cameraStatus);
 		m_QAddChild.push(pf);
 	}
-	else if (m_bSetCenterPoint)
+	break;
+	case SELECTION_MAKEDATUM:
 	{
-		osg::Matrix current_tr = osgHull_Center->getMatrix();
-		osg::Matrix inv_tr;
-		inv_tr.invert(current_tr);
-		osg::Vec3 diff = inv_tr.preMult(m_geoVertex);
-		//osg::Vec3 diff = m_geoVertex - m_iHULLPos;
-		m_iHULLPos = m_geoVertex;
+		if (m_pTranslationDlg)
+		{
+			CString temp_string;
+			temp_string.Format("%.3lf, %.3lf, %.3lf", selection_point.x() * UNIT_TO_M, selection_point.y() * UNIT_TO_M, selection_point.z() * UNIT_TO_M);
 
-		osg::Matrix m;
-		osg::Quat q(m_iHULLRot[0], osg::Vec3(1, 0, 0), m_iHULLRot[1], osg::Vec3(0, 1, 0), m_iHULLRot[2], osg::Vec3(0, 0, 1));
-		m.setTrans(m_iHULLPos);
-		m.setRotate(q);
-		osgHull_Center->setMatrix(m);
-
-		m.makeIdentity();
-		m.setTrans(osgHull->getMatrix().getTrans() - diff);
-		osgHull->setMatrix(m);
-
-		//UpdateHullPos();
-
-		PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
-		m_QRemoveChild.push(pf);
-		m_bSetCenterPoint = false;
+			m_pTranslationDlg->SetValueString(temp_string);
+		}
 	}
-	else if (m_bSetFlipNormal)
+	break;
+	case SELECTION_NORMAL:
 	{
 		if (m_SelectedGeo)
 		{
-			osg::Vec3Array *vertices = (osg::Vec3Array *)m_SelectedGeo->getVertexArray();
-			osg::Vec3Array *normals = (osg::Vec3Array *)m_SelectedGeo->getNormalArray();
-			if (vertices != NULL && normals != NULL)
-			{
-				osg::Geometry::PrimitiveSetList primitiveList = m_SelectedGeo->getPrimitiveSetList();
+			SetNormalFromReference(m_SelectedGeo);
+			ClearFunctions();
 
-				int polygonIndex = 0;
-				osg::Vec3 p1, p2, p3;
-				int index1, index2, index3;
-				//double dot00;
-				//double dot01;
-				//double dot02;
-				//double dot11;
-				//double dot12;
-				//double invDenom, u, v;
-				osg::Vec3 v0, v1, v2, v3;
+			//osg::Vec3Array *vertices = (osg::Vec3Array *)m_SelectedGeo->getVertexArray();
+			//osg::Vec3Array *normals = (osg::Vec3Array *)m_SelectedGeo->getNormalArray();
+			//if (vertices != NULL && normals != NULL)
+			//{
+			//	osg::Geometry::PrimitiveSetList primitiveList = m_SelectedGeo->getPrimitiveSetList();
 
-				for (int i = 0; i < normals->size(); i++)
-				{
-					normals->at(i).set(-normals->at(i));
-				}
-				normals->dirty();
+			//	int polygonIndex = 0;
+			//	osg::Vec3 p1, p2, p3;
+			//	int index1, index2, index3;
+			//	//double dot00;
+			//	//double dot01;
+			//	//double dot02;
+			//	//double dot11;
+			//	//double dot12;
+			//	//double invDenom, u, v;
+			//	osg::Vec3 v0, v1, v2, v3;
 
-				for (int x = 0; x < primitiveList.size(); x++)
-				{
-					osg::PrimitiveSet *set = primitiveList[x];
-					int numberOfIndices = set->getNumIndices();
-					if (set->getMode() == osg::PrimitiveSet::Mode::TRIANGLES)
-					{
-						for (unsigned int y = 0; y < set->getDrawElements()->getNumIndices() /*numberOfIndices*/; y += 3)
-						{
-							index1 = set->getDrawElements()->getElement(y); //set->index(y); 
-							index2 = set->getDrawElements()->getElement(y + 1); //set->index(y); 
-							index3 = set->getDrawElements()->getElement(y + 2); //set->index(y); 
+			//	for (int i = 0; i < normals->size(); i++)
+			//	{
+			//		normals->at(i).set(-normals->at(i));
+			//	}
+			//	normals->dirty();
 
-							set->getDrawElements()->setElement(y + 1, index3);
-							set->getDrawElements()->setElement(y + 2, index2);
-						}
-						set->dirty();
-					}
-				}
-				m_SelectedGeo->dirtyBound();
-			}
+			//	for (int x = 0; x < primitiveList.size(); x++)
+			//	{
+			//		osg::PrimitiveSet *set = primitiveList[x];
+			//		int numberOfIndices = set->getNumIndices();
+			//		if (set->getMode() == osg::PrimitiveSet::Mode::TRIANGLES)
+			//		{
+			//			for (unsigned int y = 0; y < set->getDrawElements()->getNumIndices() /*numberOfIndices*/; y += 3)
+			//			{
+			//				index1 = set->getDrawElements()->getElement(y); //set->index(y); 
+			//				index2 = set->getDrawElements()->getElement(y + 1); //set->index(y); 
+			//				index3 = set->getDrawElements()->getElement(y + 2); //set->index(y); 
+
+			//				set->getDrawElements()->setElement(y + 1, index3);
+			//				set->getDrawElements()->setElement(y + 2, index2);
+			//			}
+			//			set->dirty();
+			//		}
+			//	}
+			//	m_SelectedGeo->dirtyBound();
+			//}
 		}
+	}
+	break;
+	case SELECTION_TRANSLATION:
+	case SELECTION_ROTATION:
+	{
+		if (m_pTranslationDlg)
+		{
+			CString temp_string;
+			temp_string.Format("%.3lf, %.3lf, %.3lf", selection_point.x() * UNIT_TO_M, selection_point.y() * UNIT_TO_M, selection_point.z() * UNIT_TO_M);
+
+			m_pTranslationDlg->SetValueString(temp_string);
+		}
+	}
+	break;
 	}
 
 	CView::OnLButtonDown(nFlags, point);
@@ -4691,11 +4802,11 @@ void CIRES2View::OnLButtonDown(UINT nFlags, CPoint point)
 //	if (m_pHULLSpinXPos)
 //	{
 //		CString temp_string;
-//		temp_string.Format("%.2lf", m_iHULLPos[0] / 1000.0f);
+//		temp_string.Format("%.2lf", m_iHULLPos[0] * UNIT_TO_M);
 //		m_pHULLSpinXPos->SetEditText(temp_string);
-//		temp_string.Format("%.2lf", m_iHULLPos[1] / 1000.0f);
+//		temp_string.Format("%.2lf", m_iHULLPos[1] * UNIT_TO_M);
 //		m_pHULLSpinYPos->SetEditText(temp_string);
-//		temp_string.Format("%.2lf", m_iHULLPos[2] / 1000.0f);
+//		temp_string.Format("%.2lf", m_iHULLPos[2] * UNIT_TO_M);
 //		m_pHULLSpinZPos->SetEditText(temp_string);
 //	}
 //}
@@ -4705,7 +4816,7 @@ void CIRES2View::OnLButtonDown(UINT nFlags, CPoint point)
 //	if (m_pWaterlineSpinZPos)
 //	{
 //		CString temp_string;
-//		temp_string.Format("%.2lf", m_iWaterLinePos[2] / 1000.0f);
+//		temp_string.Format("%.2lf", m_iWaterLinePos[2] * UNIT_TO_M);
 //		m_pWaterlineSpinZPos->SetEditText(temp_string);
 //		m_pEditSpaceWaterline->SetEditText(temp_string);
 //	}
@@ -4715,7 +4826,7 @@ void CIRES2View::OnButtonNurbsConversion()
 {
 	UnSetCenterPoint();
 
-	if (m_bSetFlipNormal)
+	if (m_iSelectionMode == SELECTION_NORMAL)
 	{
 		UnSetFlipNormal();
 	}
@@ -4723,33 +4834,33 @@ void CIRES2View::OnButtonNurbsConversion()
 	{
 		PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
 		m_QAddChild.push(pf);
-		m_bSetFlipNormal = true;
+		m_iSelectionMode = SELECTION_NORMAL;
 	}
 }
 
 
 void CIRES2View::OnUpdateButtonNurbsConversion(CCmdUI *pCmdUI)
 {
-	pCmdUI->SetCheck(m_bSetFlipNormal);
+	pCmdUI->SetCheck(m_iSelectionMode == SELECTION_NORMAL);
 }
 
 void CIRES2View::UnSetCenterPoint()
 {
-	if (m_bSetCenterPoint)
+	if (m_iSelectionMode == SELECTION_CENTER)
 	{
 		PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
 		m_QRemoveChild.push(pf);
-		m_bSetCenterPoint = false;
+		m_iSelectionMode = SELECTION_NONE;
 	}
 }
 
 void CIRES2View::UnSetFlipNormal()
 {
-	if (m_bSetFlipNormal)
+	if (m_iSelectionMode == SELECTION_NORMAL)
 	{
 		PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
 		m_QRemoveChild.push(pf);
-		m_bSetFlipNormal = false;
+		m_iSelectionMode = SELECTION_NONE;
 	}
 }
 
@@ -4806,7 +4917,7 @@ void CIRES2View::OnButtonreset()
 
 void CIRES2View::OnButtonzoomwin()
 {
-	m_bSelectWindow = true;
+	m_iSelectionMode = SELECTION_WINDOW;
 }
 
 
@@ -4818,13 +4929,15 @@ void CIRES2View::OnButtonzoomall()
 
 void CIRES2View::OnLButtonUp(UINT nFlags, CPoint point)
 {
-	if (m_bSelectWindow)
+	switch (m_iSelectionMode)
+	{
+	case SELECTION_WINDOW:
 	{
 		::SetCursor(::LoadCursor(NULL, IDC_ARROW));
 		mOSG->SetCruise(true);
 		PreFrameUpdateData pf(mOSG->mRoot, m_cameraStatus);
 		m_QRemoveChild.push(pf);
-		m_bSelectWindow = false;
+		m_iSelectionMode = SELECTION_NONE;
 		float dx = abs(m_ptStart.x - point.x);
 		float dy = abs(m_ptStart.y - point.y);
 
@@ -4874,6 +4987,8 @@ void CIRES2View::OnLButtonUp(UINT nFlags, CPoint point)
 				mOSG->trackball->setCenter(hit_pt);
 			}
 		}
+	}
+	break;
 	}
 
 	CView::OnLButtonUp(nFlags, point);
@@ -4998,7 +5113,7 @@ void CIRES2View::OnEditEndWaterline()
 //{
 //	CString str_z = m_pEditSpaceWaterline->GetEditText();
 //	str_z.Replace(",", "");
-//	m_iWaterLinePos[2] = atof(str_z) * 1000.0f;
+//	m_iWaterLinePos[2] = atof(str_z) * M_TO_UNIT;
 //
 //	osg::Matrix m;
 //	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
@@ -5353,11 +5468,11 @@ void CIRES2View::ShowOutputSummury(CString job_name)
 
 	char temp_str[1024];
 	mOSG->m_widgetOutputSumurryString[0]->setLabel("1. ship size");
-	sprintf_s(temp_str, 1024, "    X: Max %.2lfm  Min %.2lfm", bbHull.xMax()/1000.0f, bbHull.xMin()/1000.0f);
+	sprintf_s(temp_str, 1024, "    X: Max %.2lfm  Min %.2lfm", bbHull.xMax() * UNIT_TO_M, bbHull.xMin() * UNIT_TO_M);
 	mOSG->m_widgetOutputSumurryString[1]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "     Y: Max %.2lfm  Min %.2lfm", bbHull.yMax() / 1000.0f, bbHull.yMin() / 1000.0f);
+	sprintf_s(temp_str, 1024, "     Y: Max %.2lfm  Min %.2lfm", bbHull.yMax() * UNIT_TO_M, bbHull.yMin() * UNIT_TO_M);
 	mOSG->m_widgetOutputSumurryString[2]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "     Z: Max %.2lfm  Min %.2lfm", bbHull.zMax() / 1000.0f, bbHull.zMin() / 1000.0f);
+	sprintf_s(temp_str, 1024, "     Z: Max %.2lfm  Min %.2lfm", bbHull.zMax() * UNIT_TO_M, bbHull.zMin() * UNIT_TO_M);
 	mOSG->m_widgetOutputSumurryString[3]->setLabel(temp_str);
 
 	mOSG->m_widgetOutputSumurryString[4]->setLabel("2. section info");
@@ -5553,10 +5668,399 @@ void CIRES2View::OnMove(int x, int y)
 {
 	CView::OnMove(x, y);
 
-	if (m_pTranslationDlg)
+	ResizeControl(x, y);
+}
+
+void CIRES2View::SetDlgPoint(float x, float y, float z)
+{
+	switch (m_iSelectionMode)
 	{
-		CRect rect;
-		GetWindowRect(&rect);
-		m_pTranslationDlg->MoveWindow(rect.left + 100, rect.bottom - 32, rect.Width() - 200, 25);
+	case SELECTION_MAKEDATUM:
+	{
+		AddDatum(x, y, z);
+		ClearFunctions();
+	}
+	break;
+	case SELECTION_TRANSLATION:
+	{
+		switch (m_iCurrentStatus)
+		{
+		case 0:
+		{
+			start_point.set(x, y, z);
+			m_pTranslationDlg->SetCaption(" << Select a end point for the translation vector or enter X, Y, Z (m)");
+			m_iCurrentStatus++;
+		}
+		break;
+		case 1:
+		{
+			end_point.set(x, y, z);
+			osg::Vec3 diff = end_point - start_point;
+			osg::Matrix current_tr = osgHull_Center->getMatrix();
+			current_tr.preMultTranslate(diff);
+			osgHull_Center->setMatrix(current_tr);
+
+			ClearFunctions();
+		}
+		break;
+		}
+
+	}
+	break;
+	case SELECTION_ROTATION:
+	{
+		switch (m_iCurrentStatus)
+		{
+		case 0:
+		{
+			center_point.set(x, y, z);
+			m_pTranslationDlg->SetCaption(" << Select a start point for the rotation vector or enter X, Y, Z (m)");
+			m_iCurrentStatus++;
+		}
+		break;
+		case 1:
+		{
+			start_point.set(x, y, z);
+			m_pTranslationDlg->SetCaption(" << Select a end point for the rotation vector or enter X, Y, Z (m)");
+			m_iCurrentStatus++;
+		}
+		break;
+		case 2:
+		{
+			end_point.set(x, y, z);
+
+			osg::Matrix current_tr = osgHull_Center->getMatrix();
+			osg::Matrix invert_tr;
+			invert_tr.invert(current_tr);
+			osg::Vec3 center_in_tr = invert_tr.preMult(center_point);
+			osg::Vec3 from = start_point - center_point;
+			from.normalize();
+			osg::Vec3 to = end_point - center_point;
+			to.normalize();
+			osg::Quat quat;
+			quat.makeRotate(from, to);
+			current_tr.setTrans(0, 0, 0);
+			current_tr.preMultRotate(quat);
+			osg::Vec3 new_center = current_tr.preMult(center_in_tr);
+			osg::Vec3 new_diff = center_point - new_center;
+			current_tr.setTrans(new_diff);
+			osgHull_Center->setMatrix(current_tr);
+
+			ClearFunctions();
+		}
+		break;
+		}
+	}
+	break;
+	}
+}
+
+void CIRES2View::ClearFunctions()
+{
+	PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+	m_QRemoveChild.push(pf);
+	m_pTranslationDlg->ShowWindow(SW_HIDE);
+	m_iSelectionMode = SELECTION_NONE;
+}
+
+void CIRES2View::OnButtonSetNormal()
+{
+	PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+	m_QAddChild.push(pf);
+	m_pTranslationDlg->ShowWindow(SW_HIDE);
+	m_iSelectionMode = SELECTION_NORMAL;
+}
+
+void CIRES2View::OnButtonMakeDatum()
+{
+	if (osgHull->getNumChildren() < 1)
+	{
+		AfxMessageBox("Import HULL data first.");
+		CalculateOutputResult(false);
+		return;
+	}
+
+	PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+	m_QAddChild.push(pf);
+	m_iCurrentStatus = 0;
+	m_iSelectionMode = SELECTION_MAKEDATUM;
+	m_pTranslationDlg->SetCaption(" << Select a point for the datum vector or enter X, Y, Z (m)");
+	m_pTranslationDlg->ShowWindow(SW_SHOW);
+}
+
+void CIRES2View::SetNormalFromReference(osg::Geometry* ref)
+{
+	int count = osgHull->getNumChildren();
+	//for (int i = 0; i < count; i++)
+	if(count > 0)
+	{
+		osg::Geode* geo = osgHull->getChild(0)->asGeode();
+		if (geo)
+		{
+			int geometry_count = geo->getNumChildren();
+			for (int j = 0; j < geometry_count; j++)
+			{
+				osg::Geometry* geometry = geo->getChild(j)->asGeometry();
+				if (geometry == ref)
+				{
+					vector< bool > checked_status;
+					checked_status.resize(geometry_count, false);
+					vector< osg::Vec3Array* > check_vertices;
+					vector< osg::Vec3Array* > check_normals;
+					check_vertices.resize(geometry_count, NULL);
+					check_normals.resize(geometry_count, NULL);
+					osg::Vec3Array *vertices_ref = (osg::Vec3Array *)geometry->getVertexArray();
+					osg::Vec3Array *normal_ref = (osg::Vec3Array *)geometry->getNormalArray();
+					check_vertices[j] = vertices_ref;
+					check_normals[j] = normal_ref;
+					checked_status[j] = true;
+					CheckNormal(geo, checked_status, check_vertices, check_normals, j);
+				}
+			}
+
+			CT2CA pszConvertedAnsiString(m_strProjectPath + "\\hull.osg");
+			std::string strStd(pszConvertedAnsiString);
+			osg::Node* node = osgHull->getChild(0);
+			bool result = osgDB::writeNodeFile(*node, strStd);
+
+		}
+	}
+}
+
+void CIRES2View::CheckNormal(osg::Geode* parent_geode, vector< bool >& checked_status, vector< osg::Vec3Array* >& check_vertices, vector< osg::Vec3Array* >& check_normals, int check_id)
+{
+	osg::Vec3Array* current_vertices = check_vertices[check_id];
+	osg::Vec3Array* current_normals = check_normals[check_id];
+	vector< int > current_check_index;
+	if (current_vertices)
+	{
+		for (int i = 0; i < checked_status.size(); i++)
+		{
+			if (checked_status[i] == false)
+			{
+				osg::Vec3Array* check_v = check_vertices[i];
+				osg::Vec3Array* check_n = check_normals[i];
+				if (check_v == NULL)
+				{
+					osg::Geometry* geometry = parent_geode->getChild(i)->asGeometry();
+					if (geometry)
+					{
+						check_v = (osg::Vec3Array *)geometry->getVertexArray();
+						check_vertices[i] = check_v;
+						check_n = (osg::Vec3Array *)geometry->getNormalArray();
+						check_normals[i] = check_n;
+					}
+				}
+
+				int check_count = 0;
+				int back_count = 0;
+				if (check_v != NULL)
+				{
+					for (int j = 0; j < current_vertices->size(); j++)
+					{
+						for (int k = 0; k < check_v->size(); k++)
+						{
+							float dist = (current_vertices->at(j) - check_v->at(k)).length2();
+							if (dist < 0.1f)
+							{
+								check_count++;
+
+								float dot = current_normals->at(j) * check_n->at(k);
+								if (dot < 0.0f)
+								{
+									back_count++;
+								}
+							}
+						}
+					}
+
+					if (check_count > 0)
+					{
+						checked_status[i] = true;
+						current_check_index.push_back(i);
+						if (back_count > 0)
+						{
+							osg::Geometry* geometry = parent_geode->getChild(i)->asGeometry();
+							osg::Geometry::PrimitiveSetList primitiveList = geometry->getPrimitiveSetList();
+							int index1, index2, index3;
+
+							for (int i = 0; i < check_n->size(); i++)
+							{
+								check_n->at(i).set(-check_n->at(i));
+							}
+							check_n->dirty();
+
+							for (int x = 0; x < primitiveList.size(); x++)
+							{
+								osg::PrimitiveSet *set = primitiveList[x];
+								int numberOfIndices = set->getNumIndices();
+								if (set->getMode() == osg::PrimitiveSet::Mode::TRIANGLES)
+								{
+									for (unsigned int y = 0; y < set->getDrawElements()->getNumIndices() /*numberOfIndices*/; y += 3)
+									{
+										index1 = set->getDrawElements()->getElement(y); //set->index(y); 
+										index2 = set->getDrawElements()->getElement(y + 1); //set->index(y); 
+										index3 = set->getDrawElements()->getElement(y + 2); //set->index(y); 
+
+										set->getDrawElements()->setElement(y + 1, index3);
+										set->getDrawElements()->setElement(y + 2, index2);
+									}
+									set->dirty();
+								}
+							}
+							geometry->dirtyBound();
+						}
+					}
+				}
+			}
+		}
+
+		for (int i = 0; i < current_check_index.size(); i++)
+		{
+			CheckNormal(parent_geode, checked_status, check_vertices, check_normals, current_check_index[i]);
+		}
+	}
+}
+
+void CIRES2View::AddDatumInLocal(osg::Vec3 pos)
+{
+	osg::Geode* datum = new osg::Geode;
+	osg::Vec3Array* datum_vert = new osg::Vec3Array;
+	osg::Vec4Array* color1 = new osg::Vec4Array;
+	osg::Geometry* datum_geometry = new osg::Geometry;
+	osg::MatrixTransform* datum_tr = new osg::MatrixTransform();
+	osg::Matrix tr;
+	tr.setTrans(pos);
+	datum_tr->setMatrix(tr);
+	datum_tr->setName("DATUM");
+
+	color1->push_back(osg::Vec4(1.0, 1.0, 1.0, 0.8f));
+	datum_vert->push_back(osg::Vec3(-1.0f, 0.0f, 0.0f));
+	datum_vert->push_back(osg::Vec3(1.0f, 0.0f, 0.0f));
+	datum_vert->push_back(osg::Vec3(0.0f, -1.0f, 0.0f));
+	datum_vert->push_back(osg::Vec3(0.0f, 1.0f, 0.0f));
+	datum_vert->push_back(osg::Vec3(0.0f, 0.0f, -1.0f));
+	datum_vert->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
+
+	datum_geometry->setVertexArray(datum_vert);
+	datum_geometry->setColorArray(color1);
+	datum_geometry->setColorBinding(osg::Geometry::BIND_OVERALL);
+	datum_geometry->addPrimitiveSet(new osg::DrawArrays(GL_LINES, 0, datum_vert->size()));
+
+	datum->addDrawable(datum_geometry);
+	osg::StateSet* state1 = datum_geometry->getOrCreateStateSet();
+	state1->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	osg::LineWidth* lineWidth1 = new osg::LineWidth(2);
+	state1->setAttributeAndModes(lineWidth1, osg::StateAttribute::ON);
+
+	osg::MatrixTransform* frame_tr = new osg::MatrixTransform();
+	FrameContainer* frameContainer = new FrameContainer;
+	frameContainer->setFrameSize(15.0f);
+	frameContainer->setFrame(frame_tr);
+	frame_tr->addChild(datum);
+
+	datum_tr->addChild(frameContainer);
+	osgHull_Center->addChild(datum_tr);
+	m_aDatumInHull.push_back(pos);
+}
+
+void CIRES2View::AddDatum(float x, float y, float z)
+{
+	osg::Vec3 global_pos(x, y, z);
+	osg::Matrix current_tr = osgHull_Center->getMatrix();
+	osg::Matrix invert_tr;
+	invert_tr.invert(current_tr);
+	osg::Vec3 center_in_tr = invert_tr.preMult(global_pos);
+
+	AddDatumInLocal(center_in_tr);
+}
+
+void CIRES2View::SaveDatumFile()
+{
+	if (m_aDatumInHull.size() > 0)
+	{
+		CString file_path = m_strProjectPath + "\\datum.txt";
+		FILE* fp;
+		fopen_s(&fp, file_path, "wt");
+		if (fp)
+		{
+			osg::Matrix m = osgHull_Center->getMatrix();
+			for (int i = 0; i < 16; i++)
+			{
+				const osg::Matrixd::value_type* ptr = m.ptr();
+				if(i == 0)
+					fprintf_s(fp, "%lf", ptr[i]);
+				else
+					fprintf_s(fp, ", %lf", ptr[i]);
+			}
+			fprintf_s(fp, "\n");
+
+			for (int i = 0; i < m_aDatumInHull.size(); i++)
+			{
+				fprintf_s(fp, "%lf, %lf, %lf\n", m_aDatumInHull[i].x(), m_aDatumInHull[i].y(), m_aDatumInHull[i].z());
+			}
+
+			fclose(fp);
+		}
+	}
+}
+
+void CIRES2View::LoadDatumFile()
+{
+	CString file_path = m_strProjectPath + "\\datum.txt";
+	FILE* fp;
+	fopen_s(&fp, file_path, "rt");
+	if (fp)
+	{
+		m_aDatumInHull.clear();
+		int count = osgHull_Center->getNumChildren();
+		for (int i = 2; i < count; i++)
+		{
+			osgHull_Center->removeChild(i);
+		}
+
+		COptImportExportBase ifp;
+		ifp.m_fp_input = fp;
+		ifp.m_array_strSplit.push_back(',');
+
+		if (ifp.ReadOneLineFromFile() > 15)
+		{
+			float in_matrix[16];
+			for (int i = 0; i < 16; i++)
+			{
+				in_matrix[i] = atof(ifp.m_array_strOutput[i]);
+			}
+			osgHull_Center->setMatrix(osg::Matrix::Matrixd(in_matrix));
+		}
+
+		while (ifp.ReadOneLineFromFile() > 2)
+		{
+			osg::Vec3 pos(atof(ifp.m_array_strOutput[0]), atof(ifp.m_array_strOutput[1]), atof(ifp.m_array_strOutput[2]));
+			m_aDatumInHull.push_back(pos);
+			AddDatumInLocal(pos);
+		}
+
+		ifp.m_fp_input = NULL;
+		fclose(fp);
+	}
+}
+
+void CIRES2View::OnButtonSetUnit(UNIT_MODE um)
+{
+	m_iCurrentUnitMode = um;
+	switch (m_iCurrentUnitMode)
+	{
+	case UNIT_M:
+	{
+		UNIT_TO_M = 1.0f;
+		M_TO_UNIT = 1.0f;
+	}
+	break;
+	case UNIT_MM:
+	{
+		UNIT_TO_M = 0.001f;
+		M_TO_UNIT = 1000.0f;
+	}
+	break;
 	}
 }

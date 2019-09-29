@@ -11,7 +11,8 @@ public:
 	CDlgTranslation(CWnd* pParent = nullptr);   // 표준 생성자입니다.
 	virtual ~CDlgTranslation();
 	void ResizeControl(int cx, int cy);
-
+	void SetCaption(CString caption);
+	void SetValueString(CString value_str);
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_DIALOG_TRANSLATE };
@@ -26,4 +27,5 @@ public:
 	CString m_strVector;
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg void OnBnClickedButtonOk();
 };

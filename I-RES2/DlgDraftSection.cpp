@@ -61,8 +61,8 @@ BOOL CDlgDraftSection::OnInitDialog()
 	if (m_pView)
 	{
 		m_fDraft = m_pView->m_fDraftValue;
-		m_fPointDistance = m_pView->m_fWaterlinePointGap / 1000.0f;
-		m_fAxisDistance = m_pView->m_fWaterlinePointGap / 1000.0f;
+		m_fPointDistance = m_pView->m_fWaterlinePointGap * UNIT_TO_M;
+		m_fAxisDistance = m_pView->m_fWaterlinePointGap * UNIT_TO_M;
 		if (m_pView->m_bUseDistanceForAxisWaterline)
 		{
 			m_chkDistance.SetCheck(TRUE);
@@ -124,11 +124,11 @@ void CDlgDraftSection::OnBnClickedMfcbuttonCalculate()
 	m_pView->m_fDraftValue = m_fDraft;
 	if (m_pView->m_bUseDistanceForAxisWaterline)
 	{
-		m_pView->m_fWaterlinePointGap = m_fPointDistance * 1000.0f;
+		m_pView->m_fWaterlinePointGap = m_fPointDistance * M_TO_UNIT;
 	}
 	else
 	{
-		m_pView->m_fWaterlinePointGap = m_fAxisDistance * 1000.0f;
+		m_pView->m_fWaterlinePointGap = m_fAxisDistance * M_TO_UNIT;
 	}
 
 	m_pView->SaveDraftSectionSetting();

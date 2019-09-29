@@ -30,11 +30,19 @@ void CDlgMainToolbar::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_MFCBUTTON_ROT, m_btnRot);
 	DDX_Control(pDX, IDC_MFCBUTTON_DATUM, m_btnDatum);
 	DDX_Control(pDX, IDC_MFCBUTTON_NORMAL, m_btnNormal);
+	DDX_Control(pDX, IDC_CHECK_UNIT_M, m_chkUnitM);
+	DDX_Control(pDX, IDC_CHECK_UNIT_MM, m_chkUnitmm);
 }
 
 
 BEGIN_MESSAGE_MAP(CDlgMainToolbar, CDialog)
 	ON_BN_CLICKED(IDC_MFCBUTTON_CLEAR, &CDlgMainToolbar::OnBnClickedMfcbuttonClear)
+	ON_BN_CLICKED(IDC_MFCBUTTON_TRANS, &CDlgMainToolbar::OnBnClickedMfcbuttonTrans)
+	ON_BN_CLICKED(IDC_MFCBUTTON_ROT, &CDlgMainToolbar::OnBnClickedMfcbuttonRot)
+	ON_BN_CLICKED(IDC_MFCBUTTON_DATUM, &CDlgMainToolbar::OnBnClickedMfcbuttonDatum)
+	ON_BN_CLICKED(IDC_MFCBUTTON_NORMAL, &CDlgMainToolbar::OnBnClickedMfcbuttonNormal)
+	ON_BN_CLICKED(IDC_CHECK_UNIT_M, &CDlgMainToolbar::OnBnClickedCheckUnitM)
+	ON_BN_CLICKED(IDC_CHECK_UNIT_MM, &CDlgMainToolbar::OnBnClickedCheckUnitMm)
 END_MESSAGE_MAP()
 
 
@@ -83,6 +91,8 @@ BOOL CDlgMainToolbar::OnInitDialog()
 	m_btnNormal.SetTooltip(_T("Change normal direction"));
 	m_btnNormal.EnableFullTextTooltip(FALSE);
 
+	m_chkUnitM.SetCheck(0);
+	m_chkUnitmm.SetCheck(1);
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
 }
@@ -93,5 +103,63 @@ void CDlgMainToolbar::OnBnClickedMfcbuttonClear()
 	if (m_pView)
 	{
 		m_pView->OnButtonImportHull();
+	}
+}
+
+
+void CDlgMainToolbar::OnBnClickedMfcbuttonTrans()
+{
+	if (m_pView)
+	{
+		m_pView->OnButtonTranslate();
+	}
+}
+
+
+void CDlgMainToolbar::OnBnClickedMfcbuttonRot()
+{
+	if (m_pView)
+	{
+		m_pView->OnButtonRotate();
+	}
+}
+
+
+void CDlgMainToolbar::OnBnClickedMfcbuttonDatum()
+{
+	if (m_pView)
+	{
+		m_pView->OnButtonMakeDatum();
+	}
+}
+
+
+void CDlgMainToolbar::OnBnClickedMfcbuttonNormal()
+{
+	if (m_pView)
+	{
+		m_pView->OnButtonSetNormal();
+	}
+}
+
+
+void CDlgMainToolbar::OnBnClickedCheckUnitM()
+{
+	if (m_pView)
+	{
+		m_pView->OnButtonSetUnit(UNIT_M);
+		m_chkUnitM.SetCheck(1);
+		m_chkUnitmm.SetCheck(0);
+	}
+}
+
+
+void CDlgMainToolbar::OnBnClickedCheckUnitMm()
+{
+	if (m_pView)
+	{
+		m_pView->OnButtonSetUnit(UNIT_MM);
+		m_chkUnitM.SetCheck(0);
+		m_chkUnitmm.SetCheck(1);
 	}
 }

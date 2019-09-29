@@ -29,4 +29,12 @@ public:
 	CMFCButton m_btnNormal;
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedMfcbuttonClear();
+	afx_msg void OnBnClickedMfcbuttonTrans();
+	afx_msg void OnBnClickedMfcbuttonRot();
+	afx_msg void OnBnClickedMfcbuttonDatum();
+	afx_msg void OnBnClickedMfcbuttonNormal();
+	afx_msg void OnBnClickedCheckUnitM();
+	afx_msg void OnBnClickedCheckUnitMm();
+	CButton m_chkUnitM;
+	CButton m_chkUnitmm;
 };

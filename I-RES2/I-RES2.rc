@@ -162,6 +162,14 @@ IDB_BITMAP_EXCEL        BITMAP                  "res\\bitmap3.bmp"
 
 IDB_BITMAP_GRAPH        BITMAP                  "res\\bmp00001.bmp"
 
+IDB_BITMAP_HOR          BITMAP                  "res\\bmp00002.bmp"
+
+IDB_BITMAP_HOR_PT       BITMAP                  "res\\bmp00003.bmp"
+
+IDB_BITMAP_VER          BITMAP                  "res\\bitmap4.bmp"
+
+IDB_BITMAP_VER_PT       BITMAP                  "res\\bmp00004.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -493,6 +501,8 @@ BEGIN
     CONTROL         "",IDC_MFCBUTTON_ROT,"MfcButton",WS_TABSTOP,0,48,24,24,WS_EX_TRANSPARENT
     CONTROL         "",IDC_MFCBUTTON_DATUM,"MfcButton",WS_TABSTOP,0,72,24,24,WS_EX_TRANSPARENT
     CONTROL         "",IDC_MFCBUTTON_NORMAL,"MfcButton",WS_TABSTOP,0,96,24,24,WS_EX_TRANSPARENT
+    CONTROL         "m",IDC_CHECK_UNIT_M,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,0,126,24,10
+    CONTROL         "mm",IDC_CHECK_UNIT_MM,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,0,138,24,10
 END
 
 IDD_DIALOG_DRAFTSECTION DIALOGEX 0, 0, 219, 62

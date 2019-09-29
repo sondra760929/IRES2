@@ -106,6 +106,10 @@
 #define IDB_BITMAP_EXCEL                336
 #define IDB_BITMAP_GRAPH                337
 #define IDD_DIALOG_TRANSLATE            338
+#define IDB_BITMAP_HOR                  340
+#define IDB_BITMAP_HOR_PT               341
+#define IDB_BITMAP_VER                  342
+#define IDB_BITMAP_VER_PT               343
 #define IDC_LIST1                       1000
 #define IDC_MFCBUTTON_CLEAR             1000
 #define IDC_PROGRESS1                   1001
@@ -169,6 +173,8 @@
 #define IDC_GRID1                       1042
 #define IDC_STATIC_CAPTION              1043
 #define IDC_BUTTON_OK                   1044
+#define IDC_CHECK_UNIT_M                1045
+#define IDC_CHECK_UNIT_MM               1046
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_BUTTON_OPEN                  32771
 #define ID_BUTTON_SAVE                  32772
@@ -248,9 +254,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        340
+#define _APS_NEXT_RESOURCE_VALUE        344
 #define _APS_NEXT_COMMAND_VALUE         32856
-#define _APS_NEXT_CONTROL_VALUE         1045
+#define _APS_NEXT_CONTROL_VALUE         1046
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

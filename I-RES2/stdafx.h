@@ -66,21 +66,17 @@ using namespace std;
 
 #pragma comment(lib, "winmm")
 #include <mmsystem.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxwin.h>
-#include <afxdisp.h>
 #include <afxdisp.h>
 #include <afxwin.h>
+
+enum UNIT_MODE
+{
+	UNIT_MM = 0,
+	UNIT_M,
+	UNIT_INCH
+};
+
+#include "I-RES2View.h"
 
 #define WM_RETURN_FROM_UI WM_USER+10
 #define WM_OK_FROM_UI WM_USER+11
@@ -118,6 +114,10 @@ extern void char_to_utf8(char* strMultibyte, char* out);
 extern void lpctstr_to_utf8(LPCTSTR in, char* out);
 extern wstring utf_to_unicode(string in);
 extern string utf_to_multibyte(string in);
+extern CIRES2View* m_pCurrentView;
+extern float UNIT_TO_M;
+extern float M_TO_UNIT;
+extern UNIT_MODE m_iCurrentUnitMode;
 
 #ifdef _UNICODE
 #if defined _M_IX86

@@ -65,11 +65,11 @@ BOOL CDlgCrossSection::OnInitDialog()
 
 	if (m_pView)
 	{
-		m_fStart = m_pView->m_fCrossSectionStart / 1000.0f;
-		m_fEnd = m_pView->m_fCrossSectionEnd / 1000.0f;
-		m_fInterval = m_pView->m_fCrossSectionOffset / 1000.0f;
-		m_fPointDistance = m_pView->m_fCrossSectionPointGap / 1000.0f;
-		m_fAxisDistance = m_pView->m_fCrossSectionPointGap / 1000.0f;
+		m_fStart = m_pView->m_fCrossSectionStart * UNIT_TO_M;
+		m_fEnd = m_pView->m_fCrossSectionEnd  * UNIT_TO_M;
+		m_fInterval = m_pView->m_fCrossSectionOffset * UNIT_TO_M;
+		m_fPointDistance = m_pView->m_fCrossSectionPointGap * UNIT_TO_M;
+		m_fAxisDistance = m_pView->m_fCrossSectionPointGap * UNIT_TO_M;
 		if (m_pView->m_bUseDistanceForAxis)
 		{
 			m_chkPointDistance.SetCheck(TRUE);
@@ -90,16 +90,16 @@ BOOL CDlgCrossSection::OnInitDialog()
 void CDlgCrossSection::OnBnClickedMfcbuttonCalculate()
 {
 	UpdateData();
-	m_pView->m_fCrossSectionStart = m_fStart * 1000.0f;
-	m_pView->m_fCrossSectionEnd = m_fEnd * 1000.0f;
-	m_pView->m_fCrossSectionOffset = m_fInterval * 1000.0f;
+	m_pView->m_fCrossSectionStart = m_fStart * M_TO_UNIT;
+	m_pView->m_fCrossSectionEnd = m_fEnd * M_TO_UNIT;
+	m_pView->m_fCrossSectionOffset = m_fInterval * M_TO_UNIT;
 	if (m_pView->m_bUseDistanceForAxis)
 	{
-		m_pView->m_fCrossSectionPointGap = m_fPointDistance * 1000.0f;
+		m_pView->m_fCrossSectionPointGap = m_fPointDistance * M_TO_UNIT;
 	}
 	else
 	{
-		m_pView->m_fCrossSectionPointGap = m_fAxisDistance * 1000.0f;
+		m_pView->m_fCrossSectionPointGap = m_fAxisDistance * M_TO_UNIT;
 	}
 
 	m_pView->SaveCrossSectionSetting();

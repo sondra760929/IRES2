@@ -33,6 +33,7 @@ void CDlgTranslation::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CDlgTranslation, CDialog)
 	ON_WM_SIZE()
+	ON_BN_CLICKED(IDC_BUTTON_OK, &CDlgTranslation::OnBnClickedButtonOk)
 END_MESSAGE_MAP()
 
 
@@ -70,4 +71,31 @@ void CDlgTranslation::OnSize(UINT nType, int cx, int cy)
 {
 	CDialog::OnSize(nType, cx, cy);
 	ResizeControl(cx, cy);
+}
+
+
+void CDlgTranslation::OnBnClickedButtonOk()
+{
+	UpdateData();
+	int index1 = m_strVector.Find(",");
+	int index2 = m_strVector.Find(",", index1 + 1);
+	if (index1 > 0 && index2 > 0)
+	{
+		float x = atof(m_strVector.Left(index1));
+		float y = atof(m_strVector.Mid(index1 + 1, index2 - index1 - 1));
+		float z = atof(m_strVector.Right(m_strVector.GetLength() - index2 - 1));
+		m_pCurrentView->SetDlgPoint(x * M_TO_UNIT, y * M_TO_UNIT, z * M_TO_UNIT);
+	}
+}
+
+void CDlgTranslation::SetCaption(CString caption)
+{
+	m_strCaption = caption;
+	UpdateData(FALSE);
+}
+
+void CDlgTranslation::SetValueString(CString value_str)
+{
+	m_strVector = value_str;
+	UpdateData(FALSE);
 }

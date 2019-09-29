@@ -51,10 +51,10 @@ BOOL CDlgSectionToolbar::OnInitDialog()
 	CImage btn_image2;
 	CImage btn_image3;
 	CImage btn_image4;
-	btn_image1.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_NEW);
-	btn_image2.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_NEW);
-	btn_image3.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_NEW);
-	btn_image4.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_NEW);
+	btn_image1.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_HOR);
+	btn_image2.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_HOR_PT);
+	btn_image3.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_VER);
+	btn_image4.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_VER_PT);
 	HBITMAP hBit1;
 	HBITMAP hBit2;
 	HBITMAP hBit3;

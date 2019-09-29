@@ -19,6 +19,17 @@
 #include "DlgTranslation.h"
 class CMainFrame;
 
+enum MOUSE_SELECTION_MODE
+{
+	SELECTION_NONE = 0,
+	SELECTION_CENTER,
+	SELECTION_WINDOW,
+	SELECTION_NORMAL,
+	SELECTION_TRANSLATION,
+	SELECTION_ROTATION,
+	SELECTION_MAKEDATUM
+};
+
 class PointData
 {
 public:
@@ -127,10 +138,7 @@ public:
 	void ClearSections();
 	//void ClearSectionPoints();
 	//void SetCurrentStep(int i_step);
-	bool m_bSetCenterPoint;
-	bool m_bSetFlipNormal;
 	CPoint m_ptStart;
-	bool m_bSelectWindow;
 	void UnSetCenterPoint();
 	void UnSetFlipNormal();
 	osg::ref_ptr< osg::Camera > m_cameraStatus;
@@ -164,6 +172,12 @@ public:
 	void LoadCrossSectionSetting();
 	void SaveCrossSectionSetting();
 	void RunExecute(CString command_string);
+	void OnButtonTranslate();
+	void OnButtonRotate();
+	void OnButtonSetNormal();
+	void OnButtonMakeDatum();
+	MOUSE_SELECTION_MODE m_iSelectionMode;
+	int m_iCurrentStatus;
 	//CMFCRibbonEdit* m_pEditStart;
 	//CMFCRibbonEdit* m_pEditEnd;
 	//CMFCRibbonEdit* m_pEditSpace;
@@ -200,8 +214,8 @@ public:
 	float m_fCrossSectionEnd;
 	float m_fCrossSectionOffset;
 	float m_fCrossSectionPointGap;
-	osg::Vec3 m_iHULLPos;
-	osg::Vec3 m_iHULLRot;
+	//osg::Vec3 m_iHULLPos;
+	//osg::Vec3 m_iHULLRot;
 	osg::Vec3 m_iSectionRot;
 	osg::Vec3 m_iWaterLinePos;
 	osg::Vec3 m_iWaterLineRot;
@@ -234,6 +248,21 @@ public:
 	bool m_isCreateFolder;
 
 	CDlgTranslation* m_pTranslationDlg;
+	void SetDlgPoint(float x, float y, float z);
+	osg::Vec3 start_point;
+	osg::Vec3 end_point;
+	osg::Vec3 center_point;
+	osg::Vec3 selection_point;
+	void ResizeControl(int cx, int cy);
+	void ClearFunctions();
+	void SetNormalFromReference(osg::Geometry* ref);
+	void CheckNormal(osg::Geode* parent_geode, vector< bool >& checked_status, vector< osg::Vec3Array* >& check_vertices, vector< osg::Vec3Array* >& check_normals, int check_id);
+	void AddDatum(float x, float y, float z);
+	vector< osg::Vec3 > m_aDatumInHull;
+	void SaveDatumFile();
+	void LoadDatumFile();
+	void AddDatumInLocal(osg::Vec3 pos);
+	void OnButtonSetUnit(UNIT_MODE um);
 public:
 
 // 재정의입니다.
