@@ -42,62 +42,56 @@ BOOL CDlgGraph::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	m_ctrlGraph.put_GraphStyle(1);
-	CMPGraphCollection elements(m_ctrlGraph.get_Elements());
-	CMPGraphElement element1(elements.Add());
-	CMPGraphElement element2(elements.Add());
-	CMPGraphElement element3(elements.Add());
-	CMPGraphElement element4(elements.Add());
-	element1.put_LineColor(RGB(255, 0, 0));
-	element2.put_LineColor(RGB(0, 255, 0));
-	element3.put_LineColor(RGB(0, 0, 255));
-	element4.put_LineColor(RGB(255, 255, 0));
 	//m_pGraphController->Set_GraphStyle( GS_Displacement );
 	//m_pGraphController->Set_DeviceStyle( DS_Transfer_Crossbar_Feeding );
 	//m_pGraphController->Set_XAxisUnit( XAU_MG_Angle );
-	long i;
-	for (i = 0; i < 100; i++)
+	if (m_iType == 0)
 	{
-		double x, y;
-		x = i / 10.;
-		y = sin(x);
+		CString job_file;
+		job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\ice_result.OUT";
+		if (PathFileExists(job_file))
+		{
+			FILE* fp;
+			fopen_s(&fp, job_file, "rt");
+			if (fp)
+			{
+				CMPGraphCollection elements(m_ctrlGraph.get_Elements());
+				CMPGraphElement element1(elements.Add());
+				CMPGraphElement element2(elements.Add());
+				CMPGraphElement element3(elements.Add());
+				CMPGraphElement element4(elements.Add());
+				element1.put_LineColor(RGB(255, 0, 0));
+				element2.put_LineColor(RGB(0, 255, 0));
+				element3.put_LineColor(RGB(0, 0, 255));
+				element4.put_LineColor(RGB(255, 255, 0));
 
-		element1.PlotXY(x, y);
+				COptImportExportBase ifp;
+				ifp.m_fp_input = fp;
+				ifp.m_array_strSplit.push_back(' ');
+				int row_count = 0;
+				float prev_x = 0;
+				if (ifp.ReadOneLineFromFile() > 6)
+				{
+				}
+				while (ifp.ReadOneLineFromFile() > 6)
+				{
+					float x = atof(ifp.m_array_strOutput[1]);
+					if (x < prev_x)
+					{
+
+					}
+
+					element1.PlotXY(x, atof(ifp.m_array_strOutput[3]));
+					element2.PlotXY(x, atof(ifp.m_array_strOutput[4]));
+					element3.PlotXY(x, atof(ifp.m_array_strOutput[5]));
+					element4.PlotXY(x, atof(ifp.m_array_strOutput[6]));
+					prev_x = x;
+				}
+
+				m_ctrlGraph.AutoRange();
+			}
+		}
 	}
-
-	m_ctrlGraph.AutoRange();
-	//CString job_file;
-	//job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\ice_result.OUT";
-	//if (PathFileExists(job_file))
-	//{
-	//	FILE* fp;
-	//	fopen_s(&fp, job_file, "rt");
-	//	if (fp)
-	//	{
-	//		COptImportExportBase ifp;
-	//		ifp.m_fp_input = fp;
-	//		ifp.m_array_strSplit.push_back(' ');
-	//		int row_count = 0;
-	//		float prev_x = 0;
-	//		if (ifp.ReadOneLineFromFile() > 6)
-	//		{
-	//		}
-	//		while (ifp.ReadOneLineFromFile() > 6)
-	//		{
-	//			float x = atof(ifp.m_array_strOutput[1]);
-	//			if (x < prev_x)
-	//			{
-
-	//			}
-
-	//			element1.PlotXY(x, atof(ifp.m_array_strOutput[3]));
-	//			element2.PlotXY(x, atof(ifp.m_array_strOutput[4]));
-	//			element3.PlotXY(x, atof(ifp.m_array_strOutput[5]));
-	//			element4.PlotXY(x, atof(ifp.m_array_strOutput[6]));
-	//			prev_x = x;
-	//		}
-	//	}
-	//}
-	//m_ctrlGraph.AutoRange();
 
 	//IDispatchPtr			pIDisPatch = NULL;
 	//IMPGraphElement *		pIGraphElement = NULL;

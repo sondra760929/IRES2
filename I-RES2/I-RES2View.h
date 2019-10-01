@@ -124,6 +124,9 @@ public:
 	void DefineSections();
 	void CAL_COND();
 	void READ_HULL(int ID);
+	void READ_ICE_INPUT();
+	void READ_ICECOFF_INPUT();
+	void CALC_ATTAINABLE_SPEED();
 	void SEL_MODE1();
 	void BREAKING1();
 	void CLEARING1();
@@ -217,8 +220,8 @@ public:
 	//osg::Vec3 m_iHULLPos;
 	//osg::Vec3 m_iHULLRot;
 	osg::Vec3 m_iSectionRot;
-	osg::Vec3 m_iWaterLinePos;
-	osg::Vec3 m_iWaterLineRot;
+	//osg::Vec3 m_iWaterLinePos;
+	//osg::Vec3 m_iWaterLineRot;
 	//void UpdateHullPos();
 	//void UpdateWaterlinePos();
 	void ShowOutputSummury(CString job_name);

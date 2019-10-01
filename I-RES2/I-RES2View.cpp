@@ -62,6 +62,7 @@ void CopyFiles(CString from, CString to)
 	CopyFile(from + "\\IMSI.OUT", to + "\\IMSI.OUT", FALSE);
 	CopyFile(from + "\\CROSS_SECTION.INP", to + "\\CROSS_SECTION.INP", FALSE);
 	CopyFile(from + "\\DRAFT_SECTION.INP", to + "\\DRAFT_SECTION.INP", FALSE);
+	CopyFile(from + "\\Attainable_speed.out", to + "\\Attainable_speed.out", FALSE);
 }
 
 CString GetDocumentFolder()
@@ -222,38 +223,38 @@ END_MESSAGE_MAP()
 
 int N_FRAME;
 int NS_S;
-float S_N[500] = { 0 };
-int N_BETA[500] = { 0 };
-float Y_VAL_ST[500][500] = { 0 };
-float Z_VAL_ST[500][500] = { 0 };
-float BETA_ST[500][500] = { 0 };
-float Sin_Beta[500][500] = { 0 };
-float SLOPE_Y[500][500] = { 0 };
-float SLOPE_Z[500][500] = { 0 };
-float SLOPE[500][500] = { 0 };
-float SLOPE_BETA_DEG[500][500] = { 0 };
-float R_SP[500][500] = { 0 };
-float Z_BUOY[500][500] = { 0 };
-float Y_BUOY[500][500] = { 0 };
-float DIST_ICE[500][500] = { 0 };
-float R_SF[500][500] = { 0 };
-float R_total[500][500] = { 0 };
+float S_N[5000] = { 0 };
+int N_BETA[5000] = { 0 };
+float Y_VAL_ST[5000][5000] = { 0 };
+float Z_VAL_ST[5000][5000] = { 0 };
+float BETA_ST[5000][5000] = { 0 };
+float Sin_Beta[5000][5000] = { 0 };
+float SLOPE_Y[5000][5000] = { 0 };
+float SLOPE_Z[5000][5000] = { 0 };
+float SLOPE[5000][5000] = { 0 };
+float SLOPE_BETA_DEG[5000][5000] = { 0 };
+float R_SP[5000][5000] = { 0 };
+float Z_BUOY[5000][5000] = { 0 };
+float Y_BUOY[5000][5000] = { 0 };
+float DIST_ICE[5000][5000] = { 0 };
+float R_SF[5000][5000] = { 0 };
+float R_total[5000][5000] = { 0 };
 
-int N_BUOY[500] = { 0 };
-float Staion_length_Buoy[500] = { 0 };
-float GIRTH_LENGTH[500] = { 0 };
-float N_END_GIRTH[500] = { 0 };
-float R_BO[500] = { 0 };
+int N_BUOY[5000] = { 0 };
+float Staion_length_Buoy[5000] = { 0 };
+float GIRTH_LENGTH[5000] = { 0 };
+float N_END_GIRTH[5000] = { 0 };
+float R_BO[5000] = { 0 };
 
-float X_COOR[500] = { 0 };
-float Y[500] = { 0 };
-float Z_COOR[500] = { 0 };
-float X_NORM[500] = { 0 };
-float Y_NORM[500] = { 0 };
-float Z_NORM[500] = { 0 };
-float ALPHA[500] = { 0 };
-float BETA[500] = { 0 };
-float GAMMA[500] = { 0 };
+float X_COOR[5000] = { 0 };
+float Y[5000] = { 0 };
+float Z_COOR[5000] = { 0 };
+float X_NORM[5000] = { 0 };
+float Y_NORM[5000] = { 0 };
+float Z_NORM[5000] = { 0 };
+float ALPHA[5000] = { 0 };
+float BETA[5000] = { 0 };
+float GAMMA[5000] = { 0 };
 float max_y;
 float PI3;
 int MBR = 1;
@@ -286,18 +287,18 @@ float GG, XK1H1, XK1H2, XK2H1, XK2H2, XK3H1, XK3H2, RHO, RHOL, E_young;
 //vector< float > R_BOUYA;
 //vector< vector< float > > DEPTH_BUOY;
 //vector< float > YH;
-float VSP[500] = { 0 };
-float VELOCI[500] = { 0 };
-float FROUD[500] = { 0 };
-float SIGMA[500] = { 0 };
-float THCK[500] = { 0 };
-float R_BR[500][500] = { 0 };
-float R_CL[500][500] = { 0 };
-float R_CLEAR[500][500] = { 0 };
-float R_BREAK[500][500] = { 0 };
-float R_BOUYA[500] = { 0 };
-float DEPTH_BUOY[500][500] = { 0 };
-float YH[500] = { 0 };
+float VSP[5000] = { 0 };
+float VELOCI[5000] = { 0 };
+float FROUD[5000] = { 0 };
+float SIGMA[5000] = { 0 };
+float THCK[5000] = { 0 };
+float R_BR[5000][5000] = { 0 };
+float R_CL[5000][5000] = { 0 };
+float R_CLEAR[5000][5000] = { 0 };
+float R_BREAK[5000][5000] = { 0 };
+float R_BOUYA[5000] = { 0 };
+float DEPTH_BUOY[5000][5000] = { 0 };
+float YH[5000] = { 0 };
 FILE* fp_4 = NULL;
 FILE* fp_5 = NULL;
 FILE* fp_6 = NULL;
@@ -307,6 +308,10 @@ FILE* fp_9 = NULL;
 FILE* fp_10 = NULL;
 FILE* fp_15 = NULL;
 // CIRES2View »ý¼º/¼Ò¸ê
+vector< float > ICE_S;
+vector< float > ICE_T;
+vector< float > A_SPEED[3];
+
 
 CIRES2View::CIRES2View()
 	: mOSG(0L)
@@ -669,16 +674,16 @@ void CIRES2View::OnInitialUpdate()
 		//m_pWaterlineSpinZPos = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_Z));
 		//m_pWaterlineSpinZPos->EnableSpinButtons(-100000000, 100000000);
 		//m_pWaterlineSpinZPos->SetEditText("0");
-		m_iWaterLinePos[2] = 0;
+		//m_iWaterLinePos[2] = 0;
 
 		//m_pWaterlineSpinXRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_X));
 		//m_pWaterlineSpinXRot->EnableSpinButtons(-360, 360);
 		//m_pWaterlineSpinXRot->SetEditText("0");
-		m_iWaterLineRot[0] = 0;
+		//m_iWaterLineRot[0] = 0;
 		//m_pWaterlineSpinYRot = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_SPIN_WATERLINE_Y));
 		//m_pWaterlineSpinYRot->EnableSpinButtons(-360, 360);
 		//m_pWaterlineSpinYRot->SetEditText("0");
-		m_iWaterLineRot[1] = 0;
+		//m_iWaterLineRot[1] = 0;
 	}
 
 	m_DlgProgress = new CDlgProgress();
@@ -2949,13 +2954,14 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	BeginProgress();
 
 	osg::Matrix m;
-	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iWaterLinePos);
-	m.setRotate(q);
+	//osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+	osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), m_fDraftValue * M_TO_UNIT);
+	m.setTrans(water_line_pos);
+	//m.setRotate(q);
 	osg::Vec3 n(0, 0, 1);
-	n = m.preMult(n) - m_iWaterLinePos;
+	//n = m.preMult(n) - m_iWaterLinePos;
 
-	CalculateSectionWaterline(n, m_iWaterLinePos, 0, m_aWaterLinePointData, m_bUseDistanceForAxisWaterline, points_gap_waterline, m_aWaterLine, true, m_fWaterlineStartPos, m_fWaterlineEndPos);
+	CalculateSectionWaterline(n, water_line_pos, 0, m_aWaterLinePointData, m_bUseDistanceForAxisWaterline, points_gap_waterline, m_aWaterLine, true, m_fWaterlineStartPos, m_fWaterlineEndPos);
 	AddSectionDataGeo(m_aWaterLinePointData, osgWaterlineSection);
 	AddSectionGeo(m_aWaterLine, osgWaterlineSection);
 
@@ -3115,9 +3121,13 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 	fopen_s(&fp_9, m_strProjectPath + "\\ICECOFF_INPUT.inp", "rt");
 	fopen_s(&fp_10, m_strProjectPath + "\\SELECT MODULE.INP", "rt");
 
+	READ_ICE_INPUT();
+	READ_ICECOFF_INPUT();
+
 	CAL_COND();
 	READ_HULL(1);
 	SEL_MODE1();
+
 	for (int IH = 1; IH <= NH; IH++)
 	{
 		R_BOUYA[IH] = R_BO[IH];
@@ -3181,6 +3191,8 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 	//	}
 	//}
 
+	CALC_ATTAINABLE_SPEED();
+
 	WRITE_OUT();
 
 	if (fp_4)
@@ -3226,7 +3238,110 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 	//ShellExecute(NULL, "open", m_strAppPath + "\\ice_result.OUT", NULL, NULL, SW_SHOW);
 }
 
-void CIRES2View::CAL_COND()
+void CIRES2View::CALC_ATTAINABLE_SPEED()
+{
+	float R_TOTAL;
+	float $B$2 = -1.45296f;
+	float $C$2 = -0.115354f;
+	float $D$2 = 0.0771342f;
+	float $E$2 = 0.0324028f;
+	float $F$2 = 0.17456f;
+	float $G$2 = 0.349291f;
+	float $H$2 = -0.131372f;
+	float $I$2 = -0.00690513f;
+	float $J$2 = 0.0159465f;
+	float $K$2 = -0.0774989f;
+	float $L$2 = 0.0310866f;
+	float $M$2 = 0.000636468f;
+	float $G$5 = 60.0f;
+	float $I$5 = 80.0f;
+	float $K$5 = 90.0f;
+	float Attainable_Speed_60;
+	float Attainable_Speed_80;
+	float Attainable_Speed_90;
+	ICE_S.clear();
+	ICE_T.clear();
+	A_SPEED[0].clear();
+	A_SPEED[1].clear();
+	A_SPEED[2].clear();
+
+	for (int IS = 1; IS <= NSIGMA; IS++)
+	{
+		for (int IH = 1; IH <= NH; IH++)
+		{
+			float ice_strength = SIGMA[IS] * UNIT_TO_M;
+			float ice_thickness = THCK[IH];
+			bool is_end = false;
+			for (int IV = 1; IV <= NV; IV++)
+			{
+				is_end = true;
+				R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
+
+				float sheep_speed = VSP[IV];
+				float Preswan_resistance = R_TOTAL * UNIT_TO_M;
+
+				float Attainable_Net_Thurst = (-0.007f*pow(sheep_speed, 4.0f) + -0.0198f*pow(sheep_speed, 3.0f) + 1.4903f*pow(sheep_speed, 2.0f) - 17.543f*sheep_speed + 989.57f);
+
+				float factor_60 = ($B$2 + $C$2 * ice_thickness + $D$2 * pow(ice_thickness, 2.0f) + $E$2 * $G$5) +
+					($F$2 + $G$2 * ice_thickness + $H$2 * pow(ice_thickness, 2.0f) + $I$2 * $G$5)*sheep_speed +
+					($J$2 + $K$2 * ice_thickness + $L$2 * pow(ice_thickness, 2.0f) + $M$2 * $G$5)*pow(sheep_speed, 2.0f);
+				float r_total_60 = factor_60 * Preswan_resistance;
+
+				float factor_80 = ($B$2 + $C$2 * ice_thickness + $D$2 * pow(ice_thickness, 2.0f) + $E$2 * $I$5) +
+					($F$2 + $G$2 * ice_thickness + $H$2 * pow(ice_thickness, 2.0f) + $I$2 * $I$5)*sheep_speed +
+					($J$2 + $K$2 * ice_thickness + $L$2 * pow(ice_thickness, 2.0f) + $M$2 * $I$5)*pow(sheep_speed, 2.0f);
+				float r_total_80 = factor_80 * Preswan_resistance;
+
+				float factor_90 = ($B$2 + $C$2 * ice_thickness + $D$2 * pow(ice_thickness, 2.0f) + $E$2 * $K$5) +
+					($F$2 + $G$2 * ice_thickness + $H$2 * pow(ice_thickness, 2.0f) + $I$2 * $K$5)*sheep_speed +
+					($J$2 + $K$2 * ice_thickness + $L$2 * pow(ice_thickness, 2.0f) + $M$2 * $K$5)*pow(sheep_speed, 2.0f);
+				float r_total_90 = factor_90 * Preswan_resistance;
+
+				if (Attainable_Net_Thurst >= r_total_60)
+				{
+					Attainable_Speed_60 = sheep_speed;
+					is_end = false;
+				}
+
+				if (Attainable_Net_Thurst >= r_total_80)
+				{
+					Attainable_Speed_80 = sheep_speed;
+					is_end = false;
+				}
+
+				if (Attainable_Net_Thurst >= r_total_90)
+				{
+					Attainable_Speed_90 = sheep_speed;
+					is_end = false;
+				}
+
+				if (is_end)
+					break;
+			}
+			ICE_S.push_back(ice_strength);
+			ICE_T.push_back(ice_thickness);
+			A_SPEED[0].push_back(Attainable_Speed_60);
+			A_SPEED[1].push_back(Attainable_Speed_80);
+			A_SPEED[2].push_back(Attainable_Speed_90);
+		}
+	}
+
+	FILE* fp;
+	fopen_s(&fp, m_strProjectPath + "\\Attainable_speed.out", "wt");
+	if (fp)
+	{
+		fprintf_s(fp, "IceStrength(kPa),IceThickness(m),AttainableSpeed(kts)_60,AttainableSpeed(kts)_80,AttainableSpeed(kts)_90\n");
+		for (int i = 0; i < ICE_S.size(); i++)
+		{
+			fprintf_s(fp, "%10.3f,%10.3f,%10.3f,%10.3f,%10.3f\n", ICE_S[i], ICE_T[i], A_SPEED[0][i], A_SPEED[1][i], A_SPEED[2][i]);
+		}
+
+		fclose(fp);
+	}
+
+}
+
+void CIRES2View::READ_ICE_INPUT()
 {
 	if (fp_4)
 	{
@@ -3267,8 +3382,10 @@ void CIRES2View::CAL_COND()
 		}
 		ifp.m_fp_input = NULL;
 	}
+}
 
-	fopen_s(&fp_9, m_strProjectPath + "\\ICECOFF_INPUT.inp", "rt");
+void CIRES2View::READ_ICECOFF_INPUT()
+{
 	if (fp_9)
 	{
 		COptImportExportBase ifp;
@@ -3319,7 +3436,10 @@ void CIRES2View::CAL_COND()
 
 		//fprintf(stderr, "%lf, %lf %lf %lf %lf %lf %lf %lf %lf %lf", GG, XK1H1, XK1H2, XK2H1, XK2H2, XK3H1, XK3H2, RHO, RHOL, E_young);
 	}
+}
 
+void CIRES2View::CAL_COND()
+{
 	RHO0 = RHO - RHOL;
 
 	PI3 = acos(-1.0f);
@@ -4214,14 +4334,16 @@ void CIRES2View::PreFrameUpdate()
 			v_array->push_back(osg::Vec3(bbLength[0], bbLength[1], 0));
 			v_array->push_back(osg::Vec3(-bbLength[0], bbLength[1], 0));
 
-			m_iWaterLinePos.set(bbHull.center().x(), bbHull.center().y(), bbHull.center().z());
+			//m_iWaterLinePos.set(bbHull.center().x(), bbHull.center().y(), bbHull.center().z());
 			m_fDraftValue = bbHull.center().z() * UNIT_TO_M;
 			m_fCrossSectionStart = bbHull.xMax();
 			m_fCrossSectionEnd = bbHull.xMin();
 			//UpdateWaterlinePos();
 
 			osg::Matrix tr;
-			tr.setTrans(m_iWaterLinePos);
+			osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), m_fDraftValue * M_TO_UNIT);
+
+			tr.setTrans(water_line_pos);
 			osgWaterline->setMatrix(tr);
 
 			osg::ref_ptr<osg::Vec3Array> n_array = new osg::Vec3Array;
@@ -5207,14 +5329,21 @@ void CIRES2View::CalculateWaterSectionPoint()
 	m_strStatus.Format("Calculate Section Points : Waterline");
 	BeginProgress();
 
-	osg::Matrix m;
-	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iWaterLinePos);
-	m.setRotate(q);
-	osg::Vec3 n(0, 0, 1);
-	n = m.preMult(n) - m_iWaterLinePos;
 
-	CalculateSectionWaterline(n, m_iWaterLinePos, 0, m_aWaterLinePointData, m_bUseDistanceForAxisWaterline, m_fWaterlinePointGap, m_aWaterLine, false, m_fWaterlineStartPos, m_fWaterlineEndPos);
+	//osg::Matrix m;
+	//osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+	//m.setTrans(m_iWaterLinePos);
+	//m.setRotate(q);
+	osg::Vec3 n(0, 0, 1);
+	//n = m.preMult(n) - m_iWaterLinePos;
+
+	osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), m_fDraftValue * M_TO_UNIT);
+
+	osg::Matrix tr;
+	tr.setTrans(water_line_pos);
+	osgWaterline->setMatrix(tr);
+
+	CalculateSectionWaterline(n, water_line_pos, 0, m_aWaterLinePointData, m_bUseDistanceForAxisWaterline, m_fWaterlinePointGap, m_aWaterLine, false, m_fWaterlineStartPos, m_fWaterlineEndPos);
 	AddSectionDataGeo(m_aWaterLinePointData, osgWaterlineSection);
 	AddSectionGeo(m_aWaterLine, osgWaterlineSection);
 
@@ -5254,12 +5383,12 @@ void CIRES2View::CalculateSectionPoint()
 	m_strStatus.Format("Calculate Section Points : Waterline");
 	BeginProgress();
 
-	osg::Matrix m;
-	osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
-	m.setTrans(m_iWaterLinePos);
-	m.setRotate(q);
+	//osg::Matrix m;
+	//osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
+	//m.setTrans(m_iWaterLinePos);
+	//m.setRotate(q);
 	osg::Vec3 n(0, 0, 1);
-	n = m.preMult(n) - m_iWaterLinePos;
+	//n = m.preMult(n) - m_iWaterLinePos;
 
 	osg::Vec3 normal;
 	osg::Matrix m1;

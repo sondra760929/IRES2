@@ -453,6 +453,12 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 
 				if (!GetDraftStatus())
 				{
+					if (m_pView->osgHull->getNumChildren() < 1)
+					{
+						AfxMessageBox("Import HULL data first.");
+						m_pView->CalculateOutputResult(false);
+						return;
+					}
 					CDlgDraftSection pDlg(m_pView);
 					pDlg.DoModal();
 				}
@@ -463,6 +469,13 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 				AdjustLayout();
 				if (!GetCrossStatus())
 				{
+					if (m_pView->osgHull->getNumChildren() < 1)
+					{
+						AfxMessageBox("Import HULL data first.");
+						m_pView->CalculateOutputResult(false);
+						return;
+					}
+
 					CDlgCrossSection pDlg(m_pView);
 					pDlg.DoModal();
 				}
@@ -536,11 +549,25 @@ void CClassView::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
 		{
 			if (current_item == itemDraftSection && GetDraftStatus())
 			{
+				if (m_pView->osgHull->getNumChildren() < 1)
+				{
+					AfxMessageBox("Import HULL data first.");
+					m_pView->CalculateOutputResult(false);
+					return;
+				}
+
 				CDlgDraftSection pDlg(m_pView);
 				pDlg.DoModal();
 			}
 			else if (current_item == itemCrossSection && GetCrossStatus())
 			{
+				if (m_pView->osgHull->getNumChildren() < 1)
+				{
+					AfxMessageBox("Import HULL data first.");
+					m_pView->CalculateOutputResult(false);
+					return;
+				}
+
 				CDlgCrossSection pDlg(m_pView);
 				pDlg.DoModal();
 			}

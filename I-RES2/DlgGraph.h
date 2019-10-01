@@ -13,6 +13,7 @@ public:
 	virtual ~CDlgGraph();
 	CString m_strJobName;
 	CString m_strInputFile;
+	int m_iType;
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_DIALOG_GRAPH };

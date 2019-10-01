@@ -46,11 +46,6 @@ public:
 	float m_fEsigma;
 	float m_fIcdDensity;
 	float m_fWaterDensity;
-	afx_msg void OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin4(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin8(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin9(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin10(NMHDR *pNMHDR, LRESULT *pResult);
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedOk();
 };

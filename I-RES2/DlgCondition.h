@@ -31,12 +31,6 @@ protected:
 public:
 	afx_msg void OnBnClickedRadioConstant();
 	afx_msg void OnBnClickedRadioParametric();
-	afx_msg void OnDeltaposSpin5(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin6(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin7(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin11(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin8(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin12(NMHDR *pNMHDR, LRESULT *pResult);
 	float m_fShipSpeed;
 	float m_fShipMaxSpeed;
 	float m_fShipIncSpeed;

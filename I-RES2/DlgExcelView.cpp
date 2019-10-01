@@ -44,65 +44,88 @@ BOOL CDlgExcelView::OnInitDialog()
 	m_wndExcelView.SetVScrollMode(UG_SCROLLTRACKING);
 	m_wndExcelView.SetHScrollMode(UG_SCROLLTRACKING);
 
-	m_wndExcelView.SetNumberCols(2);
-	m_wndExcelView.SetNumberRows(100);
-	m_wndExcelView.QuickSetText(0, -1, "x");
-	m_wndExcelView.QuickSetText(1, -1, "y");
-
-	long i;
-	for (i = 0; i < 100; i++)
-	{
-		double x, y;
-		x = i / 10.;
-		y = sin(x);
-
-		m_wndExcelView.QuickSetNumber(-1, i, i+1);
-		m_wndExcelView.QuickSetNumber(0, i, x);
-		m_wndExcelView.QuickSetNumber(1, i, y);
-	}
-
 	CRect rect;
 	GetClientRect(&rect);
 	SetSize(rect.Width(), rect.Height());
 
-	//CString job_file;
-	//job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\ice_result.OUT";
-	//if (PathFileExists(job_file))
-	//{
-	//	m_wndExcelView.SetNumberCols(7);
-	//	FILE* fp;
-	//	fopen_s(&fp, job_file, "rt");
-	//	if (fp)
-	//	{
-	//		COptImportExportBase ifp;
-	//		ifp.m_fp_input = fp;
-	//		ifp.m_array_strSplit.push_back(' ');
-	//		int row_count = 0;
-	//		if (ifp.ReadOneLineFromFile() > 6)
-	//		{
-	//			m_wndExcelView.QuickSetText(0, -1, ifp.m_array_strOutput[0]);
-	//			m_wndExcelView.QuickSetText(1, -1, ifp.m_array_strOutput[1]);
-	//			m_wndExcelView.QuickSetText(2, -1, ifp.m_array_strOutput[2]);
-	//			m_wndExcelView.QuickSetText(3, -1, ifp.m_array_strOutput[3]);
-	//			m_wndExcelView.QuickSetText(4, -1, ifp.m_array_strOutput[4]);
-	//			m_wndExcelView.QuickSetText(5, -1, ifp.m_array_strOutput[5]);
-	//			m_wndExcelView.QuickSetText(6, -1, ifp.m_array_strOutput[6]);
-	//		}
-	//		while (ifp.ReadOneLineFromFile() > 6)
-	//		{
-	//			row_count++;
-	//			m_wndExcelView.SetNumberRows(row_count);
-	//			m_wndExcelView.QuickSetNumber(-1, row_count - 1, row_count);
-	//			m_wndExcelView.QuickSetText(0, row_count-1, ifp.m_array_strOutput[0]);
-	//			m_wndExcelView.QuickSetText(1, row_count-1, ifp.m_array_strOutput[1]);
-	//			m_wndExcelView.QuickSetText(2, row_count-1, ifp.m_array_strOutput[2]);
-	//			m_wndExcelView.QuickSetText(3, row_count-1, ifp.m_array_strOutput[3]);
-	//			m_wndExcelView.QuickSetText(4, row_count-1, ifp.m_array_strOutput[4]);
-	//			m_wndExcelView.QuickSetText(5, row_count-1, ifp.m_array_strOutput[5]);
-	//			m_wndExcelView.QuickSetText(6, row_count-1, ifp.m_array_strOutput[6]);
-	//		}
-	//	}
-	//}
+	if (m_iType == 0)
+	{
+		CString job_file;
+		job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\ice_result.OUT";
+		if (PathFileExists(job_file))
+		{
+			m_wndExcelView.SetNumberCols(7);
+			FILE* fp;
+			fopen_s(&fp, job_file, "rt");
+			if (fp)
+			{
+				COptImportExportBase ifp;
+				ifp.m_fp_input = fp;
+				ifp.m_array_strSplit.push_back(' ');
+				int row_count = 0;
+				if (ifp.ReadOneLineFromFile() > 6)
+				{
+					m_wndExcelView.QuickSetText(0, -1, ifp.m_array_strOutput[0]);
+					m_wndExcelView.QuickSetText(1, -1, ifp.m_array_strOutput[1]);
+					m_wndExcelView.QuickSetText(2, -1, ifp.m_array_strOutput[2]);
+					m_wndExcelView.QuickSetText(3, -1, ifp.m_array_strOutput[3]);
+					m_wndExcelView.QuickSetText(4, -1, ifp.m_array_strOutput[4]);
+					m_wndExcelView.QuickSetText(5, -1, ifp.m_array_strOutput[5]);
+					m_wndExcelView.QuickSetText(6, -1, ifp.m_array_strOutput[6]);
+				}
+				while (ifp.ReadOneLineFromFile() > 6)
+				{
+					row_count++;
+					m_wndExcelView.SetNumberRows(row_count);
+					m_wndExcelView.QuickSetNumber(-1, row_count - 1, row_count);
+					m_wndExcelView.QuickSetText(0, row_count-1, ifp.m_array_strOutput[0]);
+					m_wndExcelView.QuickSetText(1, row_count-1, ifp.m_array_strOutput[1]);
+					m_wndExcelView.QuickSetText(2, row_count-1, ifp.m_array_strOutput[2]);
+					m_wndExcelView.QuickSetText(3, row_count-1, ifp.m_array_strOutput[3]);
+					m_wndExcelView.QuickSetText(4, row_count-1, ifp.m_array_strOutput[4]);
+					m_wndExcelView.QuickSetText(5, row_count-1, ifp.m_array_strOutput[5]);
+					m_wndExcelView.QuickSetText(6, row_count-1, ifp.m_array_strOutput[6]);
+				}
+			}
+		}
+	}	
+	else if (m_iType == 1)
+	{
+		CString job_file;
+		job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\Attainable_speed.out";
+		if (PathFileExists(job_file))
+		{
+			m_wndExcelView.SetNumberCols(5);
+			FILE* fp;
+			fopen_s(&fp, job_file, "rt");
+			if (fp)
+			{
+				COptImportExportBase ifp;
+				ifp.m_fp_input = fp;
+				ifp.m_array_strSplit.push_back(' ');
+				int row_count = 0;
+				if (ifp.ReadOneLineFromFile() > 4)
+				{
+					m_wndExcelView.QuickSetText(0, -1, ifp.m_array_strOutput[0]);
+					m_wndExcelView.QuickSetText(1, -1, ifp.m_array_strOutput[1]);
+					m_wndExcelView.QuickSetText(2, -1, ifp.m_array_strOutput[2]);
+					m_wndExcelView.QuickSetText(3, -1, ifp.m_array_strOutput[3]);
+					m_wndExcelView.QuickSetText(4, -1, ifp.m_array_strOutput[4]);
+				}
+				while (ifp.ReadOneLineFromFile() > 4)
+				{
+					row_count++;
+					m_wndExcelView.SetNumberRows(row_count);
+					m_wndExcelView.QuickSetNumber(-1, row_count - 1, row_count);
+					m_wndExcelView.QuickSetText(0, row_count-1, ifp.m_array_strOutput[0]);
+					m_wndExcelView.QuickSetText(1, row_count-1, ifp.m_array_strOutput[1]);
+					m_wndExcelView.QuickSetText(2, row_count-1, ifp.m_array_strOutput[2]);
+					m_wndExcelView.QuickSetText(3, row_count-1, ifp.m_array_strOutput[3]);
+					m_wndExcelView.QuickSetText(4, row_count-1, ifp.m_array_strOutput[4]);
+				}
+			}
+		}
+	}
 
 
 

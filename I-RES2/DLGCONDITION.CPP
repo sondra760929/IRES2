@@ -9,15 +9,15 @@ void CDlgCondition::OnBnClickedRadioConstant()
 	GetDlgItem(IDC_EDIT_SPEED_INCREMENTS)->ShowWindow(SW_HIDE);
 	GetDlgItem(IDC_EDIT_MAXIMUM_THICKNESS2)->ShowWindow(SW_HIDE);
 	GetDlgItem(IDC_EDIT_THICKNESS_INCREMENTS2)->ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_SPIN6)->ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_SPIN7)->ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_SPIN8)->ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_SPIN12)->ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_STATIC1)->ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_STATIC2)->ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_STATIC3)->ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_STATIC4)->ShowWindow(SW_HIDE);
-	GetDlgItem(IDC_STATIC5)->SetWindowText("Thickness (m)");
+	GetDlgItem(IDC_EDIT_INITIAL_THICKNESS)->ShowWindow(SW_HIDE);
+
+	GetDlgItem(IDC_STATIC_SHIP_SPEED)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_STATIC_INC_SHIP_SPEED)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_STATIC_MAX_THICK)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_STATIC_THICK_INC)->ShowWindow(SW_HIDE);
+	GetDlgItem(IDC_STATIC_INC_THICK)->ShowWindow(SW_HIDE);
+
+	GetDlgItem(IDC_STATIC_INI_SHIP_SPEED)->SetWindowText("Thickness (m)");
 	m_pView->m_bConditionConstant = true;
 }
 
@@ -28,117 +28,15 @@ void CDlgCondition::OnBnClickedRadioParametric()
 	GetDlgItem(IDC_EDIT_SPEED_INCREMENTS)->ShowWindow(SW_SHOW);
 	GetDlgItem(IDC_EDIT_MAXIMUM_THICKNESS2)->ShowWindow(SW_SHOW);
 	GetDlgItem(IDC_EDIT_THICKNESS_INCREMENTS2)->ShowWindow(SW_SHOW);
-	GetDlgItem(IDC_SPIN6)->ShowWindow(SW_SHOW);
-	GetDlgItem(IDC_SPIN7)->ShowWindow(SW_SHOW);
-	GetDlgItem(IDC_SPIN8)->ShowWindow(SW_SHOW);
-	GetDlgItem(IDC_SPIN12)->ShowWindow(SW_SHOW);
-	GetDlgItem(IDC_STATIC1)->ShowWindow(SW_SHOW);
-	GetDlgItem(IDC_STATIC2)->ShowWindow(SW_SHOW);
-	GetDlgItem(IDC_STATIC3)->ShowWindow(SW_SHOW);
-	GetDlgItem(IDC_STATIC4)->ShowWindow(SW_SHOW);
-	GetDlgItem(IDC_STATIC5)->SetWindowText("Initial Thickness (m)");
+	GetDlgItem(IDC_EDIT_INITIAL_THICKNESS)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_STATIC_SHIP_SPEED)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_STATIC_INC_SHIP_SPEED)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_STATIC_MAX_THICK)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_STATIC_THICK_INC)->ShowWindow(SW_SHOW);
+	GetDlgItem(IDC_STATIC_INC_THICK)->ShowWindow(SW_SHOW);
+
+	GetDlgItem(IDC_STATIC_INI_SHIP_SPEED)->SetWindowText("Initial Thickness (m)");
 	m_pView->m_bConditionConstant = false;
-}
-
-
-void CDlgCondition::OnDeltaposSpin5(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	UpdateData();
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	if (pNMUpDown->iDelta < 0)
-	{
-		m_fShipSpeed += 0.01;
-	}
-	else
-	{
-		m_fShipSpeed -= 0.01;
-	}
-	UpdateData(FALSE);
-	*pResult = 0;
-}
-
-void CDlgCondition::OnDeltaposSpin6(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	UpdateData();
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	if (pNMUpDown->iDelta < 0)
-	{
-		m_fShipMaxSpeed += 0.01;
-	}
-	else
-	{
-		m_fShipMaxSpeed -= 0.01;
-	}
-	UpdateData(FALSE);
-	*pResult = 0;
-}
-
-
-void CDlgCondition::OnDeltaposSpin7(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	UpdateData();
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	if (pNMUpDown->iDelta < 0)
-	{
-		m_fShipIncSpeed += 0.01;
-	}
-	else
-	{
-		m_fShipIncSpeed -= 0.01;
-	}
-	UpdateData(FALSE);
-	*pResult = 0;
-}
-
-
-void CDlgCondition::OnDeltaposSpin11(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	UpdateData();
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	if (pNMUpDown->iDelta < 0)
-	{
-		m_fThickness += 0.01;
-	}
-	else
-	{
-		m_fThickness -= 0.01;
-	}
-	UpdateData(FALSE);
-	*pResult = 0;
-}
-
-
-void CDlgCondition::OnDeltaposSpin8(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	UpdateData();
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	if (pNMUpDown->iDelta < 0)
-	{
-		m_fMaxThickness += 0.01;
-	}
-	else
-	{
-		m_fMaxThickness -= 0.01;
-	}
-	UpdateData(FALSE);
-	*pResult = 0;
-}
-
-
-void CDlgCondition::OnDeltaposSpin12(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	UpdateData();
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	if (pNMUpDown->iDelta < 0)
-	{
-		m_fIncThickness += 0.01;
-	}
-	else
-	{
-		m_fIncThickness -= 0.01;
-	}
-	UpdateData(FALSE);
-	*pResult = 0;
 }
 
 

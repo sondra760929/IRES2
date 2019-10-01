@@ -39,100 +39,11 @@ void CDlgMaterial::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CDlgMaterial, CDialog)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN1, &CDlgMaterial::OnDeltaposSpin1)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN4, &CDlgMaterial::OnDeltaposSpin4)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN8, &CDlgMaterial::OnDeltaposSpin8)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN9, &CDlgMaterial::OnDeltaposSpin9)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN10, &CDlgMaterial::OnDeltaposSpin10)
 	ON_BN_CLICKED(IDOK, &CDlgMaterial::OnBnClickedOk)
 END_MESSAGE_MAP()
 
 
 // CDlgMaterial 메시지 처리기
-
-void CDlgMaterial::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	UpdateData();
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	if (pNMUpDown->iDelta < 0)
-	{
-		m_fInitialStrength += 0.01;
-	}
-	else
-	{
-		m_fInitialStrength -= 0.01;
-	}
-	UpdateData(FALSE);
-	*pResult = 0;
-}
-
-
-void CDlgMaterial::OnDeltaposSpin4(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	UpdateData();
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	if (pNMUpDown->iDelta < 0)
-	{
-		m_fFrictionCoef += 0.01;
-	}
-	else
-	{
-		m_fFrictionCoef -= 0.01;
-	}
-	UpdateData(FALSE);
-	*pResult = 0;
-}
-
-
-void CDlgMaterial::OnDeltaposSpin8(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	UpdateData();
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	if (pNMUpDown->iDelta < 0)
-	{
-		m_fEsigma += 0.01;
-	}
-	else
-	{
-		m_fEsigma -= 0.01;
-	}
-	UpdateData(FALSE);
-	*pResult = 0;
-}
-
-
-void CDlgMaterial::OnDeltaposSpin9(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	UpdateData();
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	if (pNMUpDown->iDelta < 0)
-	{
-		m_fIcdDensity += 0.01;
-	}
-	else
-	{
-		m_fIcdDensity -= 0.01;
-	}
-	UpdateData(FALSE);
-	*pResult = 0;
-}
-
-
-void CDlgMaterial::OnDeltaposSpin10(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	UpdateData();
-	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	if (pNMUpDown->iDelta < 0)
-	{
-		m_fWaterDensity += 0.01;
-	}
-	else
-	{
-		m_fWaterDensity -= 0.01;
-	}
-	UpdateData(FALSE);
-	*pResult = 0;
-}
 
 
 BOOL CDlgMaterial::OnInitDialog()
