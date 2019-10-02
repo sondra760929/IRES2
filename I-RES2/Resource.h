@@ -100,7 +100,6 @@
 #define IDD_DIALOG_MATERIAL             326
 #define IDD_DIALOG_CREATE_JOB           328
 #define IDD_DIALOG_OUTPUT_TOOLBAR       329
-#define IDD_DIALOG_GRAPH                330
 #define IDR_TOOLBAR2                    331
 #define IDD_DIALOG_EXCEL                333
 #define IDB_BITMAP_EXCEL                336
@@ -168,7 +167,6 @@
 #define IDC_STATIC_MAX_THICK            1033
 #define IDC_STATIC_THICK_INC            1034
 #define IDC_EDIT1                       1035
-#define IDC_MPGRAPHCTRL1                1041
 #define IDC_GRID1                       1042
 #define IDC_STATIC_CAPTION              1043
 #define IDC_BUTTON_OK                   1044

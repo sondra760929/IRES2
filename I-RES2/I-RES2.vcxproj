@@ -198,12 +198,6 @@
     <ClInclude Include="CDlgSelectSections.h" />
     <ClInclude Include="CIMPGraphCtrlEvents.h" />
     <ClInclude Include="ClassView.h" />
-    <ClInclude Include="CMPGraphAnnotation.h" />
-    <ClInclude Include="CMPGraphAxis.h" />
-    <ClInclude Include="CMPGraphCollection.h" />
-    <ClInclude Include="CMPGraphCtrl0.h" />
-    <ClInclude Include="CMPGraphCursor.h" />
-    <ClInclude Include="CMPGraphElement.h" />
     <ClInclude Include="CreateCheckboxImageList.h" />
     <ClInclude Include="CToolbarWnd.h" />
     <ClInclude Include="Dlg1.h" />
@@ -215,7 +209,6 @@
     <ClInclude Include="DlgDefineInp.h" />
     <ClInclude Include="DlgDraftSection.h" />
     <ClInclude Include="DlgExcelView.h" />
-    <ClInclude Include="DlgGraph.h" />
     <ClInclude Include="DlgMainToolbar.h" />
     <ClInclude Include="DlgMaterial.h" />
     <ClInclude Include="DlgOutputToolbar.h" />
@@ -309,7 +302,6 @@
     <ClCompile Include="CDlgProgress.cpp" />
     <ClCompile Include="CDlgSelectSections.cpp" />
     <ClCompile Include="ClassView.cpp" />
-    <ClCompile Include="CMPGraphCtrl0.cpp" />
     <ClCompile Include="CreateCheckboxImageList.cpp" />
     <ClCompile Include="CToolbarWnd.cpp" />
     <ClCompile Include="Dlg1.cpp" />
@@ -321,7 +313,6 @@
     <ClCompile Include="DlgDefineInp.cpp" />
     <ClCompile Include="DlgDraftSection.cpp" />
     <ClCompile Include="DlgExcelView.cpp" />
-    <ClCompile Include="DlgGraph.cpp" />
     <ClCompile Include="DlgMainToolbar.cpp" />
     <ClCompile Include="DlgMaterial.cpp" />
     <ClCompile Include="DlgOutputToolbar.cpp" />

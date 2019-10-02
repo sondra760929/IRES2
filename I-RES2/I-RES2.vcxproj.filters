@@ -135,9 +135,6 @@
     <ClInclude Include="DlgOutputToolbar.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="DlgGraph.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Ultimate_Grid\Include\UGCtrl.h">
       <Filter>Ultimate_Grid</Filter>
     </ClInclude>
@@ -318,24 +315,6 @@
     <ClInclude Include="CIMPGraphCtrlEvents.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="CMPGraphAnnotation.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="CMPGraphAxis.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="CMPGraphCollection.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="CMPGraphCursor.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="CMPGraphElement.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="CMPGraphCtrl0.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="FrameContainer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -456,9 +435,6 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="DlgOutputToolbar.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="DlgGraph.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Ultimate_Grid\Source\UGCBType.cpp">
@@ -627,9 +603,6 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="GraphController.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="CMPGraphCtrl0.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="PosterPrinter.cpp">

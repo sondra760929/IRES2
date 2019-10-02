@@ -44,7 +44,6 @@ END_MESSAGE_MAP()
 // CDlgOutputToolbar 메시지 처리기
 
 #include "DlgExcelView.h"
-#include "DlgGraph.h"
 
 
 void CDlgOutputToolbar::ResizeControl(int cx, int cy)

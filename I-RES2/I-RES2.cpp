@@ -20,8 +20,6 @@
 
 #include "I-RES2Doc.h"
 #include "I-RES2View.h"
-#include "CMPGraphCtrl.h"
-#include "CMPGraphCtrl0.h"
 #include "OptImportExportBase.h"
 
 #ifdef _DEBUG
