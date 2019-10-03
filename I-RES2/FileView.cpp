@@ -144,7 +144,7 @@ void CFileView::AdjustLayout()
 	GetClientRect(rectClient);
 
 	//int cyTlb = m_wndToolBar.CalcFixedLayout(FALSE, TRUE).cy;
-	int toolbar_width = 35;
+	int toolbar_width = 28;
 	if (m_bSetJobName)
 	{
 		m_OutputToolbar.ShowWindow(SW_SHOW);
@@ -275,6 +275,27 @@ void CFileView::AddItem(CString job_name)
 	CString temp_string;
 	temp_string.Format(_T("Output <font color = \"green\">[%d]</font></b>"), item_count);
 	m_wndFileView.SetItemText(m_itemRoot, temp_string);
+}
+
+void CFileView::DeleteItem(CString job_name)
+{
+	if (m_wndFileView.ItemHasChildren(m_itemRoot))
+	{
+		HTREEITEM hNextItem;
+		HTREEITEM hChildItem = m_wndFileView.GetChildItem(m_itemRoot);
+
+		while (hChildItem != NULL)
+		{
+			CString current_job_name = m_wndFileView.GetItemText(hChildItem);
+			if (current_job_name == job_name)
+			{
+				m_wndFileView.DeleteItem(hChildItem);
+				break;
+			}
+			hNextItem = m_wndFileView.GetNextItem(hChildItem, TVGN_NEXT);
+			hChildItem = hNextItem;
+		}
+	}
 }
 
 void CFileView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)

@@ -35,7 +35,7 @@ void CDlgCondition::OnBnClickedRadioParametric()
 	GetDlgItem(IDC_STATIC_THICK_INC)->ShowWindow(SW_SHOW);
 	GetDlgItem(IDC_STATIC_INC_THICK)->ShowWindow(SW_SHOW);
 
-	GetDlgItem(IDC_STATIC_INI_SHIP_SPEED)->SetWindowText("Initial Thickness (m)");
+	GetDlgItem(IDC_STATIC_INI_SHIP_SPEED)->SetWindowText("Initial Ship Speed (knots)");
 	m_pView->m_bConditionConstant = false;
 }
 
@@ -106,6 +106,7 @@ BOOL CDlgCondition::OnInitDialog()
 
 void CDlgCondition::OnBnClickedOk()
 {
+	UpdateData();
 	FILE* fp_4;
 	fopen_s(&fp_4, m_strProjectPath + "\\ICE_INPUT.inp", "wt");
 	if (fp_4)

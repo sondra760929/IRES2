@@ -33,8 +33,6 @@ public:
 	afx_msg void OnBnClickedMfcbuttonRot();
 	afx_msg void OnBnClickedMfcbuttonDatum();
 	afx_msg void OnBnClickedMfcbuttonNormal();
-	afx_msg void OnBnClickedCheckUnitM();
-	afx_msg void OnBnClickedCheckUnitMm();
-	CButton m_chkUnitM;
-	CButton m_chkUnitmm;
+	afx_msg void OnBnClickedMfcbuttonSetunit();
+	CMFCButton m_btnSetUnit;
 };

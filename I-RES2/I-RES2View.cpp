@@ -323,11 +323,11 @@ CIRES2View::CIRES2View()
 	, m_bInitialize(false)
 	, m_bUseDistanceForAxis(false)
 	, m_bUseDistanceForAxisWaterline(false)
-	, m_fWaterlinePointGap(500.0f)
+	, m_fWaterlinePointGap(0.5f)
 	, m_pMainFrame(0)
 	, m_bViewEdge(false)
-	, m_fCrossSectionOffset(5000.0f)
-	, m_fCrossSectionPointGap(500.0f)
+	, m_fCrossSectionOffset(5.0f)
+	, m_fCrossSectionPointGap(0.5f)
 	, m_bConditionConstant(false)
 	, m_isCreateFolder(false)
 	, m_pTranslationDlg(0)
@@ -496,38 +496,38 @@ int CIRES2View::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//osgHull_Center->addChild(frameContainer);
 	osgHull_Center->addChild(geode);
 
-	double pyramidBaseZ = 100.0f;
-	double outerBaseRadius = 50.0f;
+	double pyramidBaseZ = 0.1f;
+	double outerBaseRadius = 0.05f;
 	osg::Vec4 color(1, 1, 0, 1);
 	//	x axis
-	osg::Cone* cone = new osg::Cone(osg::Vec3(950.0f, 0.0f, 0.0f), outerBaseRadius, pyramidBaseZ);
+	osg::Cone* cone = new osg::Cone(osg::Vec3(1.0f, 0.0f, 0.0f), outerBaseRadius, pyramidBaseZ);
 	osg::Quat rotation;
 	rotation.makeRotate(osg::Vec3(0.0f, 0.0f, 1.0f), osg::Vec3(1, 0, 0));
 	cone->setRotation(rotation);
 	osg::ShapeDrawable* shape = new osg::ShapeDrawable(cone);
 	shape->setColor(color);
 	geode->addDrawable(shape);
-	geode->addDrawable(mOSG->createXAxis(1000.0f, pyramidBaseZ, outerBaseRadius, color));
+	geode->addDrawable(mOSG->createXAxis(1.0f, pyramidBaseZ, outerBaseRadius, color));
 
 	//	 y axis
-	cone = new osg::Cone(osg::Vec3(0.0f, 950.0f, 0.0f), outerBaseRadius, pyramidBaseZ);
+	cone = new osg::Cone(osg::Vec3(0.0f, 1.0f, 0.0f), outerBaseRadius, pyramidBaseZ);
 	rotation.makeRotate(osg::Vec3(0.0f, 0.0f, 1.0f), osg::Vec3(0, 1, 0));
 	cone->setRotation(rotation);
 	shape = new osg::ShapeDrawable(cone);
 	shape->setColor(color);
 	geode->addDrawable(shape);
-	geode->addDrawable(mOSG->createYAxis(1000.0f, pyramidBaseZ, outerBaseRadius, color));
+	geode->addDrawable(mOSG->createYAxis(1.0f, pyramidBaseZ, outerBaseRadius, color));
 
 	//	 z axis
-	cone = new osg::Cone(osg::Vec3(0.0f, 0.0f, 950.0f), outerBaseRadius, pyramidBaseZ);
+	cone = new osg::Cone(osg::Vec3(0.0f, 0.0f, 1.0f), outerBaseRadius, pyramidBaseZ);
 	shape = new osg::ShapeDrawable(cone);
 	shape->setColor(color);
 	geode->addDrawable(shape);
-	geode->addDrawable(mOSG->createZAxis(1000.0f, pyramidBaseZ, outerBaseRadius, color));
+	geode->addDrawable(mOSG->createZAxis(1.0f, pyramidBaseZ, outerBaseRadius, color));
 
-	geode->addDrawable(mOSG->createAxisLabel("X", osg::Vec3(1000.0f + 100, 0, 0), color));
-	geode->addDrawable(mOSG->createAxisLabel("Y", osg::Vec3(0, 1000.0f + 100, 0), color));
-	geode->addDrawable(mOSG->createAxisLabel("Z", osg::Vec3(0, 0, 1000.0f + 100), color));
+	geode->addDrawable(mOSG->createAxisLabel("X", osg::Vec3(1.1f, 0, 0), color));
+	geode->addDrawable(mOSG->createAxisLabel("Y", osg::Vec3(0, 1.1f, 0), color));
+	geode->addDrawable(mOSG->createAxisLabel("Z", osg::Vec3(0, 0, 1.1f), color));
 
 
 	osgHull = new osg::MatrixTransform();
@@ -816,9 +816,15 @@ void CIRES2View::OnButtonSave()
 		{
 			SetCurrentDirectory(m_strProjectPath);
 			SaveDatumFile();
-
+			CString file_ext = dlg.GetFileExt();
+			file_ext.MakeLower();
+			CString file_path = dlg.GetPathName();
+			if (file_ext == "")
+			{
+				file_path += ".ires";
+			}
 			CString command_string;
-			command_string = m_strAppPath + "\\zip.exe -r " + dlg.GetPathName() + " *";
+			command_string = m_strAppPath + "\\zip.exe -r " + file_path + " *";
 			STARTUPINFO si;
 			SECURITY_ATTRIBUTES sa;
 			PROCESS_INFORMATION pi;
@@ -2722,7 +2728,7 @@ void CIRES2View::AddSectionDataGeo(vector< PointData >& pt_list, osg::Group* gro
 	for each(auto pd in pt_list)
 	{
 		v_array->push_back(pd.pnt);
-		v_array->push_back(pd.pnt + (pd.normal * 500.0f));
+		v_array->push_back(pd.pnt + (pd.normal * 0.5f));
 	}
 	base_palne_geo->setVertexArray(v_array);
 	osg::ref_ptr<osg::Vec4Array> cross_color = new osg::Vec4Array;
@@ -3269,7 +3275,7 @@ void CIRES2View::CALC_ATTAINABLE_SPEED()
 	{
 		for (int IH = 1; IH <= NH; IH++)
 		{
-			float ice_strength = SIGMA[IS] * UNIT_TO_M;
+			float ice_strength = SIGMA[IS] * 0.001f;
 			float ice_thickness = THCK[IH];
 			bool is_end = false;
 			for (int IV = 1; IV <= NV; IV++)
@@ -3278,7 +3284,7 @@ void CIRES2View::CALC_ATTAINABLE_SPEED()
 				R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
 
 				float sheep_speed = VSP[IV];
-				float Preswan_resistance = R_TOTAL * UNIT_TO_M;
+				float Preswan_resistance = R_TOTAL * 0.001f;
 
 				float Attainable_Net_Thurst = (-0.007f*pow(sheep_speed, 4.0f) + -0.0198f*pow(sheep_speed, 3.0f) + 1.4903f*pow(sheep_speed, 2.0f) - 17.543f*sheep_speed + 989.57f);
 
@@ -4088,7 +4094,7 @@ void CIRES2View::WRITE_OUT()
 				fprintf_s(fp_8, " IV = %d   SIGMA = %d   THICK = %d\n", IV, IS, IH);
 				R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
 				fprintf_s(fp_7, "%9.2lf%10.2lf%10.2lf%10.1lf%10.1lf%10.1lf%10.1lf\n",
-					VSP[IV], THCK[IH], SIGMA[IS] * UNIT_TO_M, R_BREAK[IH][IS] * UNIT_TO_M, R_CLEAR[IH][IV] * UNIT_TO_M, R_BOUYA[IH] * UNIT_TO_M, R_TOTAL * UNIT_TO_M);
+					VSP[IV], THCK[IH], SIGMA[IS] * 0.001f, R_BREAK[IH][IS] * 0.001f, R_CLEAR[IH][IV] * 0.001f, R_BOUYA[IH] * 0.001f, R_TOTAL * 0.001f);
 			}
 		}
 	}
@@ -4244,6 +4250,115 @@ void CIRES2View::OnButtonSaveHull()
 	}
 }
 
+void CIRES2View::SaveCurrentHull()
+{
+	CT2CA pszConvertedAnsiString(m_strProjectPath + "\\hull.osg");
+	std::string strStd(pszConvertedAnsiString);
+	osg::Node* node = osgHull->getChild(0);
+	bool result = osgDB::writeNodeFile(*node, strStd);
+}
+
+void CIRES2View::UpdageHullSize()
+{
+	int count = osgHull->getNumChildren();
+	//for (int i = 0; i < count; i++)
+	if (count > 0)
+	{
+		osg::Geode* geo = osgHull->getChild(0)->asGeode();
+		if (geo)
+		{
+			osg::ComputeBoundsVisitor cbbv;
+			geo->accept(cbbv);
+			bbHull = cbbv.getBoundingBox();
+			char temp_str[200];
+			sprintf_s(temp_str, 200, "X: Max %.2lfm  Min %.2lfm", bbHull.xMax() * UNIT_TO_M, bbHull.xMin() * UNIT_TO_M);
+			mOSG->m_widgetHullSize[1]->setLabel(temp_str);
+			sprintf_s(temp_str, 200, "Y: Max %.2lfm  Min %.2lfm", bbHull.yMax() * UNIT_TO_M, bbHull.yMin() * UNIT_TO_M);
+			mOSG->m_widgetHullSize[2]->setLabel(temp_str);
+			sprintf_s(temp_str, 200, "Z: Max %.2lfm  Min %.2lfm", bbHull.zMax() * UNIT_TO_M, bbHull.zMin() * UNIT_TO_M);
+			mOSG->m_widgetHullSize[3]->setLabel(temp_str);
+		}
+	}
+}
+
+void CIRES2View::UpdateWaterLineGeo()
+{
+	int child_no = osgWaterline->getNumChildren();
+	if (child_no > 0)
+	{
+		osgWaterline->removeChildren(0, child_no);
+	}
+
+	osg::ref_ptr<osg::Geode> base_plane = new osg::Geode;
+
+	osg::ref_ptr<osg::Geometry> base_palne_geo = new osg::Geometry;
+	osg::ref_ptr<osg::Vec3Array> v_array = new osg::Vec3Array;
+	//v_array->push_back(osg::Vec3(-bbHullRadius, -bbHullRadius, 0));
+	//v_array->push_back(osg::Vec3(bbHullRadius, -bbHullRadius, 0));
+	//v_array->push_back(osg::Vec3(bbHullRadius, bbHullRadius, 0));
+
+	//v_array->push_back(osg::Vec3(-bbHullRadius, -bbHullRadius, 0));
+	//v_array->push_back(osg::Vec3(bbHullRadius, bbHullRadius, 0));
+	//v_array->push_back(osg::Vec3(-bbHullRadius, bbHullRadius, 0));
+
+	bbLength[0] = (bbHull.xMax() - bbHull.xMin()) * 0.6f;
+	bbLength[1] = (bbHull.yMax() - bbHull.yMin()) * 0.6f;
+	bbLength[2] = (bbHull.zMax() - bbHull.zMin()) * 0.6f;
+	v_array->push_back(osg::Vec3(-bbLength[0], -bbLength[1], 0));
+	v_array->push_back(osg::Vec3(bbLength[0], -bbLength[1], 0));
+	v_array->push_back(osg::Vec3(bbLength[0], bbLength[1], 0));
+
+	v_array->push_back(osg::Vec3(-bbLength[0], -bbLength[1], 0));
+	v_array->push_back(osg::Vec3(bbLength[0], bbLength[1], 0));
+	v_array->push_back(osg::Vec3(-bbLength[0], bbLength[1], 0));
+
+	//m_iWaterLinePos.set(bbHull.center().x(), bbHull.center().y(), bbHull.center().z());
+	m_fDraftValue = bbHull.center().z() * UNIT_TO_M;
+	m_fCrossSectionStart = bbHull.xMax();
+	m_fCrossSectionEnd = bbHull.xMin();
+	//UpdateWaterlinePos();
+
+	osg::Matrix tr;
+	osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), m_fDraftValue * M_TO_UNIT);
+
+	tr.setTrans(water_line_pos);
+	osgWaterline->setMatrix(tr);
+
+	osg::ref_ptr<osg::Vec3Array> n_array = new osg::Vec3Array;
+	n_array->push_back(osg::Vec3(0, 0, 1));
+
+	base_palne_geo->setVertexArray(v_array);
+	osg::ref_ptr<osg::Vec4Array> cross_color = new osg::Vec4Array;
+	cross_color->push_back(osg::Vec4(0.8, 0.8, 1.0, 0.5));
+	base_palne_geo->setColorArray(cross_color.get());
+	base_palne_geo->setColorBinding(osg::Geometry::BIND_OVERALL);
+	base_palne_geo->setNormalArray(n_array.get());
+	base_palne_geo->setNormalBinding(osg::Geometry::BIND_OVERALL);
+
+	osg::ref_ptr<osg::DrawElementsUInt> de = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
+	de->push_back(0);
+	de->push_back(1);
+	de->push_back(2);
+	de->push_back(3);
+	de->push_back(4);
+	de->push_back(5);
+	base_palne_geo->addPrimitiveSet(de.get());
+
+	osg::StateSet *ss = base_palne_geo->getOrCreateStateSet();
+	ss->setMode(GL_BLEND, osg::StateAttribute::ON);
+	osg::ref_ptr<osg::Depth> depth = new osg::Depth;
+	depth->setWriteMask(true);
+	ss->setAttributeAndModes(depth.get(), osg::StateAttribute::ON);
+	ss->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	ss->setAttributeAndModes(new osg::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA), osg::StateAttribute::ON);
+
+	base_plane->addDrawable(base_palne_geo);
+
+	//PreFrameUpdateData pf(osgWaterline, base_plane);
+	//m_QAddChild.push(pf);
+	osgWaterline->addChild(base_plane);
+}
+
 void CIRES2View::PreFrameUpdate()
 {
 	mOSG->ResizeToolbar(screen_width, screen_height);
@@ -4283,102 +4398,14 @@ void CIRES2View::PreFrameUpdate()
 		
 		if (pd.parent_node == osgHull)
 		{
-			CT2CA pszConvertedAnsiString(m_strProjectPath + "\\hull.osg");
-			std::string strStd(pszConvertedAnsiString);
-			osg::Node* node = osgHull->getChild(0);
-			bool result = osgDB::writeNodeFile(*node, strStd);
+			SaveCurrentHull();
 
-			//bbHull.expandBy(osgHull->getBound());
-			//bbHullRadius = osgHull->getBound().radius();
-			osg::ComputeBoundsVisitor cbbv;
-			osgHull_Center->accept(cbbv);
-			bbHull = cbbv.getBoundingBox();
-			char temp_str[200];
-			sprintf_s(temp_str, 200, "X: Max %.2lfm  Min %.2lfm", bbHull.xMax() * UNIT_TO_M, bbHull.xMin() * UNIT_TO_M);
-			mOSG->m_widgetHullSize[1]->setLabel(temp_str);
-			sprintf_s(temp_str, 200, "Y: Max %.2lfm  Min %.2lfm", bbHull.yMax() * UNIT_TO_M, bbHull.yMin() * UNIT_TO_M);
-			mOSG->m_widgetHullSize[2]->setLabel(temp_str);
-			sprintf_s(temp_str, 200, "Z: Max %.2lfm  Min %.2lfm", bbHull.zMax() * UNIT_TO_M, bbHull.zMin() * UNIT_TO_M);
-			mOSG->m_widgetHullSize[3]->setLabel(temp_str);
+			UpdageHullSize();
 
 			//CString temp_string;
 			//temp_string.Format("%lf, %lf, %lf, %lf, %lf, %lf", bbHull.xMin(), bbHull.xMax(), bbHull.yMin(), bbHull.yMax(), bbHull.zMin(), bbHull.zMax());
 			//AfxMessageBox(temp_string);
-
-			int child_no = osgWaterline->getNumChildren();
-			if (child_no > 0)
-			{
-				osgWaterline->removeChildren(0, child_no);
-			}
-
-			osg::ref_ptr<osg::Geode> base_plane = new osg::Geode;
-
-			osg::ref_ptr<osg::Geometry> base_palne_geo = new osg::Geometry;
-			osg::ref_ptr<osg::Vec3Array> v_array = new osg::Vec3Array;
-			//v_array->push_back(osg::Vec3(-bbHullRadius, -bbHullRadius, 0));
-			//v_array->push_back(osg::Vec3(bbHullRadius, -bbHullRadius, 0));
-			//v_array->push_back(osg::Vec3(bbHullRadius, bbHullRadius, 0));
-
-			//v_array->push_back(osg::Vec3(-bbHullRadius, -bbHullRadius, 0));
-			//v_array->push_back(osg::Vec3(bbHullRadius, bbHullRadius, 0));
-			//v_array->push_back(osg::Vec3(-bbHullRadius, bbHullRadius, 0));
-
-			bbLength[0] = (bbHull.xMax() - bbHull.xMin()) * 0.6f;
-			bbLength[1] = (bbHull.yMax() - bbHull.yMin()) * 0.6f;
-			bbLength[2] = (bbHull.zMax() - bbHull.zMin()) * 0.6f;
-			v_array->push_back(osg::Vec3(-bbLength[0], -bbLength[1], 0));
-			v_array->push_back(osg::Vec3(bbLength[0], -bbLength[1], 0));
-			v_array->push_back(osg::Vec3(bbLength[0], bbLength[1], 0));
-
-			v_array->push_back(osg::Vec3(-bbLength[0], -bbLength[1], 0));
-			v_array->push_back(osg::Vec3(bbLength[0], bbLength[1], 0));
-			v_array->push_back(osg::Vec3(-bbLength[0], bbLength[1], 0));
-
-			//m_iWaterLinePos.set(bbHull.center().x(), bbHull.center().y(), bbHull.center().z());
-			m_fDraftValue = bbHull.center().z() * UNIT_TO_M;
-			m_fCrossSectionStart = bbHull.xMax();
-			m_fCrossSectionEnd = bbHull.xMin();
-			//UpdateWaterlinePos();
-
-			osg::Matrix tr;
-			osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), m_fDraftValue * M_TO_UNIT);
-
-			tr.setTrans(water_line_pos);
-			osgWaterline->setMatrix(tr);
-
-			osg::ref_ptr<osg::Vec3Array> n_array = new osg::Vec3Array;
-			n_array->push_back(osg::Vec3(0, 0, 1));
-
-			base_palne_geo->setVertexArray(v_array);
-			osg::ref_ptr<osg::Vec4Array> cross_color = new osg::Vec4Array;
-			cross_color->push_back(osg::Vec4(0.8, 0.8, 1.0, 0.5));
-			base_palne_geo->setColorArray(cross_color.get());
-			base_palne_geo->setColorBinding(osg::Geometry::BIND_OVERALL);
-			base_palne_geo->setNormalArray(n_array.get());
-			base_palne_geo->setNormalBinding(osg::Geometry::BIND_OVERALL);
-
-			osg::ref_ptr<osg::DrawElementsUInt> de = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
-			de->push_back(0);
-			de->push_back(1);
-			de->push_back(2);
-			de->push_back(3);
-			de->push_back(4);
-			de->push_back(5);
-			base_palne_geo->addPrimitiveSet(de.get());
-
-			osg::StateSet *ss = base_palne_geo->getOrCreateStateSet();
-			ss->setMode(GL_BLEND, osg::StateAttribute::ON);
-			osg::ref_ptr<osg::Depth> depth = new osg::Depth;
-			depth->setWriteMask(true);
-			ss->setAttributeAndModes(depth.get(), osg::StateAttribute::ON);
-			ss->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-			ss->setAttributeAndModes(new osg::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA), osg::StateAttribute::ON);
-
-			base_plane->addDrawable(base_palne_geo);
-
-			//PreFrameUpdateData pf(osgWaterline, base_plane);
-			//m_QAddChild.push(pf);
-			osgWaterline->addChild(base_plane);
+			UpdateWaterLineGeo();
 
 			UpdateGlobalAxis(max(max(bbHull.xMax(), bbHull.yMax()), bbHull.zMax()));
 
@@ -5557,6 +5584,40 @@ bool CIRES2View::SelectJob(CString job_name)
 	return false;
 }
 
+bool CIRES2View::DeleteJob(CString job_name)
+{
+
+	CString job_path = m_strProjectPath + "\\JOB\\" + job_name + "\\";
+	DeleteDirectoryFile(job_path);
+
+	if (PathFileExists(job_path))
+	{
+		CopyFiles(m_strProjectPath + "\\JOB\\" + job_name, m_strProjectPath);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\ICE_INPUT.inp", m_strAppPath + "\\ICE_INPUT.inp", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\ICECOFF_INPUT.inp", m_strAppPath + "\\ICECOFF_INPUT.inp", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\SELECT MODULE.INP", m_strAppPath + "\\SELECT MODULE.INP", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\FRAME.inp", m_strAppPath + "\\FRAME.inp", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\WATERLINE_OUTSIDE.inp", m_strAppPath + "\\WATERLINE_OUTSIDE.inp", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\ice_result.OUT", m_strAppPath + "\\ice_result.OUT", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\ECHO.OUT", m_strAppPath + "\\ECHO.OUT", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\IMSI.OUT", m_strAppPath + "\\IMSI.OUT", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\CROSS_SECTION.INP", m_strAppPath + "\\CROSS_SECTION.INP", FALSE);
+		//CopyFile(m_strAppPath + "\\JOB\\" + job_name + "\\DRAFT_SECTION.INP", m_strAppPath + "\\DRAFT_SECTION.INP", FALSE);
+
+		LoadDraftSectionSetting();
+		CalculateWaterSectionPoint();
+		LoadCrossSectionSetting();
+		CalculateSectionPoint();
+
+		return true;
+	}
+	else
+	{
+		AfxMessageBox("Job folder does not exist.");
+	}
+	return false;
+}
+
 bool CIRES2View::CreateJob(CString job_name)
 {
 	CalculateOutputResult();
@@ -6191,5 +6252,45 @@ void CIRES2View::OnButtonSetUnit(UNIT_MODE um)
 		M_TO_UNIT = 1000.0f;
 	}
 	break;
+	}
+}
+
+void CIRES2View::OnButtonSetUnit()
+{
+	int count = osgHull->getNumChildren();
+	//for (int i = 0; i < count; i++)
+	if(count > 0)
+	{
+		osg::Geode* geo = osgHull->getChild(0)->asGeode();
+		if (geo)
+		{
+			float x_length = bbHull.xMax() - bbHull.xMin();
+			float y_length = bbHull.yMax() - bbHull.yMin();
+			float z_length = bbHull.zMax() - bbHull.zMin();
+			float max_length = max(x_length, max(y_length, z_length));
+			if (max_length > 1000.0f)
+			{
+				int geometry_count = geo->getNumChildren();
+				for (int j = 0; j < geometry_count; j++)
+				{
+					osg::Geometry* geometry = geo->getChild(j)->asGeometry();
+					osg::Vec3Array *vertices = (osg::Vec3Array *)geometry->getVertexArray();
+					for (int k = 0; k < vertices->size(); k++)
+					{
+						vertices->at(k).set(vertices->at(k) / 1000.0f);
+					}
+					vertices->dirty();
+					geometry->dirtyBound();
+				}
+			}
+
+			SaveCurrentHull();
+			
+			UpdageHullSize();
+
+			UpdateWaterLineGeo();
+
+			UpdateGlobalAxis(max(max(bbHull.xMax(), bbHull.yMax()), bbHull.zMax()));
+		}
 	}
 }

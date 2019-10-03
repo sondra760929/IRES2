@@ -110,6 +110,7 @@
 #define IDB_BITMAP_VER                  342
 #define IDB_BITMAP_VER_PT               343
 #define IDD_DIALOG_CHART                346
+#define IDB_BITMAP_SETUNIT              348
 #define IDC_LIST1                       1000
 #define IDC_MFCBUTTON_CLEAR             1000
 #define IDC_PROGRESS1                   1001
@@ -126,6 +127,7 @@
 #define IDC_EDIT_POINT_DISTANCE         1004
 #define IDC_EDIT_INITIAL_STRENGTH       1005
 #define IDC_EDIT_AXIS_DISTANCE          1005
+#define IDC_MFCBUTTON_SETUNIT           1005
 #define IDC_SPIN2                       1006
 #define IDC_MFCBUTTON_CALCULATE         1006
 #define IDC_EDIT_MAXIMUM_STRENGTH       1007
@@ -173,6 +175,10 @@
 #define IDC_CHECK_UNIT_M                1045
 #define IDC_CHECK_UNIT_MM               1046
 #define IDC_STCHARTCONTAINER            1046
+#define IDC_MFCBUTTON_EXCEL1            1047
+#define IDC_MFCBUTTON_GRAPH1            1048
+#define IDC_MFCBUTTON_EXCEL2            1049
+#define IDC_MFCBUTTON_GRAPH2            1050
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_BUTTON_OPEN                  32771
 #define ID_BUTTON_SAVE                  32772
@@ -253,9 +259,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        348
+#define _APS_NEXT_RESOURCE_VALUE        350
 #define _APS_NEXT_COMMAND_VALUE         32845
-#define _APS_NEXT_CONTROL_VALUE         1047
+#define _APS_NEXT_CONTROL_VALUE         1051
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

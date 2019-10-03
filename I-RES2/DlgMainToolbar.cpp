@@ -30,8 +30,7 @@ void CDlgMainToolbar::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_MFCBUTTON_ROT, m_btnRot);
 	DDX_Control(pDX, IDC_MFCBUTTON_DATUM, m_btnDatum);
 	DDX_Control(pDX, IDC_MFCBUTTON_NORMAL, m_btnNormal);
-	DDX_Control(pDX, IDC_CHECK_UNIT_M, m_chkUnitM);
-	DDX_Control(pDX, IDC_CHECK_UNIT_MM, m_chkUnitmm);
+	DDX_Control(pDX, IDC_MFCBUTTON_SETUNIT, m_btnSetUnit);
 }
 
 
@@ -41,8 +40,7 @@ BEGIN_MESSAGE_MAP(CDlgMainToolbar, CDialog)
 	ON_BN_CLICKED(IDC_MFCBUTTON_ROT, &CDlgMainToolbar::OnBnClickedMfcbuttonRot)
 	ON_BN_CLICKED(IDC_MFCBUTTON_DATUM, &CDlgMainToolbar::OnBnClickedMfcbuttonDatum)
 	ON_BN_CLICKED(IDC_MFCBUTTON_NORMAL, &CDlgMainToolbar::OnBnClickedMfcbuttonNormal)
-	ON_BN_CLICKED(IDC_CHECK_UNIT_M, &CDlgMainToolbar::OnBnClickedCheckUnitM)
-	ON_BN_CLICKED(IDC_CHECK_UNIT_MM, &CDlgMainToolbar::OnBnClickedCheckUnitMm)
+	ON_BN_CLICKED(IDC_MFCBUTTON_SETUNIT, &CDlgMainToolbar::OnBnClickedMfcbuttonSetunit)
 END_MESSAGE_MAP()
 
 
@@ -58,27 +56,32 @@ BOOL CDlgMainToolbar::OnInitDialog()
 	CImage btn_image3;
 	CImage btn_image4;
 	CImage btn_image5;
+	CImage btn_image6;
 	btn_image1.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_NEW);
 	btn_image2.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_TRANS);
 	btn_image3.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_ROT);
 	btn_image4.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_DATUM);
 	btn_image5.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_NORMAL);
+	btn_image6.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_SETUNIT);
 	HBITMAP hBit1;
 	HBITMAP hBit2;
 	HBITMAP hBit3;
 	HBITMAP hBit4;
 	HBITMAP hBit5;
+	HBITMAP hBit6;
 	hBit1 = btn_image1.Detach();
 	hBit2 = btn_image2.Detach();
 	hBit3 = btn_image3.Detach();
 	hBit4 = btn_image4.Detach();
 	hBit5 = btn_image5.Detach();
+	hBit6 = btn_image6.Detach();
 
 	m_btnClear.SetImage(hBit1, TRUE, hBit1);
 	m_btnTrans.SetImage(hBit2, TRUE, hBit2);
 	m_btnRot.SetImage(hBit3, TRUE, hBit3);
 	m_btnDatum.SetImage(hBit4, TRUE, hBit4);
 	m_btnNormal.SetImage(hBit5, TRUE, hBit5);
+	m_btnSetUnit.SetImage(hBit6, TRUE, hBit6);
 
 	m_btnClear.SetTooltip(_T("New Model"));
 	m_btnClear.EnableFullTextTooltip(FALSE);
@@ -90,9 +93,22 @@ BOOL CDlgMainToolbar::OnInitDialog()
 	m_btnDatum.EnableFullTextTooltip(FALSE);
 	m_btnNormal.SetTooltip(_T("Change normal direction"));
 	m_btnNormal.EnableFullTextTooltip(FALSE);
+	m_btnSetUnit.SetTooltip(_T("Change unit to M"));
+	m_btnSetUnit.EnableFullTextTooltip(FALSE);
 
-	m_chkUnitM.SetCheck(0);
-	m_chkUnitmm.SetCheck(1);
+	int width = 28;
+	int top = 0;
+	m_btnClear.MoveWindow(0, top, width, width);
+	top += width;
+	m_btnTrans.MoveWindow(0, top, width, width);
+	top += width;
+	m_btnRot.MoveWindow(0, top, width, width);
+	top += width;
+	m_btnDatum.MoveWindow(0, top, width, width);
+	top += width;
+	m_btnNormal.MoveWindow(0, top, width, width);
+	top += width;
+	m_btnSetUnit.MoveWindow(0, top, width, width);
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
 }
@@ -143,23 +159,10 @@ void CDlgMainToolbar::OnBnClickedMfcbuttonNormal()
 }
 
 
-void CDlgMainToolbar::OnBnClickedCheckUnitM()
+void CDlgMainToolbar::OnBnClickedMfcbuttonSetunit()
 {
 	if (m_pView)
 	{
-		m_pView->OnButtonSetUnit(UNIT_M);
-		m_chkUnitM.SetCheck(1);
-		m_chkUnitmm.SetCheck(0);
-	}
-}
-
-
-void CDlgMainToolbar::OnBnClickedCheckUnitMm()
-{
-	if (m_pView)
-	{
-		m_pView->OnButtonSetUnit(UNIT_MM);
-		m_chkUnitM.SetCheck(0);
-		m_chkUnitmm.SetCheck(1);
+		m_pView->OnButtonSetUnit();
 	}
 }

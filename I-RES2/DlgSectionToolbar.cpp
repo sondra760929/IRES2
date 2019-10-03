@@ -71,6 +71,17 @@ BOOL CDlgSectionToolbar::OnInitDialog()
 
 	//m_chkDraftPlane.SetCheck(m_pView->m_bShowWaterline);
 
+	int width = 28;
+	int top = 0;
+	m_chkDraftPlane.MoveWindow(0, top, width, width);
+	top += width;
+	m_chkDraftPoints.MoveWindow(0, top, width, width);
+	top += width;
+	top += 10;
+	m_chkCrossPlane.MoveWindow(0, top, width, width);
+	top += width;
+	m_chkCrossPoints.MoveWindow(0, top, width, width);
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
 }

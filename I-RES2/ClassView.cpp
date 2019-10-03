@@ -215,7 +215,7 @@ void CClassView::AdjustLayout()
 	GetClientRect(rectClient);
 
 	//int cyTlb = m_wndToolBar.CalcFixedLayout(FALSE, TRUE).cy;
-	int toolbar_width = 35;
+	int toolbar_width = 28;
 	m_MainToolbar.ShowWindow(SW_HIDE);
 	m_SectionToolbar.ShowWindow(SW_HIDE);
 	if (m_iCurrentToolbar > -1)
@@ -419,12 +419,29 @@ void CClassView::CreateJob(HTREEITEM current_item)
 	}
 }
 
+void CClassView::DeleteJob(HTREEITEM current_item)
+{
+	CMainFrame* m_pFrame = (CMainFrame*)AfxGetMainWnd();
+
+	if (m_pFrame)
+	{
+		CString job_name = m_wndClassView.GetItemText(current_item);
+		m_wndClassView.DeleteItem(current_item);
+		m_pFrame->m_wndFileView.DeleteItem(job_name);
+		m_pView->DeleteJob(job_name);
+	}
+}
+
 void CClassView::SelectJob(HTREEITEM current_item)
 {
 	CString job_name = m_wndClassView.GetItemText(current_item);
 	if (AfxMessageBox("Reset all setting from [" + job_name + "]", MB_YESNO) == IDYES)
 	{
 		m_pView->SelectJob(job_name);
+	}
+	else if (AfxMessageBox("Delete all setting from [" + job_name + "]", MB_YESNO) == IDYES)
+	{
+		DeleteJob(current_item);
 	}
 }
 

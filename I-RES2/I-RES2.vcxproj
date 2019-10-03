@@ -427,6 +427,7 @@
     <Image Include="res\bmp00002.bmp" />
     <Image Include="res\bmp00003.bmp" />
     <Image Include="res\bmp00004.bmp" />
+    <Image Include="res\bmp00005.bmp" />
     <Image Include="res\buttons.bmp" />
     <Image Include="res\calc.bmp" />
     <Image Include="res\classview.bmp" />

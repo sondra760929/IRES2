@@ -33,9 +33,9 @@ vector< CString > m_aAnalysisOutput;
 vector< CString > m_aAnalysisCommand;
 vector< CString > m_aAnalysisPGM;
 CIRES2View* m_pCurrentView = NULL;
-float UNIT_TO_M = 0.001f;
-float M_TO_UNIT = 1000.0f;
-UNIT_MODE m_iCurrentUnitMode = UNIT_MM;
+float UNIT_TO_M = 1.0f;
+float M_TO_UNIT = 1.0f;
+UNIT_MODE m_iCurrentUnitMode = UNIT_M;
 
 void SetButtons(CMFCButton* btn, UINT img, CString tooltip)
 {

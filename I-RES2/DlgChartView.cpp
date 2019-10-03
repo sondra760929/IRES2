@@ -93,43 +93,61 @@ BOOL CDlgChartView::OnInitDialog()
 	}	
 	else if (m_iType == 1)
 	{
-		//CString job_file;
-		//job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\Attainable_speed.out";
-		//if (PathFileExists(job_file))
-		//{
-		//	m_wndExcelView.SetNumberCols(5);
-		//	FILE* fp;
-		//	fopen_s(&fp, job_file, "rt");
-		//	if (fp)
-		//	{
-		//		COptImportExportBase ifp;
-		//		ifp.m_fp_input = fp;
-		//		ifp.m_array_strSplit.push_back(' ');
-		//		int row_count = 0;
-		//		if (ifp.ReadOneLineFromFile() > 4)
-		//		{
-		//			m_wndExcelView.QuickSetText(0, -1, ifp.m_array_strOutput[0]);
-		//			m_wndExcelView.QuickSetText(1, -1, ifp.m_array_strOutput[1]);
-		//			m_wndExcelView.QuickSetText(2, -1, ifp.m_array_strOutput[2]);
-		//			m_wndExcelView.QuickSetText(3, -1, ifp.m_array_strOutput[3]);
-		//			m_wndExcelView.QuickSetText(4, -1, ifp.m_array_strOutput[4]);
-		//		}
-		//		while (ifp.ReadOneLineFromFile() > 4)
-		//		{
-		//			row_count++;
-		//			m_wndExcelView.SetNumberRows(row_count);
-		//			m_wndExcelView.QuickSetNumber(-1, row_count - 1, row_count);
-		//			m_wndExcelView.QuickSetText(0, row_count-1, ifp.m_array_strOutput[0]);
-		//			m_wndExcelView.QuickSetText(1, row_count-1, ifp.m_array_strOutput[1]);
-		//			m_wndExcelView.QuickSetText(2, row_count-1, ifp.m_array_strOutput[2]);
-		//			m_wndExcelView.QuickSetText(3, row_count-1, ifp.m_array_strOutput[3]);
-		//			m_wndExcelView.QuickSetText(4, row_count-1, ifp.m_array_strOutput[4]);
-		//		}
-		//	}
-		//}
+		CString job_file;
+		job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\Attainable_speed.out";
+		if (PathFileExists(job_file))
+		{
+			FILE* fp;
+			fopen_s(&fp, job_file, "rt");
+			if (fp)
+			{
+				V_CHARTDATAD vData1;
+				V_CHARTDATAD vData2;
+				V_CHARTDATAD vData3;
+				float prev_strength = 0;
+				float thickness_offset = 0;
+				float current_thickness = 0;
+				COptImportExportBase ifp;
+				ifp.m_fp_input = fp;
+				ifp.m_array_strSplit.push_back(' ');
+				ifp.m_array_strSplit.push_back(',');
+				int row_count = 0;
+				if (ifp.ReadOneLineFromFile() > 4)
+				{
+				}
+				while (ifp.ReadOneLineFromFile() > 4)
+				{
+					float strength = atof(ifp.m_array_strOutput[0]);
+					float thickness = atof(ifp.m_array_strOutput[1]);
+					float speed_60 = atof(ifp.m_array_strOutput[2]);
+					float speed_80 = atof(ifp.m_array_strOutput[3]);
+					float speed_90 = atof(ifp.m_array_strOutput[4]);
+					if (prev_strength < strength)
+					{
+						if (vData1.size() > 0)
+						{
+							thickness_offset = current_thickness;
+						}
+						prev_strength = strength;
+					}
+					current_thickness = thickness_offset + thickness;
+					vData1.push_back(PointD(current_thickness, speed_60));
+					vData2.push_back(PointD(current_thickness, speed_80));
+					vData3.push_back(PointD(current_thickness, speed_90));
+				}
+				if (vData1.size() > 0)
+				{
+					int chartIdx = m_chartContainer.AddChart(true, show_pnts, to_string(prev_strength), "60", 3, DashStyleSolid, 2, float(0), Color(255, 255, 0, 0), vData1, true);
+					chartIdx = m_chartContainer.AddChart(true, show_pnts, to_string(prev_strength), "80", 3, DashStyleSolid, 2, float(0), Color(255, 0, 255, 0), vData2, true);
+					chartIdx = m_chartContainer.AddChart(true, show_pnts, to_string(prev_strength), "90", 3, DashStyleSolid, 2, float(0), Color(255, 0, 0, 255), vData3, true);
+				}
+			}
+		}
 	}
-	m_chartContainer.ShowAxisXBoundaries(true, true);
 
+	m_chartContainer.RefreshWnd();
+	m_chartContainer.ShowAxisXBoundaries(true, true);
+	m_chartContainer.ShowNamesLegend();
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
 }

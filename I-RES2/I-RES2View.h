@@ -169,6 +169,7 @@ public:
 	void CalculateSectionPoint();
 	bool CreateJob(CString job_name);
 	bool SelectJob(CString job_name);
+	bool DeleteJob(CString job_name);
 	void LoadIceInput();
 	void LoadDraftSectionSetting();
 	void SaveDraftSectionSetting();
@@ -266,6 +267,10 @@ public:
 	void LoadDatumFile();
 	void AddDatumInLocal(osg::Vec3 pos);
 	void OnButtonSetUnit(UNIT_MODE um);
+	void OnButtonSetUnit();
+	void SaveCurrentHull();
+	void UpdageHullSize();
+	void UpdateWaterLineGeo();
 public:
 
 // 재정의입니다.

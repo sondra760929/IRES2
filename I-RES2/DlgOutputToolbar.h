@@ -22,17 +22,14 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	vector< CMFCButton* > m_aExcelButton;
-	vector< CMFCButton* > m_aGraphButton;
-	//CMFCButton m_btnIceExcel;
-	//CMFCButton m_btnIceGraph;
-	//CMFCButton m_btnSpeedExcel;
-	//CMFCButton m_btnSpeedGraph;
-	//afx_msg void OnBnClickedMfcbuttonIceExcel();
-	//afx_msg void OnBnClickedMfcbuttonIcdGraph();
-	//afx_msg void OnBnClickedMfcbuttonSpeedExcel();
-	//afx_msg void OnBnClickedMfcbuttonSpeedGraph();
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
-	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
+	afx_msg void OnBnClickedMfcbuttonExcel1();
+	afx_msg void OnBnClickedMfcbuttonGraph1();
+	afx_msg void OnBnClickedMfcbuttonExcel2();
+	afx_msg void OnBnClickedMfcbuttonGraph2();
+	CMFCButton m_btnExcel1;
+	CMFCButton m_btnGraph1;
+	CMFCButton m_btnExcel2;
+	CMFCButton m_btnGraph2;
 };

@@ -47,7 +47,8 @@ BOOL CDlgExcelView::OnInitDialog()
 	CRect rect;
 	GetClientRect(&rect);
 	SetSize(rect.Width(), rect.Height());
-
+	int row_count = 0;
+	int col_count = 0;
 	if (m_iType == 0)
 	{
 		CString job_file;
@@ -55,6 +56,7 @@ BOOL CDlgExcelView::OnInitDialog()
 		if (PathFileExists(job_file))
 		{
 			m_wndExcelView.SetNumberCols(7);
+			col_count = 7;
 			FILE* fp;
 			fopen_s(&fp, job_file, "rt");
 			if (fp)
@@ -62,7 +64,6 @@ BOOL CDlgExcelView::OnInitDialog()
 				COptImportExportBase ifp;
 				ifp.m_fp_input = fp;
 				ifp.m_array_strSplit.push_back(' ');
-				int row_count = 0;
 				if (ifp.ReadOneLineFromFile() > 6)
 				{
 					m_wndExcelView.QuickSetText(0, -1, ifp.m_array_strOutput[0]);
@@ -96,6 +97,7 @@ BOOL CDlgExcelView::OnInitDialog()
 		if (PathFileExists(job_file))
 		{
 			m_wndExcelView.SetNumberCols(5);
+			col_count = 5;
 			FILE* fp;
 			fopen_s(&fp, job_file, "rt");
 			if (fp)
@@ -103,7 +105,7 @@ BOOL CDlgExcelView::OnInitDialog()
 				COptImportExportBase ifp;
 				ifp.m_fp_input = fp;
 				ifp.m_array_strSplit.push_back(' ');
-				int row_count = 0;
+				ifp.m_array_strSplit.push_back(',');
 				if (ifp.ReadOneLineFromFile() > 4)
 				{
 					m_wndExcelView.QuickSetText(0, -1, ifp.m_array_strOutput[0]);
@@ -126,9 +128,8 @@ BOOL CDlgExcelView::OnInitDialog()
 			}
 		}
 	}
-
-
-
+	
+	m_wndExcelView.BestFit(-1, col_count - 1, 0, UG_BESTFIT_TOPHEADINGS);
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
 }

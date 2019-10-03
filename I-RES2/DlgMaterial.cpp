@@ -148,6 +148,7 @@ BOOL CDlgMaterial::OnInitDialog()
 
 void CDlgMaterial::OnBnClickedOk()
 {
+	UpdateData();
 	FILE* fp_4;
 	fopen_s(&fp_4, m_strProjectPath + "\\ICE_INPUT.inp", "wt");
 	if (fp_4)

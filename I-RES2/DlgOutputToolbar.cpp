@@ -29,6 +29,10 @@ void CDlgOutputToolbar::DoDataExchange(CDataExchange* pDX)
 	//DDX_Control(pDX, IDC_MFCBUTTON_ICD_GRAPH, m_btnIceGraph);
 	//DDX_Control(pDX, IDC_MFCBUTTON_SPEED_EXCEL, m_btnSpeedExcel);
 	//DDX_Control(pDX, IDC_MFCBUTTON_SPEED_GRAPH, m_btnSpeedGraph);
+	DDX_Control(pDX, IDC_MFCBUTTON_EXCEL1, m_btnExcel1);
+	DDX_Control(pDX, IDC_MFCBUTTON_GRAPH1, m_btnGraph1);
+	DDX_Control(pDX, IDC_MFCBUTTON_EXCEL2, m_btnExcel2);
+	DDX_Control(pDX, IDC_MFCBUTTON_GRAPH2, m_btnGraph2);
 }
 
 
@@ -38,6 +42,10 @@ BEGIN_MESSAGE_MAP(CDlgOutputToolbar, CDialog)
 	//ON_BN_CLICKED(IDC_MFCBUTTON_SPEED_EXCEL, &CDlgOutputToolbar::OnBnClickedMfcbuttonSpeedExcel)
 	//ON_BN_CLICKED(IDC_MFCBUTTON_SPEED_GRAPH, &CDlgOutputToolbar::OnBnClickedMfcbuttonSpeedGraph)
 	ON_WM_SIZE()
+	ON_BN_CLICKED(IDC_MFCBUTTON_EXCEL1, &CDlgOutputToolbar::OnBnClickedMfcbuttonExcel1)
+	ON_BN_CLICKED(IDC_MFCBUTTON_GRAPH1, &CDlgOutputToolbar::OnBnClickedMfcbuttonGraph1)
+	ON_BN_CLICKED(IDC_MFCBUTTON_EXCEL2, &CDlgOutputToolbar::OnBnClickedMfcbuttonExcel2)
+	ON_BN_CLICKED(IDC_MFCBUTTON_GRAPH2, &CDlgOutputToolbar::OnBnClickedMfcbuttonGraph2)
 END_MESSAGE_MAP()
 
 
@@ -48,36 +56,39 @@ END_MESSAGE_MAP()
 
 void CDlgOutputToolbar::ResizeControl(int cx, int cy)
 {
-	for (int i = 0; i < m_aExcelButton.size(); i++)
-	{
-		m_aExcelButton[i]->MoveWindow(0, (i * 2)*cx, cx, cx);
-		m_aGraphButton[i]->MoveWindow(0, (i * 2 + 1)*cx, cx, cx);
-	}
+	int width = 28;
+	int top = 0;
+
+	m_btnExcel1.MoveWindow(0, top, width, width);
+	top += width;
+	m_btnGraph1.MoveWindow(0, top, width, width);
+	top += width;
+	top += 10;
+	m_btnExcel2.MoveWindow(0, top, width, width);
+	top += width;
+	m_btnGraph2.MoveWindow(0, top, width, width);
 }
 
 BOOL CDlgOutputToolbar::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	for (int i = 0; i < 2; i++)
-	{
-		CMFCButton* btn_excel = new CMFCButton();
-		CMFCButton* btn_graph = new CMFCButton();
+	SetButtons(&m_btnExcel1, IDB_BITMAP_EXCEL, "OutPut");
+	SetButtons(&m_btnGraph1, IDB_BITMAP_GRAPH, "OutPut");
+	SetButtons(&m_btnExcel2, IDB_BITMAP_EXCEL, "Attainable_Speed");
+	SetButtons(&m_btnGraph2, IDB_BITMAP_GRAPH, "Attainable_Speed");
 
-		btn_excel->Create("OutPut", WS_CHILD | WS_VISIBLE, CRect(10, 10, 10, 10), this, i * 2 + 100);
-		btn_graph->Create("Attainable_Speed", WS_CHILD | WS_VISIBLE, CRect(10, 10, 10, 10), this, i * 2 + 101);
-		btn_excel->ShowWindow(SW_SHOW);
-		btn_graph->ShowWindow(SW_SHOW);
+	int width = 28;
+	int top = 0;
 
-		SetButtons(btn_excel, IDB_BITMAP_EXCEL, "OutPut");
-		SetButtons(btn_graph, IDB_BITMAP_GRAPH, "OutPut");
-
-		m_aExcelButton.push_back(btn_excel);
-		m_aGraphButton.push_back(btn_graph);
-	}
-
-	m_aExcelButton[1]->SetTooltip("Attainable_Speed");
-	m_aGraphButton[1]->SetTooltip("Attainable_Speed");
+	m_btnExcel1.MoveWindow(0, top, width, width);
+	top += width;
+	m_btnGraph1.MoveWindow(0, top, width, width);
+	top += width;
+	top += 10;
+	m_btnExcel2.MoveWindow(0, top, width, width);
+	top += width;
+	m_btnGraph2.MoveWindow(0, top, width, width);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
@@ -92,37 +103,40 @@ void CDlgOutputToolbar::OnSize(UINT nType, int cx, int cy)
 }
 
 const int NSIZE = 101;
-BOOL CDlgOutputToolbar::OnCommand(WPARAM wParam, LPARAM lParam)
+
+void CDlgOutputToolbar::OnBnClickedMfcbuttonExcel1()
 {
-	int index = (int)wParam - 100;
-	int index1 = index / 2;
-	int index2 = (index - (index1 * 2));
-	if (index1 > -1 && index1 < m_aExcelButton.size())
-	{
-		if (index2 == 1)
-		{
-			CDlgChartView pDlg;
-			pDlg.m_strJobName = this->m_strJobName;
-			pDlg.m_iType = index1;
+	CDlgExcelView pDlg;
+	pDlg.m_strJobName = this->m_strJobName;
+	pDlg.m_iType = 0;
+	//pDlg.m_strInputFile = m_aAnalysisOutput[index1];
+	pDlg.DoModal();
+}
 
-			pDlg.DoModal();
-			//	graph
-			//CDlgGraph pDlg;
-			//pDlg.m_strJobName = this->m_strJobName;
-			//pDlg.m_iType = index1;
-			////pDlg.m_strInputFile = m_aAnalysisOutput[index1];
-			//pDlg.DoModal();
-		}
-		else
-		{
-			//	excel
-			CDlgExcelView pDlg;
-			pDlg.m_strJobName = this->m_strJobName;
-			pDlg.m_iType = index1;
-			//pDlg.m_strInputFile = m_aAnalysisOutput[index1];
-			pDlg.DoModal();
-		}
-	}
 
-	return CDialog::OnCommand(wParam, lParam);
+void CDlgOutputToolbar::OnBnClickedMfcbuttonGraph1()
+{
+	CDlgChartView pDlg;
+	pDlg.m_strJobName = this->m_strJobName;
+	pDlg.m_iType = 0;
+	pDlg.DoModal();
+}
+
+
+void CDlgOutputToolbar::OnBnClickedMfcbuttonExcel2()
+{
+	CDlgExcelView pDlg;
+	pDlg.m_strJobName = this->m_strJobName;
+	pDlg.m_iType = 1;
+	//pDlg.m_strInputFile = m_aAnalysisOutput[index1];
+	pDlg.DoModal();
+}
+
+
+void CDlgOutputToolbar::OnBnClickedMfcbuttonGraph2()
+{
+	CDlgChartView pDlg;
+	pDlg.m_strJobName = this->m_strJobName;
+	pDlg.m_iType = 1;
+	pDlg.DoModal();
 }

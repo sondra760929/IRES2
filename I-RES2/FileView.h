@@ -30,6 +30,7 @@ public:
 	int item_count;
 	void Clear();
 	void AddItem(CString job_name);
+	void DeleteItem(CString job_name);
 	bool m_bSetJobName;
 	CString m_strJobName;
 	CIRES2View* m_pView;

@@ -67,6 +67,7 @@ public:
 	void SetToolbar(int index);
 	int CountTreeItems(HTREEITEM hItem = NULL, bool Recurse = false);
 	void CreateJob(HTREEITEM current_item);
+	void DeleteJob(HTREEITEM current_item);
 	void SelectJob(HTREEITEM current_item);
 	void ClearJobList();
 	void AddJobItem(CString job_name);

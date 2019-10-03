@@ -762,6 +762,9 @@
     <Image Include="res\bmp00004.bmp">
       <Filter>리소스 파일</Filter>
     </Image>
+    <Image Include="res\bmp00005.bmp">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\ribbon.mfcribbon-ms">
