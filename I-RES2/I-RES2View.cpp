@@ -272,7 +272,6 @@ int HULL_TYPE;
 float FG;
 float SIGMAP, SIGMAK, SSIGMA;
 float HH, HK, SH;
-float DRAFT, BREADTH;
 float VS, VE, VI;
 float GG, XK1H1, XK1H2, XK2H1, XK2H2, XK3H1, XK3H2, RHO, RHOL, E_young;
 //vector< float > VSP;
@@ -2492,7 +2491,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								PointData pd;
 								step_length += remain_length;
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if ((pd.pnt.z() * UNIT_TO_M <= m_fDraftValue) && ((use_start_end == false) || (pd.pnt.x() <= start_pos && pd.pnt.x() >= end_pos)))
+								if ((pd.pnt.z() * UNIT_TO_M <= DRAFT) && ((use_start_end == false) || (pd.pnt.x() <= start_pos && pd.pnt.x() >= end_pos)))
 								{
 									if(GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2538,7 +2537,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
 								vec *= ratio;
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z()  * UNIT_TO_M <= m_fDraftValue)
+								if (pd.pnt.z()  * UNIT_TO_M <= DRAFT)
 								{
 									if (GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2581,7 +2580,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								step_length += remain_length;
 								//fprintf(FileLog, "add > \tcl : %lf, \tsl : %lf, \trl : %lf ", current_length, step_length, remain_length);
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if (pd.pnt.z() * UNIT_TO_M <= m_fDraftValue)
+								if (pd.pnt.z() * UNIT_TO_M <= DRAFT)
 								{
 									if (GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2621,7 +2620,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
 								vec *= ratio;
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z() * UNIT_TO_M <= m_fDraftValue)
+								if (pd.pnt.z() * UNIT_TO_M <= DRAFT)
 								{
 									if (GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2660,7 +2659,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								PointData pd;
 								step_length += remain_length;
 								pd.pnt = section_line[j][i - 1] + (dir * step_length);
-								if (pd.pnt.z() * UNIT_TO_M <= m_fDraftValue)
+								if (pd.pnt.z() * UNIT_TO_M <= DRAFT)
 								{
 									if (GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2698,7 +2697,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 								osg::Vec3 vec = section_line[j][i] - section_line[j][i - 1];
 								vec *= ratio;
 								pd.pnt = osg::Vec3(section_line[j][i - 1].x() + vec.x(), section_line[j][i - 1].y() + vec.y(), section_line[j][i - 1].z() + vec.z());
-								if (pd.pnt.z() * UNIT_TO_M <= m_fDraftValue)
+								if (pd.pnt.z() * UNIT_TO_M <= DRAFT)
 								{
 									if (GetNormal(geo, pd))
 										section_point_data.push_back(pd);
@@ -2961,7 +2960,7 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 
 	osg::Matrix m;
 	//osg::Quat q(m_iWaterLineRot[0], osg::Vec3(1, 0, 0), m_iWaterLineRot[1], osg::Vec3(0, 1, 0), m_iWaterLineRot[2], osg::Vec3(0, 0, 1));
-	osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), m_fDraftValue * M_TO_UNIT);
+	osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), DRAFT * M_TO_UNIT);
 	m.setTrans(water_line_pos);
 	//m.setRotate(q);
 	osg::Vec3 n(0, 0, 1);
@@ -4277,6 +4276,8 @@ void CIRES2View::UpdageHullSize()
 			mOSG->m_widgetHullSize[2]->setLabel(temp_str);
 			sprintf_s(temp_str, 200, "Z: Max %.2lfm  Min %.2lfm", bbHull.zMax() * UNIT_TO_M, bbHull.zMin() * UNIT_TO_M);
 			mOSG->m_widgetHullSize[3]->setLabel(temp_str);
+
+			BREADTH = max(abs(bbHull.yMin()), abs(bbHull.yMax()));
 		}
 	}
 }
@@ -4313,13 +4314,13 @@ void CIRES2View::UpdateWaterLineGeo()
 	v_array->push_back(osg::Vec3(-bbLength[0], bbLength[1], 0));
 
 	//m_iWaterLinePos.set(bbHull.center().x(), bbHull.center().y(), bbHull.center().z());
-	m_fDraftValue = bbHull.center().z() * UNIT_TO_M;
+	DRAFT = bbHull.center().z() * UNIT_TO_M;
 	m_fCrossSectionStart = bbHull.xMax();
 	m_fCrossSectionEnd = bbHull.xMin();
 	//UpdateWaterlinePos();
 
 	osg::Matrix tr;
-	osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), m_fDraftValue * M_TO_UNIT);
+	osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), DRAFT * M_TO_UNIT);
 
 	tr.setTrans(water_line_pos);
 	osgWaterline->setMatrix(tr);
@@ -5364,7 +5365,7 @@ void CIRES2View::CalculateWaterSectionPoint()
 	osg::Vec3 n(0, 0, 1);
 	//n = m.preMult(n) - m_iWaterLinePos;
 
-	osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), m_fDraftValue * M_TO_UNIT);
+	osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), DRAFT * M_TO_UNIT);
 
 	osg::Matrix tr;
 	tr.setTrans(water_line_pos);
@@ -5480,7 +5481,7 @@ void CIRES2View::LoadDraftSectionSetting()
 		ifp.m_array_strSplit.push_back(' ');
 		if (ifp.ReadOneLineFromFile() > 0)
 		{
-			m_fDraftValue = atof(ifp.m_array_strOutput[0]);
+			DRAFT = atof(ifp.m_array_strOutput[0]);
 		}
 		if (ifp.ReadOneLineFromFile() > 0)
 		{
@@ -5499,7 +5500,7 @@ void CIRES2View::SaveDraftSectionSetting()
 	fopen_s(&fp_draft, m_strProjectPath + "\\DRAFT_SECTION.INP", "wt");
 	if (fp_draft)
 	{
-		fprintf_s(fp_draft, "%.2lf\n", m_fDraftValue);
+		fprintf_s(fp_draft, "%.2lf\n", DRAFT);
 		fprintf_s(fp_draft, "%d\n", m_bUseDistanceForAxisWaterline ? 1 : 0);
 		fprintf_s(fp_draft, "%.2lf\n", m_fWaterlinePointGap);
 		fclose(fp_draft);
@@ -5889,7 +5890,7 @@ void CIRES2View::SetDlgPoint(float x, float y, float z)
 			osg::Matrix current_tr = osgHull_Center->getMatrix();
 			current_tr.preMultTranslate(diff);
 			osgHull_Center->setMatrix(current_tr);
-
+			UpdageHullSize();
 			ClearFunctions();
 		}
 		break;
@@ -5935,6 +5936,7 @@ void CIRES2View::SetDlgPoint(float x, float y, float z)
 			osg::Vec3 new_diff = center_point - new_center;
 			current_tr.setTrans(new_diff);
 			osgHull_Center->setMatrix(current_tr);
+			UpdageHullSize();
 
 			ClearFunctions();
 		}

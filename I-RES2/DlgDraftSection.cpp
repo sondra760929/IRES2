@@ -60,7 +60,7 @@ BOOL CDlgDraftSection::OnInitDialog()
 
 	if (m_pView)
 	{
-		m_fDraft = m_pView->m_fDraftValue;
+		m_fDraft = m_pView->DRAFT;
 		m_fPointDistance = m_pView->m_fWaterlinePointGap * UNIT_TO_M;
 		m_fAxisDistance = m_pView->m_fWaterlinePointGap * UNIT_TO_M;
 		if (m_pView->m_bUseDistanceForAxisWaterline)
@@ -121,7 +121,7 @@ void CDlgDraftSection::OnBnClickedCheckAxis()
 void CDlgDraftSection::OnBnClickedMfcbuttonCalculate()
 {
 	UpdateData();
-	m_pView->m_fDraftValue = m_fDraft;
+	m_pView->DRAFT = m_fDraft;
 	if (m_pView->m_bUseDistanceForAxisWaterline)
 	{
 		m_pView->m_fWaterlinePointGap = m_fPointDistance * M_TO_UNIT;

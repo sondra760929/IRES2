@@ -115,7 +115,7 @@ void CDlgCondition::OnBnClickedOk()
 		fprintf_s(fp_4, "%*.2lf\n", 12, m_fFrictionCoeff);
 		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n", 12, m_fInitialStrength, 12, m_fMaximumStrength, 12, m_fStrengthIncrements);
 		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n\n", 12, m_fThickness, 12, m_fMaxThickness, 12, m_fIncThickness);
-		fprintf_s(fp_4, "%*.2lf%*.2lf\n", 10, m_fDesignDraft, 8, m_fMoldedBreadth);
+		fprintf_s(fp_4, "%*.2lf%*.2lf\n", 10, m_pView->DRAFT, 8, m_pView->BREADTH);
 		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n", 10, m_fShipSpeed, 6, m_fShipMaxSpeed, 6, m_fShipIncSpeed);
 		fclose(fp_4);
 	}

@@ -87,6 +87,7 @@ public:
 	CIRES2Doc* GetDocument() const;
 	cOSG2* mOSG;
 	CMainFrame* m_pMainFrame;
+	float DRAFT, BREADTH;
 	osg::TessellationHints* hints;
 	bool LoadShapesGeo(const TopoDS_Shape& aShape, osg::Geode* goede);
 	osg::Geometry* FaceToGeometry(const TopoDS_Face& aFace, float face_deflection);
@@ -163,7 +164,7 @@ public:
 	void UpdateProgress();
 	float m_fWaterlineStartPos;
 	float m_fWaterlineEndPos;
-	float m_fDraftValue;
+	//float m_fDraftValue;
 	float m_fWaterlinePointGap;
 	void CalculateWaterSectionPoint();
 	void CalculateSectionPoint();
