@@ -76,11 +76,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\include;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\include;E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\inc;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\include;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\win64\vc14\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\include;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\include;E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\inc;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\include;$(ProjectDir)Ultimate_Grid\Include;E:\library\ChartCtrl\ChartCtrlDemoSource\VS2010\Projects\ChartCtrlLib\ChartCtrlLib;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\win64\vc14\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\lib;E:\library\ChartCtrl\ChartCtrlDemoSource\VS2010\Projects\ChartCtrlLib\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(ProjectDir)Ultimate_Grid\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -121,7 +122,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>TKBRep.lib;TKernel.lib;TKG3d.lib;TKGeomBase.lib;TKMath.lib;TKIGES.lib;TKXDEIGES.lib;TKMesh.lib;TKXSBase.lib;OpenThreadsd.lib;osgd.lib;osgGAd.lib;osgDBd.lib;osgFxd.lib;osgTextd.lib;osgManipulatord.lib;osgUtild.lib;osgShadowd.lib;osgViewerd.lib;osgWidgetd.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TKBRep.lib;TKernel.lib;TKG3d.lib;TKGeomBase.lib;TKMath.lib;TKIGES.lib;TKXDEIGES.lib;TKMesh.lib;TKXSBase.lib;OpenThreadsd.lib;osgd.lib;osgGAd.lib;osgDBd.lib;osgFxd.lib;osgTextd.lib;osgManipulatord.lib;osgUtild.lib;osgShadowd.lib;osgViewerd.lib;osgWidgetd.lib;opengl32.lib;ChartCtrlLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -331,6 +332,7 @@
     <ClCompile Include="OutputWnd.cpp" />
     <ClCompile Include="PosterPrinter.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="PropertiesWnd.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -397,24 +399,31 @@
     </ClCompile>
     <ClCompile Include="VisualStylesXP.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="XHtmlDraw.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="XHtmlDrawLink.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="XHtmlTree.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="XmlDocument.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="XNamedColors.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="XString.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

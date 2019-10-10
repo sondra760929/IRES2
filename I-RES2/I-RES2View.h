@@ -272,6 +272,7 @@ public:
 	void SaveCurrentHull();
 	void UpdageHullSize();
 	void UpdateWaterLineGeo();
+	void SaveIceInput();
 public:
 
 // 재정의입니다.

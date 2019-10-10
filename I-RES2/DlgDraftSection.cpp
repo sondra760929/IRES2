@@ -60,6 +60,7 @@ BOOL CDlgDraftSection::OnInitDialog()
 
 	if (m_pView)
 	{
+		m_pView->LoadIceInput();
 		m_fDraft = m_pView->DRAFT;
 		m_fPointDistance = m_pView->m_fWaterlinePointGap * UNIT_TO_M;
 		m_fAxisDistance = m_pView->m_fWaterlinePointGap * UNIT_TO_M;
@@ -132,6 +133,7 @@ void CDlgDraftSection::OnBnClickedMfcbuttonCalculate()
 	}
 
 	m_pView->SaveDraftSectionSetting();
+	m_pView->SaveIceInput();
 	m_pView->CalculateWaterSectionPoint();
 
 	CDialog::OnOK();

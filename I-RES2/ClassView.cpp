@@ -53,6 +53,7 @@ CClassView::CClassView() noexcept
 	itemConditionStatus = false;
 	itemAnalysisStatus = false;
 	m_iCurrentToolbar = -1;
+	m_pView = NULL;
 }
 
 CClassView::~CClassView()

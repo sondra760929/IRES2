@@ -59,14 +59,17 @@ void CDlgOutputToolbar::ResizeControl(int cx, int cy)
 	int width = 28;
 	int top = 0;
 
-	m_btnExcel1.MoveWindow(0, top, width, width);
-	top += width;
-	m_btnGraph1.MoveWindow(0, top, width, width);
-	top += width;
-	top += 10;
-	m_btnExcel2.MoveWindow(0, top, width, width);
-	top += width;
-	m_btnGraph2.MoveWindow(0, top, width, width);
+	if (m_btnExcel1)
+	{
+		m_btnExcel1.MoveWindow(0, top, width, width);
+		top += width;
+		m_btnGraph1.MoveWindow(0, top, width, width);
+		top += width;
+		top += 10;
+		m_btnExcel2.MoveWindow(0, top, width, width);
+		top += width;
+		m_btnGraph2.MoveWindow(0, top, width, width);
+	}
 }
 
 BOOL CDlgOutputToolbar::OnInitDialog()

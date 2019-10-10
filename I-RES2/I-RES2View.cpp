@@ -2811,6 +2811,21 @@ void CIRES2View::ClearCrossSectionLine()
 //	}
 //}
 
+void CIRES2View::SaveIceInput()
+{
+	fopen_s(&fp_4, m_strProjectPath + "\\ICE_INPUT.inp", "wt");
+	if (fp_4)
+	{
+		fprintf_s(fp_4, "        %d\n", HULL_TYPE);
+		fprintf_s(fp_4, "%*.2lf\n", 12, FG);
+		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n", 12, SIGMAP, 12, SIGMAK, 12, SSIGMA);
+		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n\n", 12, HH, 12, HK, 12, SH);
+		fprintf_s(fp_4, "%*.2lf%*.2lf\n", 10, DRAFT, 8, BREADTH);
+		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n", 10, VS, 6, VE, 6, VI);
+		fclose(fp_4);
+	}
+}
+
 void CIRES2View::LoadIceInput()
 {
 	fopen_s(&fp_4, m_strProjectPath + "\\ICE_INPUT.inp", "rt");
@@ -5646,7 +5661,7 @@ bool CIRES2View::CreateJob(CString job_name)
 
 void CIRES2View::HideOutputSummury()
 {
-	if (mOSG->m_bShowSummury)
+	if (mOSG && mOSG->m_bShowSummury)
 	{
 		mOSG->m_bShowSummury = false;
 		mOSG->m_WindowManager->removeChild(mOSG->m_widgetOutputSumurry);
