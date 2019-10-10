@@ -20,7 +20,6 @@ CDlgCondition::CDlgCondition(CWnd* pParent /*=nullptr*/)
 	, m_fMaxThickness(0)
 	, m_fIncThickness(0)
 {
-	m_pView = (CIRES2View*)pParent;
 }
 
 CDlgCondition::~CDlgCondition()

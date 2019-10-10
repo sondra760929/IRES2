@@ -18,7 +18,7 @@ void CDlgCondition::OnBnClickedRadioConstant()
 	GetDlgItem(IDC_STATIC_INC_THICK)->ShowWindow(SW_HIDE);
 
 	GetDlgItem(IDC_STATIC_INI_SHIP_SPEED)->SetWindowText("Thickness (m)");
-	m_pView->m_bConditionConstant = true;
+	m_pCurrentView->m_bConditionConstant = true;
 }
 
 
@@ -36,7 +36,7 @@ void CDlgCondition::OnBnClickedRadioParametric()
 	GetDlgItem(IDC_STATIC_INC_THICK)->ShowWindow(SW_SHOW);
 
 	GetDlgItem(IDC_STATIC_INI_SHIP_SPEED)->SetWindowText("Initial Ship Speed (knots)");
-	m_pView->m_bConditionConstant = false;
+	m_pCurrentView->m_bConditionConstant = false;
 }
 
 
@@ -44,9 +44,9 @@ BOOL CDlgCondition::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	if (m_pView)
+	if (m_pCurrentView)
 	{
-		if (m_pView->m_bConditionConstant)
+		if (m_pCurrentView->m_bConditionConstant)
 		{
 			m_radioConstant.SetCheck(TRUE);
 			OnBnClickedRadioConstant();
@@ -115,7 +115,7 @@ void CDlgCondition::OnBnClickedOk()
 		fprintf_s(fp_4, "%*.2lf\n", 12, m_fFrictionCoeff);
 		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n", 12, m_fInitialStrength, 12, m_fMaximumStrength, 12, m_fStrengthIncrements);
 		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n\n", 12, m_fThickness, 12, m_fMaxThickness, 12, m_fIncThickness);
-		fprintf_s(fp_4, "%*.2lf%*.2lf\n", 10, m_pView->DRAFT, 8, m_pView->BREADTH);
+		fprintf_s(fp_4, "%*.2lf%*.2lf\n", 10, m_pCurrentView->DRAFT, 8, m_pCurrentView->BREADTH);
 		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n", 10, m_fShipSpeed, 6, m_fShipMaxSpeed, 6, m_fShipIncSpeed);
 		fclose(fp_4);
 	}

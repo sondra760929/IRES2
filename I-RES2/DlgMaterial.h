@@ -11,7 +11,6 @@ class CDlgMaterial : public CDialog
 public:
 	CDlgMaterial(CWnd* pParent = nullptr);   // 표준 생성자입니다.
 	virtual ~CDlgMaterial();
-	CIRES2View* m_pView;
 	int HULL_TYPE;
 	float GG;
 	float XK1H1;

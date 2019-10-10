@@ -10,7 +10,6 @@ class CDlgCondition : public CDialog
 public:
 	CDlgCondition(CWnd* pParent = nullptr);   // 표준 생성자입니다.
 	virtual ~CDlgCondition();
-	CIRES2View* m_pView;
 	bool m_isConstant;
 // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
