@@ -3032,21 +3032,6 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 
 void CIRES2View::CalculateOutputResult(bool refresh)
 {
-	//S_N.clear();
-	//N_BETA.clear();
-	//Y_VAL_ST.clear();
-	//Z_VAL_ST.clear();
-	//BETA_ST.clear();
-	//X_COOR.clear();
-	//Y.clear();
-	//Z_COOR.clear();
-	//X_NORM.clear();
-	//Y_NORM.clear();
-	//Z_NORM.clear();
-	//ALPHA.clear();
-	//BETA.clear();
-	//GAMMA.clear();
-
 	if (refresh)
 	{
 		//	결과 파일 저장
@@ -3160,8 +3145,6 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 			R_BREAK[IH][IS] = R_BR[IH][IS];
 		}
 	}
-
-
 
 	//R_CLEAR.assign(R_CL.begin(), R_CL.end());
 	//R_BREAK.assign(R_BR.begin(), R_BR.end());
