@@ -25,17 +25,17 @@ CDlgSectionToolbar::~CDlgSectionToolbar()
 void CDlgSectionToolbar::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_CHECK_VIEW_DRAFT_PLANE, m_chkDraftPlane);
+	//DDX_Control(pDX, IDC_CHECK_VIEW_DRAFT_PLANE, m_chkDraftPlane);
 	DDX_Control(pDX, IDC_CHECK_VIEW_DRAFT_POINTS, m_chkDraftPoints);
-	DDX_Control(pDX, IDC_CHECK_VIEW_CROSS_PLANE, m_chkCrossPlane);
+	//DDX_Control(pDX, IDC_CHECK_VIEW_CROSS_PLANE, m_chkCrossPlane);
 	DDX_Control(pDX, IDC_CHECK_VIEW_CROSS_POINTS, m_chkCrossPoints);
 }
 
 
 BEGIN_MESSAGE_MAP(CDlgSectionToolbar, CDialog)
-	ON_BN_CLICKED(IDC_CHECK_VIEW_DRAFT_PLANE, &CDlgSectionToolbar::OnBnClickedCheckViewDraftPlane)
+	//ON_BN_CLICKED(IDC_CHECK_VIEW_DRAFT_PLANE, &CDlgSectionToolbar::OnBnClickedCheckViewDraftPlane)
 	ON_BN_CLICKED(IDC_CHECK_VIEW_DRAFT_POINTS, &CDlgSectionToolbar::OnBnClickedCheckViewDraftPoints)
-	ON_BN_CLICKED(IDC_CHECK_VIEW_CROSS_PLANE, &CDlgSectionToolbar::OnBnClickedCheckViewCrossPlane)
+	//ON_BN_CLICKED(IDC_CHECK_VIEW_CROSS_PLANE, &CDlgSectionToolbar::OnBnClickedCheckViewCrossPlane)
 	ON_BN_CLICKED(IDC_CHECK_VIEW_CROSS_POINTS, &CDlgSectionToolbar::OnBnClickedCheckViewCrossPoints)
 END_MESSAGE_MAP()
 
@@ -47,39 +47,39 @@ BOOL CDlgSectionToolbar::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	CImage btn_image1;
+	//CImage btn_image1;
 	CImage btn_image2;
-	CImage btn_image3;
+	//CImage btn_image3;
 	CImage btn_image4;
-	btn_image1.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_HOR);
+	//btn_image1.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_HOR);
 	btn_image2.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_HOR_PT);
-	btn_image3.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_VER);
+	//btn_image3.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_VER);
 	btn_image4.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_VER_PT);
-	HBITMAP hBit1;
+	//HBITMAP hBit1;
 	HBITMAP hBit2;
-	HBITMAP hBit3;
+	//HBITMAP hBit3;
 	HBITMAP hBit4;
-	hBit1 = btn_image1.Detach();
+	//hBit1 = btn_image1.Detach();
 	hBit2 = btn_image2.Detach();
-	hBit3 = btn_image3.Detach();
+	//hBit3 = btn_image3.Detach();
 	hBit4 = btn_image4.Detach();
 
-	m_chkDraftPlane.SetBitmap(hBit1);
+	//m_chkDraftPlane.SetBitmap(hBit1);
 	m_chkDraftPoints.SetBitmap(hBit2);
-	m_chkCrossPlane.SetBitmap(hBit3);
+	//m_chkCrossPlane.SetBitmap(hBit3);
 	m_chkCrossPoints.SetBitmap(hBit4);
 
 	//m_chkDraftPlane.SetCheck(m_pView->m_bShowWaterline);
 
 	int width = 28;
 	int top = 0;
-	m_chkDraftPlane.MoveWindow(0, top, width, width);
-	top += width;
+	//m_chkDraftPlane.MoveWindow(0, top, width, width);
+	//top += width;
 	m_chkDraftPoints.MoveWindow(0, top, width, width);
 	top += width;
 	top += 10;
-	m_chkCrossPlane.MoveWindow(0, top, width, width);
-	top += width;
+	//m_chkCrossPlane.MoveWindow(0, top, width, width);
+	//top += width;
 	m_chkCrossPoints.MoveWindow(0, top, width, width);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -89,17 +89,17 @@ BOOL CDlgSectionToolbar::OnInitDialog()
 
 void CDlgSectionToolbar::Init()
 {
-	m_chkDraftPlane.SetCheck(m_pView->m_bShowWaterline);
+	//m_chkDraftPlane.SetCheck(m_pView->m_bShowWaterline);
 	m_chkDraftPoints.SetCheck(m_pView->m_bShowWaterlineData);
-	m_chkCrossPlane.SetCheck(m_pView->m_bShowSection);
+	//m_chkCrossPlane.SetCheck(m_pView->m_bShowSection);
 	m_chkCrossPoints.SetCheck(m_pView->m_bShowSectionData);
 }
-
-void CDlgSectionToolbar::OnBnClickedCheckViewDraftPlane()
-{
-	m_pView->OnButtonHideShowWaterlines();
-	m_chkDraftPlane.SetCheck(m_pView->m_bShowWaterline);
-}
+//
+//void CDlgSectionToolbar::OnBnClickedCheckViewDraftPlane()
+//{
+//	m_pView->OnButtonHideShowWaterlines();
+//	m_chkDraftPlane.SetCheck(m_pView->m_bShowWaterline);
+//}
 
 
 void CDlgSectionToolbar::OnBnClickedCheckViewDraftPoints()
@@ -109,11 +109,11 @@ void CDlgSectionToolbar::OnBnClickedCheckViewDraftPoints()
 }
 
 
-void CDlgSectionToolbar::OnBnClickedCheckViewCrossPlane()
-{
-	m_pView->OnButtonShowHideSections();
-	m_chkCrossPlane.SetCheck(m_pView->m_bShowSection);
-}
+//void CDlgSectionToolbar::OnBnClickedCheckViewCrossPlane()
+//{
+//	m_pView->OnButtonShowHideSections();
+//	m_chkCrossPlane.SetCheck(m_pView->m_bShowSection);
+//}
 
 
 void CDlgSectionToolbar::OnBnClickedCheckViewCrossPoints()

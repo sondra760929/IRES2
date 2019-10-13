@@ -101,9 +101,9 @@ public:
 	osg::ref_ptr< osg::MatrixTransform > osgAxis;
 	osg::ref_ptr< osg::MatrixTransform > osgHull;
 	osg::ref_ptr< osg::MatrixTransform > osgHull_Center;
-	osg::ref_ptr< osg::MatrixTransform > osgWaterline;
+	//osg::ref_ptr< osg::MatrixTransform > osgWaterline;
 	osg::ref_ptr< osg::MatrixTransform > osgWaterlineSection;
-	vector< osg::ref_ptr<osg::MatrixTransform> > osgSections;
+	//vector< osg::ref_ptr<osg::MatrixTransform> > osgSections;
 	vector< osg::ref_ptr<osg::MatrixTransform> > osgSectionsData;
 	vector< osg::Vec3 > osgSectionPosList;
 	vector< bool > osgSectionEnable;
@@ -140,6 +140,8 @@ public:
 	void AddSectionDataGeo(vector< PointData >& pt_list, osg::Group* group);
 	void AddSectionGeo(vector< vector< osg::Vec3 > >& pt_list, osg::Group* group);
 	void ClearSections();
+	void ClearProject(CString current_project_path);
+	float GetXforYMax();
 	//void ClearSectionPoints();
 	//void SetCurrentStep(int i_step);
 	CPoint m_ptStart;
@@ -232,9 +234,9 @@ public:
 	vector< float > m_aSectionEnd;
 	vector< float > m_aSectionOffset;
 	bool m_bBowBreaking;
-	bool m_bShowSection;
+	//bool m_bShowSection;
 	bool m_bShowSectionData;
-	bool m_bShowWaterline;
+	//bool m_bShowWaterline;
 	bool m_bShowWaterlineData;
 	bool m_bUseDistanceForAxis;
 	bool m_bUseDistanceForAxisWaterline;
@@ -253,6 +255,7 @@ public:
 	bool m_isCreateFolder;
 
 	CDlgTranslation* m_pTranslationDlg;
+	void OnKeyESC();
 	void SetDlgPoint(float x, float y, float z);
 	osg::Vec3 start_point;
 	osg::Vec3 end_point;
@@ -319,13 +322,13 @@ public:
 	afx_msg void OnEditSpace();
 	afx_msg void OnEditPointGap();
 	afx_msg void OnButtonCalculateSectionPoints();
-	afx_msg void OnButtonShowHideSections();
+	//afx_msg void OnButtonShowHideSections();
 	afx_msg void OnButtonShowHideSectionCut();
-	afx_msg void OnButtonHideShowWaterlines();
+	//afx_msg void OnButtonHideShowWaterlines();
 	afx_msg void OnButtonShowHideWaterlineCut();
-	afx_msg void OnUpdateButtonShowHideSections(CCmdUI *pCmdUI);
+	//afx_msg void OnUpdateButtonShowHideSections(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateButtonShowHideSectionCut(CCmdUI *pCmdUI);
-	afx_msg void OnUpdateButtonHideShowWaterlines(CCmdUI *pCmdUI);
+	//afx_msg void OnUpdateButtonHideShowWaterlines(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateButtonShowHideWaterlineCut(CCmdUI *pCmdUI);
 	afx_msg void OnButtonSaveHull();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
@@ -387,6 +390,7 @@ public:
 	afx_msg void OnButtonDefine();
 	afx_msg void OnMouseHWheel(UINT nFlags, short zDelta, CPoint pt);
 	afx_msg void OnMove(int x, int y);
+	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 };
 
 #ifndef _DEBUG  // I-RES2View.cpp의 디버그 버전

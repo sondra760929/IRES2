@@ -113,7 +113,7 @@ void CDlgCrossSection::OnBnClickedCheckPoint()
 {
 	if (m_pView)
 	{
-		m_pView->m_bUseDistanceForAxis = false;
+		m_pView->m_bUseDistanceForAxis = true;
 		if (m_pView->m_bUseDistanceForAxis)
 		{
 			m_chkPointDistance.SetCheck(TRUE);

@@ -46,7 +46,7 @@ CClassView::CClassView() noexcept
 	m_nCurrSort = ID_SORTING_GROUPBYTYPE;
 	itemModelStatus = false;
 	itemHullStatus = false;
-	itemSectionStatus = false;
+	//itemSectionStatus = false;
 	itemDraftSectionStatus = false;
 	itemCrossSectionStatus = false;
 	itemMaterialStatus = false;
@@ -75,6 +75,9 @@ BEGIN_MESSAGE_MAP(CClassView, CDockablePane)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_SORTING_GROUPBYTYPE, ID_SORTING_SORTBYACCESS, OnUpdateSort)
 	ON_NOTIFY(TVN_SELCHANGED, 2, &CClassView::OnTvnSelchanged)
 	ON_NOTIFY(NM_DBLCLK, 2, &CClassView::OnTvnDoubleClicked)
+	ON_COMMAND(ID_ANALYSIS_ADD, &CClassView::OnAnalysisAdd)
+	ON_COMMAND(ID_ANALYSIS_CLEAR, &CClassView::OnAnalysisClear)
+	ON_COMMAND(ID_ANALYSIS1_DELETE, &CClassView::OnAnalysis1Delete)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -151,13 +154,13 @@ void CClassView::FillClassView()
 {
 	itemModel = m_wndClassView.InsertItem(_T("Model <font color = \"red\">[?]</font></b>"), 0, 0);
 	itemHull = m_wndClassView.InsertItem(_T("<b>Hull <font color = \"red\">[?]</font>"), 1, 1, itemModel);
-	itemSection = m_wndClassView.InsertItem(_T("<b>Section Assignments <font color = \"red\">[?]</font>"), 2, 2, itemModel);
-	itemDraftSection = m_wndClassView.InsertItem(_T("<b>Draft Section <font color = \"red\">[?]</font>"), 5, 5, itemSection);
-	itemCrossSection = m_wndClassView.InsertItem(_T("<b>Cross Section <font color = \"red\">[?]</font>"), 5, 5, itemSection);
+	//itemSection = m_wndClassView.InsertItem(_T("<b>Section Assignments <font color = \"red\">[?]</font>"), 2, 2, itemModel);
+	itemDraftSection = m_wndClassView.InsertItem(_T("<b>Draft Section <font color = \"red\">[?]</font>"), 5, 5, itemModel);
+	itemCrossSection = m_wndClassView.InsertItem(_T("<b>Cross Section <font color = \"red\">[?]</font>"), 5, 5, itemModel);
 	itemMaterial = m_wndClassView.InsertItem(_T("<b>Material <font color = \"red\">[?]</font>"), 3, 3, itemModel);
 	itemCondition = m_wndClassView.InsertItem(_T("<b>Condition <font color = \"red\">[?]</font>"), 4, 4, itemModel);
 	m_wndClassView.Expand(itemModel, TVE_EXPAND);
-	m_wndClassView.Expand(itemSection, TVE_EXPAND);
+	//m_wndClassView.Expand(itemSection, TVE_EXPAND);
 
 	itemAnalysis = m_wndClassView.InsertItem(_T("Analysis"), 0, 0);
 }
@@ -181,28 +184,58 @@ void CClassView::OnContextMenu(CWnd* pWnd, CPoint point)
 
 		UINT flags = 0;
 		HTREEITEM hTreeItem = pWndTree->HitTest(ptTree, &flags);
+		HTREEITEM hParentItem = pWndTree->GetParentItem(hTreeItem);
 		if (hTreeItem != nullptr)
 		{
 			pWndTree->SelectItem(hTreeItem);
+
+			if (hTreeItem == itemAnalysis)
+			{
+				if (GetModelStatus())
+				{
+					CMenu menu;
+					CMenu* pPopup;
+
+					// the font popup is stored in a resource 
+					menu.LoadMenu(IDR_POPUP_ANALYSIS);
+					pPopup = menu.GetSubMenu(0);
+					//ClientToScreen(&ptMousePos);
+					pPopup->TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);
+				}
+			}
+			else if (hParentItem == itemAnalysis)
+			{
+				if (GetModelStatus())
+				{
+					CMenu menu;
+					CMenu* pPopup;
+
+					// the font popup is stored in a resource 
+					menu.LoadMenu(IDR_POPUP_ANALYSIS);
+					pPopup = menu.GetSubMenu(1);
+					//ClientToScreen(&ptMousePos);
+					pPopup->TrackPopupMenu(TPM_LEFTALIGN, point.x, point.y, this);
+				}
+			}
 		}
 	}
 
 	pWndTree->SetFocus();
-	CMenu menu;
-	menu.LoadMenu(IDR_POPUP_SORT);
+	//CMenu menu;
+	//menu.LoadMenu(IDR_POPUP_SORT);
 
-	CMenu* pSumMenu = menu.GetSubMenu(0);
+	//CMenu* pSumMenu = menu.GetSubMenu(0);
 
-	if (AfxGetMainWnd()->IsKindOf(RUNTIME_CLASS(CMDIFrameWndEx)))
-	{
-		CMFCPopupMenu* pPopupMenu = new CMFCPopupMenu;
+	//if (AfxGetMainWnd()->IsKindOf(RUNTIME_CLASS(CMDIFrameWndEx)))
+	//{
+	//	CMFCPopupMenu* pPopupMenu = new CMFCPopupMenu;
 
-		if (!pPopupMenu->Create(this, point.x, point.y, (HMENU)pSumMenu->m_hMenu, FALSE, TRUE))
-			return;
+	//	if (!pPopupMenu->Create(this, point.x, point.y, (HMENU)pSumMenu->m_hMenu, FALSE, TRUE))
+	//		return;
 
-		((CMDIFrameWndEx*)AfxGetMainWnd())->OnShowPopupMenu(pPopupMenu);
-		UpdateDialogControls(this, FALSE);
-	}
+	//	((CMDIFrameWndEx*)AfxGetMainWnd())->OnShowPopupMenu(pPopupMenu);
+	//	UpdateDialogControls(this, FALSE);
+	//}
 }
 
 void CClassView::AdjustLayout()
@@ -370,7 +403,7 @@ int CClassView::CountTreeItems(HTREEITEM hItem, bool Recurse)
 	return count;
 }
 
-void CClassView::ClearJobList()
+void CClassView::ClearJobList(bool delete_job_folder)
 {
 	if (m_wndClassView.ItemHasChildren(itemAnalysis))
 	{
@@ -380,7 +413,14 @@ void CClassView::ClearJobList()
 		while (hChildItem != NULL)
 		{
 			hNextItem = m_wndClassView.GetNextItem(hChildItem, TVGN_NEXT);
-			m_wndClassView.DeleteItem(hChildItem);
+			if (delete_job_folder)
+			{
+				DeleteJob(hChildItem);
+			}
+			else
+			{
+				m_wndClassView.DeleteItem(hChildItem);
+			}
 			hChildItem = hNextItem;
 		}
 	}
@@ -440,10 +480,10 @@ void CClassView::SelectJob(HTREEITEM current_item)
 	{
 		m_pView->SelectJob(job_name);
 	}
-	else if (AfxMessageBox("Delete all setting from [" + job_name + "]", MB_YESNO) == IDYES)
-	{
-		DeleteJob(current_item);
-	}
+	//else if (AfxMessageBox("Delete all setting from [" + job_name + "]", MB_YESNO) == IDYES)
+	//{
+	//	DeleteJob(current_item);
+	//}
 }
 
 void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
@@ -464,7 +504,7 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 				m_iCurrentToolbar = 0;
 				AdjustLayout();
 			}
-			else if (current_item == itemDraftSection || current_item == itemSection)
+			else if (current_item == itemDraftSection/* || current_item == itemSection*/)
 			{
 				m_iCurrentToolbar = 1;
 				AdjustLayout();
@@ -535,7 +575,7 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 					return;
 				}
 
-				CreateJob(current_item);
+				//CreateJob(current_item);
 			}
 			else
 			{
@@ -649,27 +689,27 @@ void CClassView::SetHulllStatus(bool is_on)
 	}
 }
 
-void CClassView::SetSectionStatus(bool is_on)
-{
-	itemSectionStatus = is_on;
-	if (is_on)
-	{
-		m_wndClassView.SetItemText(itemSection, _T("<b>Section Assignments <font color = \"green\">[O]</font>"));
-	}
-	else
-	{
-		m_wndClassView.SetItemText(itemSection, _T("<b>Section Assignments <font color = \"red\">[?]</font>"));
-	}
-}
-
+//void CClassView::SetSectionStatus(bool is_on)
+//{
+//	itemSectionStatus = is_on;
+//	if (is_on)
+//	{
+//		m_wndClassView.SetItemText(itemSection, _T("<b>Section Assignments <font color = \"green\">[O]</font>"));
+//	}
+//	else
+//	{
+//		m_wndClassView.SetItemText(itemSection, _T("<b>Section Assignments <font color = \"red\">[?]</font>"));
+//	}
+//}
+//
 void CClassView::UpdateStatus()
 {
-	if (itemCrossSectionStatus && itemDraftSectionStatus)
-	{
-		SetSectionStatus(true);
-	}
+	//if (itemCrossSectionStatus && itemDraftSectionStatus)
+	//{
+	//	SetSectionStatus(true);
+	//}
 
-	if (itemHullStatus && itemSectionStatus && itemMaterialStatus && itemConditionStatus)
+	if (itemHullStatus && itemCrossSectionStatus && itemDraftSectionStatus && itemMaterialStatus && itemConditionStatus)
 	{
 		SetModelStatus(true);
 	}
@@ -726,7 +766,7 @@ void CClassView::SetConditionStatus(bool is_on)
 	}
 	else
 	{
-		m_wndClassView.SetItemText(itemCondition, _T("<b>Condition < font color = \"red\">[?]</font>"));
+		m_wndClassView.SetItemText(itemCondition, _T("<b>Condition <font color = \"red\">[?]</font>"));
 	}
 }
 
@@ -745,10 +785,10 @@ int CClassView::GetHulllStatus()
 	return itemHullStatus;
 }
 
-int CClassView::GetSectionStatus()
-{
-	return itemSectionStatus;
-}
+//int CClassView::GetSectionStatus()
+//{
+//	return itemSectionStatus;
+//}
 
 int CClassView::GetDraftStatus()
 {
@@ -773,4 +813,38 @@ int CClassView::GetConditionStatus()
 int CClassView::GetAnalysisStatus()
 {
 	return itemAnalysisStatus;
+}
+
+void CClassView::OnAnalysisAdd()
+{
+	CreateJob(itemAnalysis);
+}
+
+
+void CClassView::OnAnalysisClear()
+{
+	if (AfxMessageBox("Delete All JOBs ?", MB_YESNO) == IDYES)
+	{
+		ClearJobList(true);
+	}
+}
+
+
+void CClassView::OnAnalysis1Delete()
+{
+	HTREEITEM current_item = m_wndClassView.GetSelectedItem();
+	if (current_item)
+	{
+		HTREEITEM parent_item = m_wndClassView.GetParentItem(current_item);
+		if (parent_item == itemAnalysis)
+		{
+			CString item_name = m_wndClassView.GetItemText(current_item);
+			CString temp_string;
+			temp_string.Format("Delete Job [%s] ?", item_name);
+			if (AfxMessageBox(temp_string, MB_YESNO) == IDYES)
+			{
+				DeleteJob(current_item);
+			}
+		}
+	}
 }

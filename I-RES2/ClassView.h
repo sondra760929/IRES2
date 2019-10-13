@@ -27,7 +27,7 @@ public:
 	void OnChangeVisualStyle();
 	HTREEITEM itemModel;
 	HTREEITEM itemHull;
-	HTREEITEM itemSection;
+	//HTREEITEM itemSection;
 	HTREEITEM itemDraftSection;
 	HTREEITEM itemCrossSection;
 	HTREEITEM itemMaterial;
@@ -35,7 +35,7 @@ public:
 	HTREEITEM itemAnalysis;
 	bool itemModelStatus;
 	bool itemHullStatus;
-	bool itemSectionStatus;
+	//bool itemSectionStatus;
 	bool itemDraftSectionStatus;
 	bool itemCrossSectionStatus;
 	bool itemMaterialStatus;
@@ -44,7 +44,7 @@ public:
 
 	void SetModelStatus(bool is_on);
 	void SetHulllStatus(bool is_on);
-	void SetSectionStatus(bool is_on);
+	//void SetSectionStatus(bool is_on);
 	void SetDraftStatus(bool is_on);
 	void SetCrossStatus(bool is_on);
 	void SetMaterialStatus(bool is_on);
@@ -52,7 +52,7 @@ public:
 	void SetAnalysisStatus(bool is_on);
 	int GetModelStatus();
 	int GetHulllStatus();
-	int GetSectionStatus();
+	//int GetSectionStatus();
 	int GetDraftStatus();
 	int GetCrossStatus();
 	int GetMaterialStatus();
@@ -69,7 +69,7 @@ public:
 	void CreateJob(HTREEITEM current_item);
 	void DeleteJob(HTREEITEM current_item);
 	void SelectJob(HTREEITEM current_item);
-	void ClearJobList();
+	void ClearJobList(bool delete_job_folder = false);
 	void AddJobItem(CString job_name);
 protected:
 	//CClassToolBar m_wndToolBar;
@@ -102,5 +102,8 @@ protected:
 public:
 	afx_msg void OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnAnalysisAdd();
+	afx_msg void OnAnalysisClear();
+	afx_msg void OnAnalysis1Delete();
 };
 

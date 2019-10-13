@@ -24,12 +24,12 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	virtual BOOL OnInitDialog();
-	CButton m_chkDraftPlane;
-	afx_msg void OnBnClickedCheckViewDraftPlane();
+	//CButton m_chkDraftPlane;
 	CButton m_chkDraftPoints;
-	CButton m_chkCrossPlane;
+	//CButton m_chkCrossPlane;
 	CButton m_chkCrossPoints;
+	//afx_msg void OnBnClickedCheckViewDraftPlane();
 	afx_msg void OnBnClickedCheckViewDraftPoints();
-	afx_msg void OnBnClickedCheckViewCrossPlane();
+	//afx_msg void OnBnClickedCheckViewCrossPlane();
 	afx_msg void OnBnClickedCheckViewCrossPoints();
 };

@@ -111,6 +111,7 @@
 #define IDB_BITMAP_VER_PT               343
 #define IDD_DIALOG_CHART                346
 #define IDB_BITMAP_SETUNIT              348
+#define IDR_POPUP_ANALYSIS              350
 #define IDC_LIST1                       1000
 #define IDC_MFCBUTTON_CLEAR             1000
 #define IDC_PROGRESS1                   1001
@@ -254,13 +255,16 @@
 #define ID_BUTTON_VIEW_ALL              32842
 #define IDC_STATIC_INC_THICK            32843
 #define IDC_STATIC_INI_SHIP_SPEED       32844
+#define ID_ANALYSIS_ADD                 32845
+#define ID_ANALYSIS1_DELETE             32846
+#define ID_ANALYSIS_CLEAR               32847
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        350
-#define _APS_NEXT_COMMAND_VALUE         32845
+#define _APS_NEXT_RESOURCE_VALUE        351
+#define _APS_NEXT_COMMAND_VALUE         32848
 #define _APS_NEXT_CONTROL_VALUE         1051
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
