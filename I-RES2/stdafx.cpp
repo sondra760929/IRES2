@@ -105,3 +105,19 @@ string utf_to_multibyte(string in)
 	//}
 	//return "";
 }
+
+void CopyFiles(CString from, CString to)
+{
+	CopyFile(from + "\\ICE_INPUT.inp", to + "\\ICE_INPUT.inp", FALSE);
+	CopyFile(from + "\\ICECOFF_INPUT.inp", to + "\\ICECOFF_INPUT.inp", FALSE);
+	CopyFile(from + "\\SELECT MODULE.INP", to + "\\SELECT MODULE.INP", FALSE);
+	CopyFile(from + "\\FRAME.inp", to + "\\FRAME.inp", FALSE);
+	CopyFile(from + "\\WATERLINE_OUTSIDE.inp", to + "\\WATERLINE_OUTSIDE.inp", FALSE);
+	CopyFile(from + "\\ice_result.OUT", to + "\\ice_result.OUT", FALSE);
+	CopyFile(from + "\\ECHO.OUT", to + "\\ECHO.OUT", FALSE);
+	CopyFile(from + "\\IMSI.OUT", to + "\\IMSI.OUT", FALSE);
+	CopyFile(from + "\\CROSS_SECTION.INP", to + "\\CROSS_SECTION.INP", FALSE);
+	CopyFile(from + "\\DRAFT_SECTION.INP", to + "\\DRAFT_SECTION.INP", FALSE);
+	CopyFile(from + "\\Attainable_speed.out", to + "\\Attainable_speed.out", FALSE);
+}
+

@@ -119,6 +119,7 @@ extern CIRES2View* m_pCurrentView;
 extern float UNIT_TO_M;
 extern float M_TO_UNIT;
 extern UNIT_MODE m_iCurrentUnitMode;
+extern void CopyFiles(CString from, CString to);
 
 #ifdef _UNICODE
 #if defined _M_IX86

@@ -518,7 +518,11 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 						return;
 					}
 					CDlgDraftSection pDlg(m_pView);
-					pDlg.DoModal();
+					if (pDlg.DoModal() == IDOK)
+					{
+						//	입력한 파라미터 유지되도록 프로그램 폴더로 복사
+						CopyFiles(m_strProjectPath, m_strAppPath);
+					}
 				}
 			}
 			else if (current_item == itemCrossSection)
@@ -535,7 +539,10 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 					}
 
 					CDlgCrossSection pDlg(m_pView);
-					pDlg.DoModal();
+					if (pDlg.DoModal() == IDOK)
+					{
+						CopyFiles(m_strProjectPath, m_strAppPath);
+					}
 				}
 			}
 			else if (current_item == itemCondition)
@@ -548,6 +555,7 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 					if (pDlg.DoModal() == IDOK)
 					{
 						SetConditionStatus(true);
+						CopyFiles(m_strProjectPath, m_strAppPath);
 					}
 				}
 			}
@@ -561,6 +569,7 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 					if (pDlg.DoModal() == IDOK)
 					{
 						SetMaterialStatus(true);
+						CopyFiles(m_strProjectPath, m_strAppPath);
 					}
 				}
 			}
@@ -615,7 +624,10 @@ void CClassView::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
 				}
 
 				CDlgDraftSection pDlg(m_pView);
-				pDlg.DoModal();
+				if (pDlg.DoModal() == IDOK)
+				{
+					CopyFiles(m_strProjectPath, m_strAppPath);
+				}
 			}
 			else if (current_item == itemCrossSection && GetCrossStatus())
 			{
@@ -627,7 +639,10 @@ void CClassView::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
 				}
 
 				CDlgCrossSection pDlg(m_pView);
-				pDlg.DoModal();
+				if (pDlg.DoModal() == IDOK)
+				{
+					CopyFiles(m_strProjectPath, m_strAppPath);
+				}
 			}
 			else if (current_item == itemCondition && GetConditionStatus())
 			{
@@ -635,6 +650,7 @@ void CClassView::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
 				if (pDlg.DoModal() == IDOK)
 				{
 					SetConditionStatus(true);
+					CopyFiles(m_strProjectPath, m_strAppPath);
 				}
 			}
 			else if (current_item == itemMaterial && GetMaterialStatus())
@@ -643,6 +659,7 @@ void CClassView::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
 				if (pDlg.DoModal() == IDOK)
 				{
 					SetMaterialStatus(true);
+					CopyFiles(m_strProjectPath, m_strAppPath);
 				}
 			}
 			else if (current_item == itemAnalysis && GetModelStatus())

@@ -31,4 +31,5 @@ public:
 	afx_msg void OnBnClickedButtonOk();
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 	virtual void OnCancel();
+	virtual void OnOK();
 };

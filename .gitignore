@@ -32,3 +32,4 @@ TestCalc/x64/Release/
 *.ipdb
 *.iobj
 SetupIRES/Release.zip
+x64/Release/hull.osg

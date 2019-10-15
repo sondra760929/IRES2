@@ -50,21 +50,6 @@
 
 // CIRES2View
 
-void CopyFiles(CString from, CString to)
-{
-	CopyFile(from + "\\ICE_INPUT.inp", to + "\\ICE_INPUT.inp", FALSE);
-	CopyFile(from + "\\ICECOFF_INPUT.inp", to + "\\ICECOFF_INPUT.inp", FALSE);
-	CopyFile(from + "\\SELECT MODULE.INP", to + "\\SELECT MODULE.INP", FALSE);
-	CopyFile(from + "\\FRAME.inp", to + "\\FRAME.inp", FALSE);
-	CopyFile(from + "\\WATERLINE_OUTSIDE.inp", to + "\\WATERLINE_OUTSIDE.inp", FALSE);
-	CopyFile(from + "\\ice_result.OUT", to + "\\ice_result.OUT", FALSE);
-	CopyFile(from + "\\ECHO.OUT", to + "\\ECHO.OUT", FALSE);
-	CopyFile(from + "\\IMSI.OUT", to + "\\IMSI.OUT", FALSE);
-	CopyFile(from + "\\CROSS_SECTION.INP", to + "\\CROSS_SECTION.INP", FALSE);
-	CopyFile(from + "\\DRAFT_SECTION.INP", to + "\\DRAFT_SECTION.INP", FALSE);
-	CopyFile(from + "\\Attainable_speed.out", to + "\\Attainable_speed.out", FALSE);
-}
-
 CString GetDocumentFolder()
 {
 	LPWSTR path;
@@ -913,6 +898,7 @@ void CIRES2View::OnButtonRotate()
 	m_iSelectionMode = SELECTION_ROTATION;
 	m_pTranslationDlg->SetCaption(" << Select a start point for the rotation axis vector or enter X, Y, Z (m)", "Rotation", 3);
 	m_pTranslationDlg->ShowWindow(SW_SHOW);
+	m_pTranslationDlg->SetFocus();
 }
 
 void CIRES2View::OnButtonTranslate()
@@ -930,6 +916,7 @@ void CIRES2View::OnButtonTranslate()
 	m_iSelectionMode = SELECTION_TRANSLATION;
 	m_pTranslationDlg->SetCaption(" << Select a start point for the translation vector or enter X, Y, Z (m)", "Translation", 3);
 	m_pTranslationDlg->ShowWindow(SW_SHOW);
+	m_pTranslationDlg->SetFocus();
 }
 
 void CIRES2View::OnButtonImportHull()
@@ -3237,6 +3224,9 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 		fclose(fp_15);
 	}
 
+	//	입력한 파라미터 유지되도록 프로그램 폴더로 복사
+	CopyFiles(m_strProjectPath, m_strAppPath);
+
 	for (int i = 0; i < m_aAnalysisPGM.size(); i++)
 	{
 		CString command_string;
@@ -3793,7 +3783,8 @@ void CIRES2View::CLEARING1()
 	{
 		for (int IH = 1; IH <= NH; IH++)
 		{
-			B13 = 2.0 * RHOL * GG * THCK[IH] * BREADTH * FROUD[IVS];
+			//B13 = 2.0 * RHOL * GG * THCK[IH] * BREADTH * FROUD[IVS];
+			B13 = RHOL * GG * THCK[IH] * BREADTH * FROUD[IVS];
 			B14 = B13 * XK3H1;
 			B15 = B13 * XK3H2 *FG;
 			float RV = B5 * B14;
@@ -3917,14 +3908,14 @@ void CIRES2View::BOUYANCY1()
 				else if (Y_BUOY[KK][I3] > 0)
 				{
 					DIST_ICE[KK][I3] = sqrt(pow(Y_BUOY[KK][I3], 2.0) + pow(Z_BUOY[KK][I3], 2.0));
-					if (Y_VAL_ST[KK][I3] >= BREADTH / 2.)
+					if (Y_VAL_ST[KK][I3] >= BREADTH)
 					{
 						DIST_ICE[KK][I3] = 0.;
 					}
 				}
 				GIRTH_LENGTH[KK] = GIRTH_LENGTH[KK] + DIST_ICE[KK][I3];
 				N_END_GIRTH[KK] = I3 - 1;
-				if (GIRTH_LENGTH[KK] >= BREADTH / 2.)
+				if (GIRTH_LENGTH[KK] >= BREADTH)
 				{
 					N_END_GIRTH[KK] = I3 - 1;
 					//break;
@@ -3956,7 +3947,7 @@ void CIRES2View::BOUYANCY1()
 		//else if (NS_S > 0)
 		//	R_SP_TOTAL = R_SP_TOTAL / S_N[0];
 
-		R_BO[IH] = (R_SP_TOTAL + R_SF_TOTAL) * 2;
+		R_BO[IH] = (R_SP_TOTAL + R_SF_TOTAL);
 	}
 }
 
@@ -4280,8 +4271,6 @@ void CIRES2View::UpdageHullSize()
 			mOSG->m_widgetHullSize[2]->setLabel(temp_str);
 			sprintf_s(temp_str, 200, "Z: Max %.2lfm  Min %.2lfm", bbHull.zMax() * UNIT_TO_M, bbHull.zMin() * UNIT_TO_M);
 			mOSG->m_widgetHullSize[3]->setLabel(temp_str);
-
-			BREADTH = max(abs(bbHull.yMin()), abs(bbHull.yMax()));
 		}
 	}
 }
@@ -4321,7 +4310,9 @@ void CIRES2View::UpdateWaterLineGeo()
 	DRAFT = bbHull.center().z() * UNIT_TO_M;
 	m_fCrossSectionStart = bbHull.xMax();
 	m_fCrossSectionEnd = (bbHull.xMax() - bbHull.xMin()) / 2.0f;
+	BREADTH = bbHull.yMax();
 	//UpdateWaterlinePos();
+	SaveIceInput();
 
 	osg::Matrix tr;
 	osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), DRAFT * M_TO_UNIT);
@@ -4407,6 +4398,8 @@ void CIRES2View::PreFrameUpdate()
 
 			UpdageHullSize();
 
+			LoadIceInput();
+
 			//CString temp_string;
 			//temp_string.Format("%lf, %lf, %lf, %lf, %lf, %lf", bbHull.xMin(), bbHull.xMax(), bbHull.yMin(), bbHull.yMax(), bbHull.zMin(), bbHull.zMax());
 			//AfxMessageBox(temp_string);
@@ -4415,6 +4408,9 @@ void CIRES2View::PreFrameUpdate()
 			UpdateGlobalAxis(max(max(bbHull.xMax(), bbHull.yMax()), bbHull.zMax()));
 
 			LoadDatumFile();
+
+			ClearCrossSectionLine();
+			ClearSections();
 
 			OnButtonzoomall();
 			SetTimer(1, 10, NULL);
@@ -5874,6 +5870,7 @@ void CIRES2View::SetDlgPoint(float x, float y, float z)
 		{
 			start_point.set(x, y, z);
 			m_pTranslationDlg->SetCaption(" << Select a end point for the translation vector or enter X, Y, Z (m)", "Translation", 3);
+			m_pTranslationDlg->SetFocus();
 			m_iCurrentStatus++;
 		}
 		break;
@@ -5882,7 +5879,7 @@ void CIRES2View::SetDlgPoint(float x, float y, float z)
 			end_point.set(x, y, z);
 			osg::Vec3 diff = end_point - start_point;
 			osg::Matrix current_tr = osgHull_Center->getMatrix();
-			current_tr.preMultTranslate(diff);
+			current_tr.postMultTranslate(diff);
 			osgHull_Center->setMatrix(current_tr);
 			UpdageHullSize();
 			ClearFunctions();
@@ -5900,6 +5897,7 @@ void CIRES2View::SetDlgPoint(float x, float y, float z)
 		{
 			start_point.set(x, y, z);
 			m_pTranslationDlg->SetCaption(" << Select a end point for the rotation axis vector or enter X, Y, Z (m)", "Rotation", 3);
+			m_pTranslationDlg->SetFocus();
 			m_iCurrentStatus++;
 		}
 		break;
@@ -5907,6 +5905,7 @@ void CIRES2View::SetDlgPoint(float x, float y, float z)
 		{
 			end_point.set(x, y, z);
 			m_pTranslationDlg->SetCaption(" << Input Rotation Angle (degree)", "Rotation", 1);
+			m_pTranslationDlg->SetFocus();
 			m_iCurrentStatus++;
 		}
 		break;
@@ -5946,11 +5945,16 @@ void CIRES2View::SetDlgPoint(float x, float y, float z)
 			osgHull_Center->setMatrix(current_tr);
 			UpdageHullSize();
 
-			float new_x = GetXforYMax();
+			float y_max;
+			float new_x = GetXforYMax(y_max);
 			if (new_x > 0.0f)
 			{
 				m_fCrossSectionEnd = new_x;
+				BREADTH = y_max;
+				SaveIceInput();
 			}
+			m_pTranslationDlg->SetCaption(" << Input Rotation Angle (degree)", "Rotation", 1);
+			m_pTranslationDlg->SetFocus();
 			//ClearFunctions();
 		}
 		break;
@@ -5991,6 +5995,7 @@ void CIRES2View::OnButtonMakeDatum()
 	m_iSelectionMode = SELECTION_MAKEDATUM;
 	m_pTranslationDlg->SetCaption(" << Select a point for the datum vector or enter X, Y, Z (m)", "Datum", 3);
 	m_pTranslationDlg->ShowWindow(SW_SHOW);
+	m_pTranslationDlg->SetFocus();
 }
 
 void CIRES2View::SetNormalFromReference(osg::Geometry* ref)
@@ -6270,11 +6275,11 @@ void CIRES2View::OnButtonSetUnit(UNIT_MODE um)
 	}
 }
 
-float CIRES2View::GetXforYMax()
+float CIRES2View::GetXforYMax(float& y_max)
 {
 	osg::Matrix current_tr = osgHull_Center->getMatrix();
 	int count = osgHull->getNumChildren();
-	float y_max = -1000.0f;
+	y_max = -1000.0f;
 	float x_for_ymax = -1000.0f;
 	if (count > 0)
 	{

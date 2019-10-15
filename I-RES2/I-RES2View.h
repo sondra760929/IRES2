@@ -141,7 +141,7 @@ public:
 	void AddSectionGeo(vector< vector< osg::Vec3 > >& pt_list, osg::Group* group);
 	void ClearSections();
 	void ClearProject(CString current_project_path);
-	float GetXforYMax();
+	float GetXforYMax(float& y_max);
 	//void ClearSectionPoints();
 	//void SetCurrentStep(int i_step);
 	CPoint m_ptStart;
