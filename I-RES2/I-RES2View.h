@@ -185,6 +185,10 @@ public:
 	void OnButtonMakeDatum();
 	MOUSE_SELECTION_MODE m_iSelectionMode;
 	int m_iCurrentStatus;
+	osg::Vec3 m_ptXMin;
+	osg::Vec3 m_ptXMax;
+	void CheckDouble();
+	bool m_bDoubleCalc;
 	//CMFCRibbonEdit* m_pEditStart;
 	//CMFCRibbonEdit* m_pEditEnd;
 	//CMFCRibbonEdit* m_pEditSpace;

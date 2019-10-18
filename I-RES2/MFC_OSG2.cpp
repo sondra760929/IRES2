@@ -692,7 +692,11 @@ void cOSG2::InitCameraConfig(void)
 	m_widgetHullSize[3] = AddLabel("Z", "Z : Max ---  Min ---", 12, false);
 	m_widgetHullSize[3]->setColor(1.0f, 1.0f, 1.0f, 0.0f);
 	m_widgetHullSize[3]->setSize(200, 20);
+	m_widgetHullSize[4] = AddLabel("D", "Parallel to X : ", 12, false);
+	m_widgetHullSize[4]->setColor(1.0f, 1.0f, 1.0f, 0.0f);
+	m_widgetHullSize[4]->setSize(200, 20);
 
+	m_widgetHullSizeBox->addWidget(m_widgetHullSize[4]);
 	m_widgetHullSizeBox->addWidget(m_widgetHullSize[3]);
 	m_widgetHullSizeBox->addWidget(m_widgetHullSize[2]);
 	m_widgetHullSizeBox->addWidget(m_widgetHullSize[1]);

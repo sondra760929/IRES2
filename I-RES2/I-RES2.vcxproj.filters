@@ -312,9 +312,6 @@
     <ClInclude Include="GraphController.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="CIMPGraphCtrlEvents.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="FrameContainer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -600,9 +597,6 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Mycug.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphController.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="PosterPrinter.cpp">

@@ -200,7 +200,6 @@
   <ItemGroup>
     <ClInclude Include="CDlgProgress.h" />
     <ClInclude Include="CDlgSelectSections.h" />
-    <ClInclude Include="CIMPGraphCtrlEvents.h" />
     <ClInclude Include="ClassView.h" />
     <ClInclude Include="CreateCheckboxImageList.h" />
     <ClInclude Include="CToolbarWnd.h" />
@@ -323,7 +322,6 @@
     <ClCompile Include="DlgSectionToolbar.cpp" />
     <ClCompile Include="DlgTranslation.cpp" />
     <ClCompile Include="FileView.cpp" />
-    <ClCompile Include="GraphController.cpp" />
     <ClCompile Include="I-RES2.cpp" />
     <ClCompile Include="I-RES2Doc.cpp" />
     <ClCompile Include="I-RES2View.cpp" />

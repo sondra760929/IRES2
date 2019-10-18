@@ -94,7 +94,7 @@ public:
 	osg::ref_ptr<osgWidget::WindowManager> m_WindowManager;
 	osg::Camera* m_WindowManagerCamera;
 	osgWidget::Box* m_widgetHullSizeBox;
-	osgWidget::Label* m_widgetHullSize[4];
+	osgWidget::Label* m_widgetHullSize[5];
 
 	osg::ref_ptr < osgWidget::Box > m_widgetOutputSumurry;
 	bool m_bShowSummury;

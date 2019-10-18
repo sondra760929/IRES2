@@ -317,6 +317,7 @@ CIRES2View::CIRES2View()
 	, m_isCreateFolder(false)
 	, m_pTranslationDlg(0)
 	, m_iSelectionMode(SELECTION_NONE)
+	, m_bDoubleCalc(true)
 {
 	//m_iHULLPos[0] = 0;
 	//m_iHULLPos[1] = 0;
@@ -3783,8 +3784,10 @@ void CIRES2View::CLEARING1()
 	{
 		for (int IH = 1; IH <= NH; IH++)
 		{
-			//B13 = 2.0 * RHOL * GG * THCK[IH] * BREADTH * FROUD[IVS];
-			B13 = RHOL * GG * THCK[IH] * BREADTH * FROUD[IVS];
+			if(m_bDoubleCalc)
+				B13 = 2.0 * RHOL * GG * THCK[IH] * BREADTH * FROUD[IVS];
+			else
+				B13 = RHOL * GG * THCK[IH] * BREADTH * FROUD[IVS];
 			B14 = B13 * XK3H1;
 			B15 = B13 * XK3H2 *FG;
 			float RV = B5 * B14;
@@ -3908,17 +3911,38 @@ void CIRES2View::BOUYANCY1()
 				else if (Y_BUOY[KK][I3] > 0)
 				{
 					DIST_ICE[KK][I3] = sqrt(pow(Y_BUOY[KK][I3], 2.0) + pow(Z_BUOY[KK][I3], 2.0));
-					if (Y_VAL_ST[KK][I3] >= BREADTH)
+					if (m_bDoubleCalc)
 					{
-						DIST_ICE[KK][I3] = 0.;
+						if (Y_VAL_ST[KK][I3] >= BREADTH / 2.0)
+						{
+							DIST_ICE[KK][I3] = 0.;
+						}
+					}
+					else
+					{
+						if (Y_VAL_ST[KK][I3] >= BREADTH)
+						{
+							DIST_ICE[KK][I3] = 0.;
+						}
 					}
 				}
 				GIRTH_LENGTH[KK] = GIRTH_LENGTH[KK] + DIST_ICE[KK][I3];
 				N_END_GIRTH[KK] = I3 - 1;
-				if (GIRTH_LENGTH[KK] >= BREADTH)
+				if (m_bDoubleCalc)
 				{
-					N_END_GIRTH[KK] = I3 - 1;
-					//break;
+					if (GIRTH_LENGTH[KK] >= BREADTH / 2.0)
+					{
+						N_END_GIRTH[KK] = I3 - 1;
+						//break;
+					}
+				}
+				else
+				{
+					if (GIRTH_LENGTH[KK] >= BREADTH)
+					{
+						N_END_GIRTH[KK] = I3 - 1;
+						//break;
+					}
 				}
 			}
 		}
@@ -3947,7 +3971,14 @@ void CIRES2View::BOUYANCY1()
 		//else if (NS_S > 0)
 		//	R_SP_TOTAL = R_SP_TOTAL / S_N[0];
 
-		R_BO[IH] = (R_SP_TOTAL + R_SF_TOTAL);
+		if (m_bDoubleCalc)
+		{
+			R_BO[IH] = (R_SP_TOTAL + R_SF_TOTAL) * 2.0;
+		}
+		else
+		{
+			R_BO[IH] = (R_SP_TOTAL + R_SF_TOTAL);
+		}
 	}
 }
 
@@ -4271,6 +4302,11 @@ void CIRES2View::UpdageHullSize()
 			mOSG->m_widgetHullSize[2]->setLabel(temp_str);
 			sprintf_s(temp_str, 200, "Z: Max %.2lfm  Min %.2lfm", bbHull.zMax() * UNIT_TO_M, bbHull.zMin() * UNIT_TO_M);
 			mOSG->m_widgetHullSize[3]->setLabel(temp_str);
+			if(m_bDoubleCalc)
+				sprintf_s(temp_str, 200, "Parallel to X : O");
+			else
+				sprintf_s(temp_str, 200, "Parallel to X : X");
+			mOSG->m_widgetHullSize[4]->setLabel(temp_str);
 		}
 	}
 }
@@ -4310,9 +4346,11 @@ void CIRES2View::UpdateWaterLineGeo()
 	DRAFT = bbHull.center().z() * UNIT_TO_M;
 	m_fCrossSectionStart = bbHull.xMax();
 	m_fCrossSectionEnd = (bbHull.xMax() - bbHull.xMin()) / 2.0f;
+	CheckDouble();
 	BREADTH = bbHull.yMax();
 	//UpdateWaterlinePos();
 	SaveIceInput();
+	UpdageHullSize();
 
 	osg::Matrix tr;
 	osg::Vec3 water_line_pos(bbHull.center().x(), bbHull.center().y(), DRAFT * M_TO_UNIT);
@@ -5947,6 +5985,9 @@ void CIRES2View::SetDlgPoint(float x, float y, float z)
 
 			float y_max;
 			float new_x = GetXforYMax(y_max);
+			CheckDouble();
+			UpdageHullSize();
+
 			if (new_x > 0.0f)
 			{
 				m_fCrossSectionEnd = new_x;
@@ -6272,6 +6313,55 @@ void CIRES2View::OnButtonSetUnit(UNIT_MODE um)
 		M_TO_UNIT = 1000.0f;
 	}
 	break;
+	}
+}
+
+void CIRES2View::CheckDouble()
+{
+	osg::Matrix current_tr = osgHull_Center->getMatrix();
+	float x_max = -10000.0f;
+	float x_min = 10000.0f;
+	int count = osgHull->getNumChildren();
+	if (count > 0)
+	{
+		osg::Geode* geo = osgHull->getChild(0)->asGeode();
+		if (geo)
+		{
+			int geometry_count = geo->getNumChildren();
+			for (int j = 0; j < geometry_count; j++)
+			{
+				osg::Geometry* geometry = geo->getChild(j)->asGeometry();
+				osg::Vec3Array *vertices = (osg::Vec3Array *)geometry->getVertexArray();
+				for (int k = 0; k < vertices->size(); k++)
+				{
+					osg::Vec3 current_pt = vertices->at(k);
+					if (current_pt.x() > x_max)
+					{
+						x_max = current_pt.x();
+						m_ptXMax = current_pt;
+					}
+
+					if (current_pt.x() < x_min)
+					{
+						x_min = current_pt.x();
+						m_ptXMin = current_pt;
+					}
+				}
+			}
+			osg::Vec3 max_pt = current_tr.preMult(m_ptXMax);
+			osg::Vec3 min_pt = current_tr.preMult(m_ptXMin);
+
+			double prev_offset = m_ptXMax.y() - m_ptXMin.y();
+			double current_offset = max_pt.y() - min_pt.y();
+			if (abs(prev_offset - current_offset) > 1.0)
+			{
+				m_bDoubleCalc = false;
+			}
+			else
+			{
+				m_bDoubleCalc = true;
+			}
+		}
 	}
 }
 

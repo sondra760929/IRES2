@@ -1,0 +1,2 @@
+﻿  stdafx.cpp
+e:\source\i-res2_2017\i-res2\stdafx.h(47): fatal error C1083: 포함 파일을 열 수 없습니다. 'Standard_ShortReal.hxx': No such file or directory
