@@ -2508,7 +2508,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].x()];
-						float current_x = floor(section_line[j][0].x() * UNIT_TO_M) * M_TO_UNIT + point_distance;
+						float current_x = /*floor*/(section_line[j][0].x() * UNIT_TO_M) * M_TO_UNIT + point_distance;
 						while (current_x > section_line[j][0].x())
 						{
 							current_x -= point_distance;
@@ -2674,7 +2674,7 @@ void CIRES2View::CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 pla
 					if (section_line[j].size() > 0)
 					{
 						osg::Drawable* geo = loop_geo[section_line[j][0].z()];
-						float current_z = floor(section_line[j][0].z() * UNIT_TO_M) * M_TO_UNIT - point_distance;
+						float current_z = /*floor*/(section_line[j][0].z() * UNIT_TO_M) * M_TO_UNIT - point_distance;
 						while (current_z < section_line[j][0].z())
 						{
 							current_z += point_distance;
@@ -2723,7 +2723,7 @@ void CIRES2View::AddSectionDataGeo(vector< PointData >& pt_list, osg::Group* gro
 	}
 	base_palne_geo->setVertexArray(v_array);
 	osg::ref_ptr<osg::Vec4Array> cross_color = new osg::Vec4Array;
-	cross_color->push_back(osg::Vec4(1, 0, 0, 1));
+	cross_color->push_back(osg::Vec4(0, 0, 1, 1));
 	base_palne_geo->setColorArray(cross_color.get());
 	base_palne_geo->setColorBinding(osg::Geometry::BIND_OVERALL);
 	osg::DrawArrays* drawArrayPoints = new osg::DrawArrays(osg::PrimitiveSet::LINES, 0, v_array->size()); // Is your line strip 
