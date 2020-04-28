@@ -4109,7 +4109,7 @@ float CIRES2View::GAUS(int II, int IOP)
 void CIRES2View::WRITE_OUT()
 {
 	float R_TOTAL;
-	fprintf_s(fp_7, "   Vs(kts)     Hi(m) sigf(kPa)  R_br(kN)  R_cl(kN)  R_bu(kN)   R_i(kN)\n");
+	fprintf_s(fp_7, "   Vs(kts)         Hi(m)     sigf(kPa)      R_br(kN)       R_cl(kN)       R_bu(kN)        R_i(kN)\n");
 	for (int IV = 1; IV <= NV; IV++)
 	{
 		for (int IS = 1; IS <= NSIGMA; IS++)
@@ -4118,7 +4118,7 @@ void CIRES2View::WRITE_OUT()
 			{
 				fprintf_s(fp_8, " IV = %d   SIGMA = %d   THICK = %d\n", IV, IS, IH);
 				R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
-				fprintf_s(fp_7, "%9.2lf%10.2lf%10.2lf%10.1lf%10.1lf%10.1lf%10.1lf\n",
+				fprintf_s(fp_7, "%9.6lf%10.6lf%10.6lf%10.6lf%10.6lf%10.6lf%10.6lf\n",
 					VSP[IV], THCK[IH], SIGMA[IS] * 0.001f, R_BREAK[IH][IS] * 0.001f, R_CLEAR[IH][IV] * 0.001f, R_BOUYA[IH] * 0.001f, R_TOTAL * 0.001f);
 			}
 		}
