@@ -2811,11 +2811,11 @@ void CIRES2View::SaveIceInput()
 		SIGMAK = SIGMAP;
 		SSIGMA = 0.0f;
 		fprintf_s(fp_4, "        %d\n", HULL_TYPE);
-		fprintf_s(fp_4, "%*.2lf\n", 12, FG);
-		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n", 12, SIGMAP, 12, SIGMAK, 12, SSIGMA);
-		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n\n", 12, HH, 12, HK, 12, SH);
-		fprintf_s(fp_4, "%*.2lf%*.2lf\n", 10, DRAFT, 8, BREADTH);
-		fprintf_s(fp_4, "%*.2lf%*.2lf%*.2lf\n", 10, VS, 6, VE, 6, VI);
+		fprintf_s(fp_4, "%*.6lf\n", 12, FG);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 12, SIGMAP, 12, SIGMAK, 12, SSIGMA);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n\n", 12, HH, 12, HK, 12, SH);
+		fprintf_s(fp_4, "%*.6lf%*.6lf\n", 10, DRAFT, 8, BREADTH);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 10, VS, 6, VE, 6, VI);
 		fclose(fp_4);
 	}
 }
@@ -5528,9 +5528,9 @@ void CIRES2View::SaveDraftSectionSetting()
 	fopen_s(&fp_draft, m_strProjectPath + "\\DRAFT_SECTION.INP", "wt");
 	if (fp_draft)
 	{
-		fprintf_s(fp_draft, "%.2lf\n", DRAFT);
+		fprintf_s(fp_draft, "%.6lf\n", DRAFT);
 		fprintf_s(fp_draft, "%d\n", m_bUseDistanceForAxisWaterline ? 1 : 0);
-		fprintf_s(fp_draft, "%.2lf\n", m_fWaterlinePointGap);
+		fprintf_s(fp_draft, "%.6lf\n", m_fWaterlinePointGap);
 		fclose(fp_draft);
 	}
 }
@@ -5573,11 +5573,11 @@ void CIRES2View::SaveCrossSectionSetting()
 	fopen_s(&fp_cross, m_strProjectPath + "\\CROSS_SECTION.INP", "wt");
 	if (fp_cross)
 	{
-		fprintf_s(fp_cross, "%.2lf\n", m_fCrossSectionStart);
-		fprintf_s(fp_cross, "%.2lf\n", m_fCrossSectionEnd);
-		fprintf_s(fp_cross, "%.2lf\n", m_fCrossSectionOffset);
+		fprintf_s(fp_cross, "%.6lf\n", m_fCrossSectionStart);
+		fprintf_s(fp_cross, "%.6lf\n", m_fCrossSectionEnd);
+		fprintf_s(fp_cross, "%.6lf\n", m_fCrossSectionOffset);
 		fprintf_s(fp_cross, "%d\n", m_bUseDistanceForAxis ? 1 : 0);
-		fprintf_s(fp_cross, "%.2lf\n", m_fCrossSectionPointGap);
+		fprintf_s(fp_cross, "%.6lf\n", m_fCrossSectionPointGap);
 		fclose(fp_cross);
 	}
 }
@@ -5718,13 +5718,13 @@ void CIRES2View::ShowOutputSummury(CString job_name)
 			f2 = atof(ifp.m_array_strOutput[0]);
 		}
 	}
-	sprintf_s(temp_str, 1024, "        DRAFT: %.2lfm", f1);
+	sprintf_s(temp_str, 1024, "        DRAFT: %.6lfm", f1);
 	mOSG->m_widgetOutputSumurryString[6]->setLabel(temp_str);
 	if(is_bool)
 		mOSG->m_widgetOutputSumurryString[7]->setLabel("        Point Distance");
 	else
 		mOSG->m_widgetOutputSumurryString[7]->setLabel("        Axis Distance");
-	sprintf_s(temp_str, 1024, "     Distance Value: %.2lfm", f2);
+	sprintf_s(temp_str, 1024, "     Distance Value: %.6lfm", f2);
 	mOSG->m_widgetOutputSumurryString[8]->setLabel(temp_str);
 
 	mOSG->m_widgetOutputSumurryString[9]->setLabel("     Cross section info");
@@ -5756,17 +5756,17 @@ void CIRES2View::ShowOutputSummury(CString job_name)
 			f4 = atof(ifp.m_array_strOutput[0]);
 		}
 	}
-	sprintf_s(temp_str, 1024, "        Start: %.2lfm", f1);
+	sprintf_s(temp_str, 1024, "        Start: %.6lfm", f1);
 	mOSG->m_widgetOutputSumurryString[10]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "        End: %.2lfm", f2);
+	sprintf_s(temp_str, 1024, "        End: %.6lfm", f2);
 	mOSG->m_widgetOutputSumurryString[11]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "        Interval: %.2lfm", f3);
+	sprintf_s(temp_str, 1024, "        Interval: %.6lfm", f3);
 	mOSG->m_widgetOutputSumurryString[12]->setLabel(temp_str);
 	if(is_bool)
 		mOSG->m_widgetOutputSumurryString[13]->setLabel("        Point Distance");
 	else
 		mOSG->m_widgetOutputSumurryString[13]->setLabel("        Axis Distance");
-	sprintf_s(temp_str, 1024, "     Distance Value: %.2lfm", f4);
+	sprintf_s(temp_str, 1024, "     Distance Value: %.6lfm", f4);
 	mOSG->m_widgetOutputSumurryString[14]->setLabel(temp_str);
 
 
@@ -5851,29 +5851,29 @@ void CIRES2View::ShowOutputSummury(CString job_name)
 		}
 	}
 
-	sprintf_s(temp_str, 1024, "     flexural strength: %.2lfm", f1);
+	sprintf_s(temp_str, 1024, "     flexural strength: %.6lfm", f1);
 	mOSG->m_widgetOutputSumurryString[16]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "     Friction Coeff.: %.2lfm", f2);
+	sprintf_s(temp_str, 1024, "     Friction Coeff.: %.6lfm", f2);
 	mOSG->m_widgetOutputSumurryString[17]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "     E/sigma: %.2lfm", f3);
+	sprintf_s(temp_str, 1024, "     E/sigma: %.6lfm", f3);
 	mOSG->m_widgetOutputSumurryString[18]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "     Icd Density (kg/m3): %.2lfm", f4);
+	sprintf_s(temp_str, 1024, "     Icd Density (kg/m3): %.6lfm", f4);
 	mOSG->m_widgetOutputSumurryString[19]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "     Water Density (kg/m3): %.2lfm", f5);
+	sprintf_s(temp_str, 1024, "     Water Density (kg/m3): %.6lfm", f5);
 	mOSG->m_widgetOutputSumurryString[20]->setLabel(temp_str);
 	
 	mOSG->m_widgetOutputSumurryString[21]->setLabel("4. Condition info");
-	sprintf_s(temp_str, 1024, "     Initial Ship speed (knots): %.2lfm", f6);
+	sprintf_s(temp_str, 1024, "     Initial Ship speed (knots): %.6lfm", f6);
 	mOSG->m_widgetOutputSumurryString[22]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "     Max. Ship speed (knots): %.2lfm", f7);
+	sprintf_s(temp_str, 1024, "     Max. Ship speed (knots): %.6lfm", f7);
 	mOSG->m_widgetOutputSumurryString[23]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "     Increments Ship speed (knots): %.2lfm", f8);
+	sprintf_s(temp_str, 1024, "     Increments Ship speed (knots): %.6lfm", f8);
 	mOSG->m_widgetOutputSumurryString[24]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "     Initial Thickness (m): %.2lfm", f9);
+	sprintf_s(temp_str, 1024, "     Initial Thickness (m): %.6lfm", f9);
 	mOSG->m_widgetOutputSumurryString[25]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "     Maximum Thickness (m): %.2lfm", f10);
+	sprintf_s(temp_str, 1024, "     Maximum Thickness (m): %.6lfm", f10);
 	mOSG->m_widgetOutputSumurryString[26]->setLabel(temp_str);
-	sprintf_s(temp_str, 1024, "     Thickness Increments (m): %.2lfm", f11);
+	sprintf_s(temp_str, 1024, "     Thickness Increments (m): %.6lfm", f11);
 	mOSG->m_widgetOutputSumurryString[27]->setLabel(temp_str);
 
 	if (mOSG->m_bShowSummury == false)

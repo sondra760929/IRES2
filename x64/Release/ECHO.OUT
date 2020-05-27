@@ -1,5 +1,5 @@
      SPEED            = 1.000000  Knots 
-     BREADTH          = 19.000000
+     BREADTH          = 0.500000
      FRICTIONAL COEFF.= 5.000000e-02
 THE NUMBER OF FRAMES = 497
 X_COOR(I)        Y(I)    Z_COOR(I)    X_NORM(I)    Y_NORM(I)    Z_NORM(I)     ALPHA(I)      BETA(I)     GAMMA(I)
