@@ -40,8 +40,9 @@
 #include "CDlgSelectSections.h"
 #include "DlgDefineInp.h"
 #include "zip.h"
-#include "FrameContainer.h""
+#include "FrameContainer.h"
 #include "PosterPrinter.h"
+#include "DlgCalc.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -6394,6 +6395,15 @@ float CIRES2View::GetXforYMax(float& y_max)
 		}
 	}
 	return x_for_ymax;
+}
+
+void CIRES2View::OnButtonCalc()
+{
+	CDlgCalc pDlg;
+	if (pDlg.DoModal() == IDOK)
+	{
+
+	}
 }
 
 void CIRES2View::OnButtonSetUnit()

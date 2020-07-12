@@ -78,6 +78,7 @@ enum UNIT_MODE
 
 #include "I-RES2View.h"
 #include <afxcontrolbars.h>
+#include <afxwin.h>
 
 #define WM_RETURN_FROM_UI WM_USER+10
 #define WM_OK_FROM_UI WM_USER+11

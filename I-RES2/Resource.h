@@ -112,6 +112,7 @@
 #define IDD_DIALOG_CHART                346
 #define IDB_BITMAP_SETUNIT              348
 #define IDR_POPUP_ANALYSIS              350
+#define IDD_DIALOG_CALC                 351
 #define IDC_LIST1                       1000
 #define IDC_MFCBUTTON_CLEAR             1000
 #define IDC_PROGRESS1                   1001
@@ -131,6 +132,7 @@
 #define IDC_MFCBUTTON_SETUNIT           1005
 #define IDC_SPIN2                       1006
 #define IDC_MFCBUTTON_CALCULATE         1006
+#define IDC_MFCBUTTON_CALC              1006
 #define IDC_EDIT_MAXIMUM_STRENGTH       1007
 #define IDC_EDIT_DRAFT2                 1007
 #define IDC_SPIN3                       1008
@@ -180,6 +182,15 @@
 #define IDC_MFCBUTTON_GRAPH1            1048
 #define IDC_MFCBUTTON_EXCEL2            1049
 #define IDC_MFCBUTTON_GRAPH2            1050
+#define IDC_GRID                        1051
+#define IDC_STATIC_1                    1052
+#define IDC_STATIC_2                    1053
+#define IDC_EDIT_1                      1054
+#define IDC_EDIT_2                      1055
+#define IDC_BUTTON_LOAD_TXT             1056
+#define IDC_EDIT_3                      1057
+#define IDC_BUTTON_SET_ROWS             1058
+#define IDC_BUTTON_DO_CALC              1059
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_BUTTON_OPEN                  32771
 #define ID_BUTTON_SAVE                  32772
@@ -263,9 +274,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        351
+#define _APS_NEXT_RESOURCE_VALUE        353
 #define _APS_NEXT_COMMAND_VALUE         32848
-#define _APS_NEXT_CONTROL_VALUE         1051
+#define _APS_NEXT_CONTROL_VALUE         1057
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

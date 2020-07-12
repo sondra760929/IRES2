@@ -275,6 +275,7 @@ public:
 	void LoadDatumFile();
 	void AddDatumInLocal(osg::Vec3 pos);
 	void OnButtonSetUnit(UNIT_MODE um);
+	void OnButtonCalc();
 	void OnButtonSetUnit();
 	void SaveCurrentHull();
 	void UpdageHullSize();

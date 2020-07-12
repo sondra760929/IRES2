@@ -205,6 +205,7 @@
     <ClInclude Include="CToolbarWnd.h" />
     <ClInclude Include="Dlg1.h" />
     <ClInclude Include="Dlg2.h" />
+    <ClInclude Include="DlgCalc.h" />
     <ClInclude Include="DlgChartView.h" />
     <ClInclude Include="DlgCondition.h" />
     <ClInclude Include="DlgCreateJob.h" />
@@ -309,6 +310,7 @@
     <ClCompile Include="CToolbarWnd.cpp" />
     <ClCompile Include="Dlg1.cpp" />
     <ClCompile Include="Dlg2.cpp" />
+    <ClCompile Include="DlgCalc.cpp" />
     <ClCompile Include="DlgChartView.cpp" />
     <ClCompile Include="DLGCONDITION.CPP" />
     <ClCompile Include="DlgCreateJob.cpp" />
