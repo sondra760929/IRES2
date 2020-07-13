@@ -27,6 +27,7 @@ public:
 	CMFCButton m_btnRot;
 	CMFCButton m_btnDatum;
 	CMFCButton m_btnNormal;
+	CMFCButton m_btnCalc;
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedMfcbuttonClear();
 	afx_msg void OnBnClickedMfcbuttonTrans();
@@ -34,5 +35,6 @@ public:
 	afx_msg void OnBnClickedMfcbuttonDatum();
 	afx_msg void OnBnClickedMfcbuttonNormal();
 	afx_msg void OnBnClickedMfcbuttonSetunit();
+	afx_msg void OnBnClickedMfcbuttonCalc();
 	CMFCButton m_btnSetUnit;
 };

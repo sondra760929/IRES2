@@ -430,6 +430,6 @@ int MyCug::OnEditFinish(int col, long row, CWnd * edit, LPCTSTR string, BOOL can
 	//	return true;
 	//}
 	
-	return FALSE;
+	return TRUE;
 	
 }
