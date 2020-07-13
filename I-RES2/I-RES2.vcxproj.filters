@@ -419,9 +419,6 @@
     <ClCompile Include="DlgSectionToolbar.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="CDlgCondition.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="DLGCONDITION.CPP">
       <Filter>소스 파일</Filter>
     </ClCompile>

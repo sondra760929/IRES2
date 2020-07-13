@@ -154,11 +154,11 @@ void CDlgMaterial::OnBnClickedOk()
 	if (fp_4)
 	{
 		fprintf_s(fp_4, "        %d\n", HULL_TYPE);
-		fprintf_s(fp_4, "%*.6lf\n", 12, m_fFrictionCoef);
-		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 12, m_fInitialStrength, 12, m_fInitialStrength, 12, 0.0f);
-		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n\n", 12, m_fInitialThickness, 12, m_fMaximumThickness, 12, m_fThicknessIncrements);
-		fprintf_s(fp_4, "%*.6lf%*.6lf\n", 10, m_pCurrentView->DRAFT, 8, m_pCurrentView->BREADTH);
-		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 10, m_fInitialSpeed, 6, m_fMaximumSpeed, 6, m_fSpeedIncrements);
+		fprintf_s(fp_4, "%*.6lf\n", 16, m_fFrictionCoef);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 16, m_fInitialStrength, 16, m_fInitialStrength, 16, 0.0f);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n\n", 16, m_fInitialThickness, 16, m_fMaximumThickness, 16, m_fThicknessIncrements);
+		fprintf_s(fp_4, "%*.6lf%*.6lf\n", 16, m_pCurrentView->DRAFT, 16, m_pCurrentView->BREADTH);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 16, m_fInitialSpeed, 16, m_fMaximumSpeed, 16, m_fSpeedIncrements);
 		fclose(fp_4);
 	}
 

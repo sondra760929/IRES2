@@ -301,7 +301,6 @@
     <ClInclude Include="XTrace.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CDlgCondition.cpp" />
     <ClCompile Include="CDlgProgress.cpp" />
     <ClCompile Include="CDlgSelectSections.cpp" />
     <ClCompile Include="ClassView.cpp" />

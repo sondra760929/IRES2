@@ -2,6 +2,52 @@
 #include "DlgCondition.h"
 #include "resource.h"
 #include "OptImportExportBase.h"
+#include "I-RES2.h"
+#include "DlgCondition.h"
+#include "afxdialogex.h"
+
+
+// CDlgCondition 대화 상자
+
+IMPLEMENT_DYNAMIC(CDlgCondition, CDialog)
+
+CDlgCondition::CDlgCondition(CWnd* pParent /*=nullptr*/)
+	: CDialog(IDD_DIALOG_CONDITION, pParent)
+	, m_fShipSpeed(0)
+	, m_fShipMaxSpeed(0)
+	, m_fShipIncSpeed(0)
+	, m_fThickness(0)
+	, m_fMaxThickness(0)
+	, m_fIncThickness(0)
+{
+}
+
+CDlgCondition::~CDlgCondition()
+{
+}
+
+void CDlgCondition::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	DDX_Text(pDX, IDC_EDIT_INITIAL_SPEED, m_fShipSpeed);
+	DDX_Text(pDX, IDC_EDIT_MAXIMUM_SPEED, m_fShipMaxSpeed);
+	DDX_Text(pDX, IDC_EDIT_SPEED_INCREMENTS, m_fShipIncSpeed);
+	DDX_Text(pDX, IDC_EDIT_INITIAL_THICKNESS, m_fThickness);
+	DDX_Text(pDX, IDC_EDIT_MAXIMUM_THICKNESS2, m_fMaxThickness);
+	DDX_Text(pDX, IDC_EDIT_THICKNESS_INCREMENTS2, m_fIncThickness);
+	DDX_Control(pDX, IDC_RADIO_CONSTANT, m_radioConstant);
+	DDX_Control(pDX, IDC_RADIO_PARAMETRIC, m_radioParametric);
+}
+
+
+BEGIN_MESSAGE_MAP(CDlgCondition, CDialog)
+	ON_BN_CLICKED(IDC_RADIO_CONSTANT, &CDlgCondition::OnBnClickedRadioConstant)
+	ON_BN_CLICKED(IDC_RADIO_PARAMETRIC, &CDlgCondition::OnBnClickedRadioParametric)
+	ON_BN_CLICKED(IDOK, &CDlgCondition::OnBnClickedOk)
+END_MESSAGE_MAP()
+
+
+// CDlgCondition 메시지 처리기
 
 void CDlgCondition::OnBnClickedRadioConstant()
 {
@@ -114,11 +160,11 @@ void CDlgCondition::OnBnClickedOk()
 	if (fp_4)
 	{
 		fprintf_s(fp_4, "        %d\n", HULL_TYPE);
-		fprintf_s(fp_4, "%*.6lf\n", 12, m_fFrictionCoeff);
-		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 12, m_fInitialStrength, 12, m_fInitialStrength, 12, 0.0f);
-		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n\n", 12, m_fThickness, 12, m_fMaxThickness, 12, m_fIncThickness);
-		fprintf_s(fp_4, "%*.6lf%*.6lf\n", 10, m_pCurrentView->DRAFT, 8, m_pCurrentView->BREADTH);
-		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 10, m_fShipSpeed, 6, m_fShipMaxSpeed, 6, m_fShipIncSpeed);
+		fprintf_s(fp_4, "%*.6lf\n", 16, m_fFrictionCoeff);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 16, m_fInitialStrength, 16, m_fInitialStrength, 16, 0.0f);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n\n", 16, m_fThickness, 16, m_fMaxThickness, 16, m_fIncThickness);
+		fprintf_s(fp_4, "%*.6lf%*.6lf\n", 16, m_pCurrentView->DRAFT, 16, m_pCurrentView->BREADTH);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 16, m_fShipSpeed, 16, m_fShipMaxSpeed, 16, m_fShipIncSpeed);
 		fclose(fp_4);
 	}
 

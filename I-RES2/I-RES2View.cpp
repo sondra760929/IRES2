@@ -2811,11 +2811,11 @@ void CIRES2View::SaveIceInput()
 		SIGMAK = SIGMAP;
 		SSIGMA = 0.0f;
 		fprintf_s(fp_4, "        %d\n", HULL_TYPE);
-		fprintf_s(fp_4, "%*.6lf\n", 12, FG);
-		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 12, SIGMAP, 12, SIGMAK, 12, SSIGMA);
-		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n\n", 12, HH, 12, HK, 12, SH);
-		fprintf_s(fp_4, "%*.6lf%*.6lf\n", 10, DRAFT, 8, BREADTH);
-		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 10, VS, 6, VE, 6, VI);
+		fprintf_s(fp_4, "%*.6lf\n", 16, FG);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 16, SIGMAP, 16, SIGMAK, 16, SSIGMA);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n\n", 16, HH, 16, HK, 16, SH);
+		fprintf_s(fp_4, "%*.6lf%*.6lf\n", 16, DRAFT, 16, BREADTH);
+		fprintf_s(fp_4, "%*.6lf%*.6lf%*.6lf\n", 16, VS, 16, VE, 16, VI);
 		fclose(fp_4);
 	}
 }
