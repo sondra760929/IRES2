@@ -55,6 +55,13 @@ BOOL CDlgCalc::OnInitDialog()
 	m_wndExcelView.SetVScrollMode(UG_SCROLLTRACKING);
 	m_wndExcelView.SetHScrollMode(UG_SCROLLTRACKING);
 
+	m_wndReportView.AttachGrid(this, IDC_GRID2);
+	m_wndReportView.m_pParentDlg = this;
+	m_wndReportView.SetVScrollMode(UG_SCROLLTRACKING);
+	m_wndReportView.SetHScrollMode(UG_SCROLLTRACKING);
+	
+	chartIdx = -1;
+
 	CRect rect;
 	GetClientRect(&rect);
 	SetSize(rect.Width(), rect.Height());
@@ -63,6 +70,11 @@ BOOL CDlgCalc::OnInitDialog()
 	m_wndExcelView.QuickSetText(0, -1, "Time(s)");
 	m_wndExcelView.QuickSetText(1, -1, "R(N)");
 	SetNumRows(100);
+
+	m_wndReportView.SetNumberCols(3);
+	m_wndReportView.QuickSetText(0, -1, "X");
+	m_wndReportView.QuickSetText(1, -1, "Range");
+	m_wndReportView.QuickSetText(2, -1, "Count");
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
@@ -83,6 +95,7 @@ void CDlgCalc::SetSize(int cx, int cy)
 		int btn_height = 25;
 		int btn_width = 70;
 		int btn_offset = 5;
+		int chart_height;
 
 		GetDlgItem(IDC_BUTTON_LOAD_TXT)->MoveWindow(btn_offset, btn_offset, btn_width, btn_height);
 		GetDlgItem(IDC_EDIT_3)->MoveWindow(btn_width * 2 + btn_offset, btn_offset, btn_width, btn_height);
@@ -97,8 +110,11 @@ void CDlgCalc::SetSize(int cx, int cy)
 
 		m_wndExcelView.MoveWindow(btn_offset, btn_height + btn_offset*2, (cx - (btn_offset*3)) / 2, cy - (btn_height + btn_offset + btn_offset) * 2);
 
-		m_chartContainer.MoveWindow((cx - (btn_offset * 3)) / 2 + btn_offset*2, (btn_height + btn_offset) * 3 + btn_offset, (cx - (btn_offset * 3)) / 2, cy - (btn_height + btn_offset) * 4 - btn_offset*2);
+		chart_height = (cy - (btn_height + btn_offset) * 4 - btn_offset * 2) / 2;
+		m_chartContainer.MoveWindow((cx - (btn_offset * 3)) / 2 + btn_offset*2, (btn_height + btn_offset) * 3 + btn_offset, (cx - (btn_offset * 3)) / 2, chart_height);
 		m_chartContainer.RefreshWnd();
+
+		m_wndReportView.MoveWindow((cx - (btn_offset * 3)) / 2 + btn_offset * 2, (btn_height + btn_offset) * 3 + btn_offset + chart_height, (cx - (btn_offset * 3)) / 2, chart_height);
 
 		GetDlgItem(IDOK)->MoveWindow(cx - btn_width * 2 - btn_offset, cy - btn_height - btn_offset, btn_width * 2, btn_height);
 		//m_wndExcelView.MoveWindow(0, 0, cx, cy - (btn_height + btn_offset));
@@ -146,6 +162,8 @@ void CDlgCalc::OnBnClickedButtonLoadTxt()
 				}
 
 				m_wndExcelView.BestFit(-1, 1, 0, UG_BESTFIT_TOPHEADINGS);
+
+				OnBnClickedButtonDoCalc();
 			}
 		}
 	}
@@ -234,13 +252,24 @@ void CDlgCalc::OnBnClickedButtonDoCalc()
 	double variance = sum / (float)row_count;
 	m_fMean = sqrt(variance);
 
+	m_wndReportView.SetNumberRows(count.size());
+	CString x_string, range_string;
+
 	V_CHARTDATAD vData1;
 	for (int i = 0; i < count.size(); i++)
 	{
+		x_string.Format("%.1lf", cal_min + (i * 10));
+		range_string.Format("%.1lf < X <= %.1lf", cal_min - 5 + (i * 10), cal_min + 5 + (i * 10));
+		m_wndReportView.QuickSetText(0, i, x_string);
+		m_wndReportView.QuickSetText(1, i, range_string);
+		m_wndReportView.QuickSetNumber(2, i, count[i]);
 		vData1.push_back(PointD(cal_min + (i * 10), count[i]));
 	}
 
-	int chartIdx = m_chartContainer.AddChart(true, true, string("STD"), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 255, 0, 0), vData1, true);
+	if(chartIdx > -1)
+		m_chartContainer.RemoveChart(chartIdx, true, true);
+
+	chartIdx = m_chartContainer.AddChart(true, true, string("STD"), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 255, 0, 0), vData1, true);
 	m_chartContainer.RefreshWnd();
 	m_chartContainer.ShowAxisXBoundaries(true, true);
 

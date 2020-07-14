@@ -14,8 +14,9 @@ public:
 	CDlgCalc(CWnd* pParent = nullptr);   // 표준 생성자입니다.
 	virtual ~CDlgCalc();
 	MyCug m_wndExcelView;
+	MyCug m_wndReportView;
 	CChartContainer m_chartContainer;
-
+	int chartIdx;
 	void SetSize(int cx, int cy);
 	void SetNumRows(int irow);
 // 대화 상자 데이터입니다.
