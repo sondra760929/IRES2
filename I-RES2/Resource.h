@@ -192,6 +192,8 @@
 #define IDC_BUTTON_SET_ROWS             1058
 #define IDC_BUTTON_DO_CALC              1059
 #define IDC_GRID2                       1060
+#define IDC_EDIT_4                      1061
+#define IDC_EDIT_RESULT                 1061
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_BUTTON_OPEN                  32771
 #define ID_BUTTON_SAVE                  32772

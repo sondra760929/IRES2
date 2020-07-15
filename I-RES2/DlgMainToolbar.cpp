@@ -66,7 +66,7 @@ BOOL CDlgMainToolbar::OnInitDialog()
 	btn_image4.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_DATUM);
 	btn_image5.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_NORMAL);
 	btn_image6.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_SETUNIT);
-	btn_image7.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_CALC);
+	btn_image7.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_GRAPH);
 	HBITMAP hBit1;
 	HBITMAP hBit2;
 	HBITMAP hBit3;

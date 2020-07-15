@@ -37,4 +37,5 @@ public:
 	afx_msg void OnBnClickedButtonLoadTxt();
 	afx_msg void OnBnClickedButtonSetRows();
 	afx_msg void OnBnClickedButtonDoCalc();
+	CString m_strResult;
 };

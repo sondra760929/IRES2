@@ -1,13 +1,12 @@
 ﻿// DlgCalc.cpp: 구현 파일
 //
-
 #include "stdafx.h"
 #include "I-RES2.h"
 #include "DlgCalc.h"
 #include "afxdialogex.h"
 #include "OptImportExportBase.h"
-
-
+#include <stdio.h>
+#include <stdlib.h>
 // CDlgCalc 대화 상자
 
 IMPLEMENT_DYNAMIC(CDlgCalc, CDialog)
@@ -17,6 +16,7 @@ CDlgCalc::CDlgCalc(CWnd* pParent /*=nullptr*/)
 	, m_fAvg(0)
 	, m_fMean(0)
 	, m_iRows(0)
+	, m_strResult(_T(""))
 {
 
 }
@@ -32,6 +32,7 @@ void CDlgCalc::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_2, m_fMean);
 	DDX_Text(pDX, IDC_EDIT_3, m_iRows);
 	DDX_Control(pDX, IDC_STCHARTCONTAINER, m_chartContainer);
+	DDX_Text(pDX, IDC_EDIT_RESULT, m_strResult);
 }
 
 
@@ -108,6 +109,8 @@ void CDlgCalc::SetSize(int cx, int cy)
 		GetDlgItem(IDC_STATIC_2)->MoveWindow(cx - btn_width * 2 - btn_offset, (btn_height + btn_offset) * 2 + btn_offset, btn_width, btn_height);
 		GetDlgItem(IDC_EDIT_2)->MoveWindow(cx - btn_width - btn_offset, (btn_height + btn_offset) * 2 + btn_offset, btn_width, btn_height);
 
+		GetDlgItem(IDC_EDIT_RESULT)->MoveWindow((cx - (btn_offset * 3)) / 2 + btn_offset * 2, btn_height + btn_offset + btn_offset, (cx - (btn_offset * 3)) / 2, btn_height*2);
+		
 		m_wndExcelView.MoveWindow(btn_offset, btn_height + btn_offset*2, (cx - (btn_offset*3)) / 2, cy - (btn_height + btn_offset + btn_offset) * 2);
 
 		chart_height = (cy - (btn_height + btn_offset) * 4 - btn_offset * 2) / 2;
@@ -272,6 +275,50 @@ void CDlgCalc::OnBnClickedButtonDoCalc()
 	chartIdx = m_chartContainer.AddChart(true, true, string("STD"), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 255, 0, 0), vData1, true);
 	m_chartContainer.RefreshWnd();
 	m_chartContainer.ShowAxisXBoundaries(true, true);
+	m_wndReportView.BestFit(-1, 2, 0, UG_BESTFIT_TOPHEADINGS);
+
+	m_strResult.Format("\tAvg : %lf\r\n\tSTD : %lf", m_fAvg, m_fMean);
+	//	normality test
+	if (values.size() > 0)
+	{
+		FILE* fp_test;
+		fopen_s(&fp_test, m_strProjectPath + "\\normal.txt", "wt");
+		if (fp_test)
+		{
+			fprintf_s(fp_test, "x <- c(%lf", values[0]);
+			for (int i = 1; i < values.size(); i++)
+			{
+				fprintf_s(fp_test, ",%lf", values[i]);
+			}
+			fprintf_s(fp_test, ")\nlibrary(nortest)\nad.test(x)");
+			fclose(fp_test);
+
+			const char  *pszCommand = m_strProjectPath + "\\R-4.0.2\\bin\\RScript " + m_strProjectPath + "\\normal.txt";
+			FILE        *fp = NULL;
+			// 명령어 실행
+			fp = _popen(pszCommand, "r");
+			if (fp)
+			{
+				COptImportExportBase ifp;
+				ifp.m_fp_input = fp;
+				ifp.m_array_strSplit.push_back(' ');
+				ifp.m_array_strSplit.push_back(',');
+				ifp.m_array_strSplit.push_back('=');
+				ifp.m_array_strSplit.push_back(':');
+				ifp.ReadOneLineFromFile();
+				ifp.ReadOneLineFromFile();
+				CString title = ifp.m_strOneLine;
+				ifp.ReadOneLineFromFile();
+				ifp.ReadOneLineFromFile();
+				ifp.ReadOneLineFromFile();
+				if (ifp.m_array_strOutput.size() > 3)
+				{
+					m_strResult.Format("\tAvg : %lf\r\n\tSTD : %lf\r\n%s : %.2lf %%", m_fAvg, m_fMean, title, atof(ifp.m_array_strOutput[3])*100.0f);
+				}
+
+			}
+		}
+	}
 
 	UpdateData(FALSE);
 }
