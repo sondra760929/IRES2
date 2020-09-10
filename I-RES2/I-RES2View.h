@@ -267,6 +267,7 @@ public:
 	osg::Vec3 selection_point;
 	void ResizeControl(int cx, int cy);
 	void ClearFunctions();
+	void ConvertNormal(osg::Geometry* geometry);
 	void SetNormalFromReference(osg::Geometry* ref);
 	void CheckNormal(osg::Geode* parent_geode, vector< bool >& checked_status, vector< osg::Vec3Array* >& check_vertices, vector< osg::Vec3Array* >& check_normals, int check_id);
 	void AddDatum(float x, float y, float z);
@@ -281,6 +282,7 @@ public:
 	void UpdageHullSize();
 	void UpdateWaterLineGeo();
 	void SaveIceInput();
+	void OnButtonSaveSectionData();
 public:
 
 // 재정의입니다.

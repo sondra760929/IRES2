@@ -32,4 +32,6 @@ public:
 	afx_msg void OnBnClickedCheckViewDraftPoints();
 	//afx_msg void OnBnClickedCheckViewCrossPlane();
 	afx_msg void OnBnClickedCheckViewCrossPoints();
+	CMFCButton m_btnSaveSection;
+	afx_msg void OnBnClickedMfcbuttonSaveSection();
 };

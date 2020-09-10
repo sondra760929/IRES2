@@ -1,11 +1,2 @@
- VS =   0.000000     VE =   0.000000     VI =   0.000000
- VSP =   0.000000     FROUD =   -nan(ind)
- IV = 1   SIGMA = 1   THICK = 1
- IV = 1   SIGMA = 1   THICK = 2
- IV = 1   SIGMA = 1   THICK = 3
- IV = 1   SIGMA = 1   THICK = 4
- IV = 1   SIGMA = 1   THICK = 5
- IV = 1   SIGMA = 1   THICK = 6
- IV = 1   SIGMA = 1   THICK = 7
- IV = 1   SIGMA = 1   THICK = 8
- IV = 1   SIGMA = 1   THICK = 9
+ VS =   1.000000     VE =   1.300000     VI =   1.400000
+ VSP =   1.000000     FROUD =   0.032846

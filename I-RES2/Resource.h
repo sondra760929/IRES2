@@ -189,7 +189,10 @@
 #define IDC_EDIT_2                      1055
 #define IDC_BUTTON_LOAD_TXT             1056
 #define IDC_EDIT_3                      1057
+#define IDC_MFCBUTTON_SAVE_SECTION      1057
 #define IDC_BUTTON_SET_ROWS             1058
+#define IDC_BUTTON1                     1058
+#define IDC_BUTTON_SAVE                 1058
 #define IDC_BUTTON_DO_CALC              1059
 #define IDC_GRID2                       1060
 #define IDC_EDIT_4                      1061
@@ -277,9 +280,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        353
+#define _APS_NEXT_RESOURCE_VALUE        354
 #define _APS_NEXT_COMMAND_VALUE         32848
-#define _APS_NEXT_CONTROL_VALUE         1057
+#define _APS_NEXT_CONTROL_VALUE         1059
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

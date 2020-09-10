@@ -4110,7 +4110,7 @@ float CIRES2View::GAUS(int II, int IOP)
 void CIRES2View::WRITE_OUT()
 {
 	float R_TOTAL;
-	fprintf_s(fp_7, "   Vs(kts)         Hi(m)     sigf(kPa)      R_br(kN)       R_cl(kN)       R_bu(kN)        R_i(kN)\n");
+	fprintf_s(fp_7, "   Vs(kts)      Hi(m)     sigf(kPa)         R_br(kN)          R_cl(kN)          R_bu(kN)           R_i(kN)\n");
 	for (int IV = 1; IV <= NV; IV++)
 	{
 		for (int IS = 1; IS <= NSIGMA; IS++)
@@ -4119,7 +4119,7 @@ void CIRES2View::WRITE_OUT()
 			{
 				fprintf_s(fp_8, " IV = %d   SIGMA = %d   THICK = %d\n", IV, IS, IH);
 				R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
-				fprintf_s(fp_7, "%9.6lf%10.6lf%10.6lf%10.6lf%10.6lf%10.6lf%10.6lf\n",
+				fprintf_s(fp_7, "%9.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf\n",
 					VSP[IV], THCK[IH], SIGMA[IS] * 0.001f, R_BREAK[IH][IS] * 0.001f, R_CLEAR[IH][IV] * 0.001f, R_BOUYA[IH] * 0.001f, R_TOTAL * 0.001f);
 			}
 		}
@@ -4909,8 +4909,14 @@ void CIRES2View::OnLButtonDown(UINT nFlags, CPoint point)
 	{
 		if (m_SelectedGeo)
 		{
-			SetNormalFromReference(m_SelectedGeo);
-			ClearFunctions();
+			//SetNormalFromReference(m_SelectedGeo);
+			ConvertNormal(m_SelectedGeo);
+			CT2CA pszConvertedAnsiString(m_strProjectPath + "\\hull.osg");
+			std::string strStd(pszConvertedAnsiString);
+			osg::Node* node = osgHull->getChild(0);
+			bool result = osgDB::writeNodeFile(*node, strStd);
+
+			//ClearFunctions();
 
 			//osg::Vec3Array *vertices = (osg::Vec3Array *)m_SelectedGeo->getVertexArray();
 			//osg::Vec3Array *normals = (osg::Vec3Array *)m_SelectedGeo->getNormalArray();
@@ -6016,10 +6022,17 @@ void CIRES2View::ClearFunctions()
 
 void CIRES2View::OnButtonSetNormal()
 {
-	PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
-	m_QAddChild.push(pf);
-	m_pTranslationDlg->ShowWindow(SW_HIDE);
-	m_iSelectionMode = SELECTION_NORMAL;
+	if (m_iSelectionMode == SELECTION_NORMAL)
+	{
+		ClearFunctions();
+	}
+	else
+	{
+		PreFrameUpdateData pf(mOSG->mRoot, osgSelectPoint);
+		m_QAddChild.push(pf);
+		m_pTranslationDlg->ShowWindow(SW_HIDE);
+		m_iSelectionMode = SELECTION_NORMAL;
+	}
 }
 
 void CIRES2View::OnButtonMakeDatum()
@@ -6074,7 +6087,48 @@ void CIRES2View::SetNormalFromReference(osg::Geometry* ref)
 			std::string strStd(pszConvertedAnsiString);
 			osg::Node* node = osgHull->getChild(0);
 			bool result = osgDB::writeNodeFile(*node, strStd);
+		}
+	}
+}
 
+void CIRES2View::ConvertNormal(osg::Geometry* geometry)
+{
+	if (geometry)
+	{
+		osg::Geometry::PrimitiveSetList primitiveList = geometry->getPrimitiveSetList();
+		int index1, index2, index3;
+
+		osg::Vec3Array* check_n = (osg::Vec3Array*)geometry->getNormalArray();
+		if (check_n)
+		{
+			for (int j = 0; j < check_n->size(); j++)
+			{
+				check_n->at(j).set(-check_n->at(j));
+			}
+			check_n->dirty();
+
+			for (int x = 0; x < primitiveList.size(); x++)
+			{
+				osg::PrimitiveSet* set = primitiveList[x];
+				if (set)
+				{
+					int numberOfIndices = set->getNumIndices();
+					if (set->getMode() == osg::PrimitiveSet::Mode::TRIANGLES)
+					{
+						for (unsigned int y = 0; y < set->getDrawElements()->getNumIndices() /*numberOfIndices*/; y += 3)
+						{
+							index1 = set->getDrawElements()->getElement(y); //set->index(y); 
+							index2 = set->getDrawElements()->getElement(y + 1); //set->index(y); 
+							index3 = set->getDrawElements()->getElement(y + 2); //set->index(y); 
+
+							set->getDrawElements()->setElement(y + 1, index3);
+							set->getDrawElements()->setElement(y + 2, index2);
+						}
+						set->dirty();
+					}
+				}
+			}
+			geometry->dirtyBound();
 		}
 	}
 }
@@ -6133,34 +6187,7 @@ void CIRES2View::CheckNormal(osg::Geode* parent_geode, vector< bool >& checked_s
 						if (back_count > 0)
 						{
 							osg::Geometry* geometry = parent_geode->getChild(i)->asGeometry();
-							osg::Geometry::PrimitiveSetList primitiveList = geometry->getPrimitiveSetList();
-							int index1, index2, index3;
-
-							for (int i = 0; i < check_n->size(); i++)
-							{
-								check_n->at(i).set(-check_n->at(i));
-							}
-							check_n->dirty();
-
-							for (int x = 0; x < primitiveList.size(); x++)
-							{
-								osg::PrimitiveSet *set = primitiveList[x];
-								int numberOfIndices = set->getNumIndices();
-								if (set->getMode() == osg::PrimitiveSet::Mode::TRIANGLES)
-								{
-									for (unsigned int y = 0; y < set->getDrawElements()->getNumIndices() /*numberOfIndices*/; y += 3)
-									{
-										index1 = set->getDrawElements()->getElement(y); //set->index(y); 
-										index2 = set->getDrawElements()->getElement(y + 1); //set->index(y); 
-										index3 = set->getDrawElements()->getElement(y + 2); //set->index(y); 
-
-										set->getDrawElements()->setElement(y + 1, index3);
-										set->getDrawElements()->setElement(y + 2, index2);
-									}
-									set->dirty();
-								}
-							}
-							geometry->dirtyBound();
+							ConvertNormal(geometry);
 						}
 					}
 				}
@@ -6476,5 +6503,90 @@ void CIRES2View::ClearProject(CString current_project_path)
 	{
 		if (current_project_path != m_strAppPath)
 			DeleteDirectoryFile(current_project_path);
+	}
+}
+
+void CIRES2View::OnButtonSaveSectionData()
+{
+	if (m_aWaterLinePointData.size() > 0 && m_aSectionPointDataList.size() > 0)
+	{
+		CString file_name;
+		file_name.Format("section_%.1lf.txt", m_fCrossSectionOffset);
+		CFileDialog pDlg(FALSE, "txt", file_name);
+		if (pDlg.DoModal() == IDOK)
+		{
+			FILE* save_file;
+			fopen_s(&save_file, pDlg.GetPathName(), "wt");
+			if (save_file)
+			{
+				fprintf_s(save_file, "Water Line  Data : %d\n", m_aWaterLinePointData.size());
+				fprintf_s(save_file, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", 
+					"x",  "y", "z", "nx", "ny", "nz", "alpha", "beta", "gamma");
+				for (int i = 0; i < m_aWaterLinePointData.size(); i++)
+				{
+					fprintf_s(save_file, "%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\n",
+						m_aWaterLinePointData[i].pnt.x() * UNIT_TO_M,
+						m_aWaterLinePointData[i].pnt.y() * UNIT_TO_M,
+						m_aWaterLinePointData[i].pnt.z() * UNIT_TO_M,
+						m_aWaterLinePointData[i].normal.x(),
+						m_aWaterLinePointData[i].normal.y(),
+						m_aWaterLinePointData[i].normal.z(),
+						m_aWaterLinePointData[i].angle_alpha,
+						m_aWaterLinePointData[i].angle_beta,
+						m_aWaterLinePointData[i].angle_gamma);
+					if (i == 0)
+					{
+						max_y = m_aWaterLinePointData[i].pnt.y() * UNIT_TO_M;
+					}
+					else
+					{
+						float current_y = m_aWaterLinePointData[i].pnt.y() * UNIT_TO_M;
+						if (current_y > max_y)
+						{
+							max_y = current_y;
+						}
+					}
+				}
+				fprintf_s(save_file, "Max Y value : %lf\n\n", max_y);
+
+				//	빈 데이터 삭제
+				int i = m_aSectionPointDataList.size();
+				for (int j = i - 1; j > -1; j--)
+				{
+					if (m_aSectionPointDataList[j].size() < 1)
+					{
+						m_aSectionPointDataList.erase(m_aSectionPointDataList.begin() + j);
+					}
+				}
+
+				fprintf_s(save_file, "Section  Data : %d\n", m_aSectionPointDataList.size());
+				for (int i = 0; i < m_aSectionPointDataList.size(); i++)
+				{
+					fprintf_s(save_file, "[%d] Section  Point : %d\n", i+1, m_aSectionPointDataList[i].size());
+					fprintf_s(save_file, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+						"x", "y", "z", "nx", "ny", "nz", "alpha", "beta", "gamma");
+					for (int j = 0; j < m_aSectionPointDataList[i].size(); j++)
+					{
+						fprintf_s(save_file, "%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\n",
+							m_aSectionPointDataList[i][j].pnt.x() * UNIT_TO_M,
+							m_aSectionPointDataList[i][j].pnt.y() * UNIT_TO_M,
+							m_aSectionPointDataList[i][j].pnt.z() * UNIT_TO_M,
+							m_aSectionPointDataList[i][j].normal.x(),
+							m_aSectionPointDataList[i][j].normal.y(),
+							m_aSectionPointDataList[i][j].normal.z(),
+							m_aSectionPointDataList[i][j].angle_alpha,
+							m_aSectionPointDataList[i][j].angle_beta,
+							m_aSectionPointDataList[i][j].angle_gamma);
+					}
+					fprintf_s(save_file, "\n");
+				}
+
+				fclose(save_file);
+			}
+		}
+	}
+	else
+	{
+		AfxMessageBox("Generate Section Data First.");
 	}
 }

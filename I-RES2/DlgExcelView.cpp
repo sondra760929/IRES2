@@ -29,6 +29,7 @@ void CDlgExcelView::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CDlgExcelView, CDialog)
 	ON_WM_SIZE()
+	ON_BN_CLICKED(IDC_BUTTON_SAVE, &CDlgExcelView::OnBnClickedButtonSave)
 END_MESSAGE_MAP()
 
 
@@ -150,9 +151,32 @@ void CDlgExcelView::SetSize(int cx, int cy)
 		int btn_width = 70;
 		int btn_offset = 5;
 
-		m_wndExcelView.MoveWindow(0, 0, cx, cy);
+		GetDlgItem(IDC_BUTTON_SAVE)->MoveWindow(0, 0, btn_width, btn_height);
+		m_wndExcelView.MoveWindow(0, btn_height, cx, cy - btn_height);
 		//m_wndExcelView.MoveWindow(0, 0, cx, cy - (btn_height + btn_offset));
 		//GetDlgItem(IDOK)->MoveWindow(cx - (btn_width * 2 + btn_offset), cy - btn_height, btn_width, btn_height);
 		//GetDlgItem(IDCANCEL)->MoveWindow(cx - btn_width, cy - btn_height, btn_width, btn_height);
+	}
+}
+
+
+void CDlgExcelView::OnBnClickedButtonSave()
+{
+	CString job_file;
+	if (m_iType == 0)
+	{
+		job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\ice_result.OUT";
+	}
+	else if (m_iType == 1)
+	{
+		job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\Attainable_speed.out";
+	}
+	if (PathFileExists(job_file))
+	{
+		CFileDialog pDlg(FALSE);
+		if (pDlg.DoModal() == IDOK)
+		{
+			CopyFile(job_file, pDlg.GetPathName(), FALSE);
+		}
 	}
 }
