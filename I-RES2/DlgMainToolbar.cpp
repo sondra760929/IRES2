@@ -5,6 +5,7 @@
 #include "I-RES2.h"
 #include "DlgMainToolbar.h"
 #include "afxdialogex.h"
+#include "resource.h"
 
 
 // CDlgMainToolbar 대화 상자
@@ -32,6 +33,7 @@ void CDlgMainToolbar::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_MFCBUTTON_NORMAL, m_btnNormal);
 	DDX_Control(pDX, IDC_MFCBUTTON_SETUNIT, m_btnSetUnit);
 	DDX_Control(pDX, IDC_MFCBUTTON_CALC, m_btnCalc);
+	DDX_Control(pDX, IDC_CHECK_OBLIQUE, m_chkOblique);
 }
 
 
@@ -43,6 +45,7 @@ BEGIN_MESSAGE_MAP(CDlgMainToolbar, CDialog)
 	ON_BN_CLICKED(IDC_MFCBUTTON_NORMAL, &CDlgMainToolbar::OnBnClickedMfcbuttonNormal)
 	ON_BN_CLICKED(IDC_MFCBUTTON_SETUNIT, &CDlgMainToolbar::OnBnClickedMfcbuttonSetunit)
 	ON_BN_CLICKED(IDC_MFCBUTTON_CALC, &CDlgMainToolbar::OnBnClickedMfcbuttonCalc)
+	ON_BN_CLICKED(IDC_CHECK_OBLIQUE, &CDlgMainToolbar::OnBnClickedCheckOblique)
 END_MESSAGE_MAP()
 
 
@@ -60,6 +63,8 @@ BOOL CDlgMainToolbar::OnInitDialog()
 	CImage btn_image5;
 	CImage btn_image6;
 	CImage btn_image7;
+	CImage btn_image8;
+	CImage btn_image9;
 	btn_image1.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_NEW);
 	btn_image2.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_TRANS);
 	btn_image3.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_ROT);
@@ -67,6 +72,8 @@ BOOL CDlgMainToolbar::OnInitDialog()
 	btn_image5.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_NORMAL);
 	btn_image6.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_SETUNIT);
 	btn_image7.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_GRAPH);
+	btn_image8.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_OBLIQUE1);
+	btn_image9.LoadFromResource(AfxGetInstanceHandle(), IDB_BITMAP_OBLIQUE2);
 	HBITMAP hBit1;
 	HBITMAP hBit2;
 	HBITMAP hBit3;
@@ -81,6 +88,8 @@ BOOL CDlgMainToolbar::OnInitDialog()
 	hBit5 = btn_image5.Detach();
 	hBit6 = btn_image6.Detach();
 	hBit7 = btn_image7.Detach();
+	hBit8 = btn_image8.Detach();
+	hBit9 = btn_image9.Detach();
 
 	m_btnClear.SetImage(hBit1, TRUE, hBit1);
 	m_btnTrans.SetImage(hBit2, TRUE, hBit2);
@@ -89,6 +98,8 @@ BOOL CDlgMainToolbar::OnInitDialog()
 	m_btnNormal.SetImage(hBit5, TRUE, hBit5);
 	m_btnSetUnit.SetImage(hBit6, TRUE, hBit6);
 	m_btnCalc.SetImage(hBit7, TRUE, hBit7);
+	m_chkOblique.SetBitmap(hBit8);
+	//m_chkOblique.SetImage(hBit8, TRUE, hBit8);
 
 	m_btnClear.SetTooltip(_T("New Model"));
 	m_btnClear.EnableFullTextTooltip(FALSE);
@@ -104,6 +115,8 @@ BOOL CDlgMainToolbar::OnInitDialog()
 	m_btnSetUnit.EnableFullTextTooltip(FALSE);
 	m_btnCalc.SetTooltip(_T("Calculation Module"));
 	m_btnCalc.EnableFullTextTooltip(FALSE);
+	//m_chkOblique.SetTooltip(_T("Oblique Mode"));
+	//m_chkOblique.EnableFullTextTooltip(FALSE);
 
 	int width = 28;
 	int top = 0;
@@ -120,6 +133,8 @@ BOOL CDlgMainToolbar::OnInitDialog()
 	m_btnSetUnit.MoveWindow(0, top, width, width);
 	top += width + 20;
 	m_btnCalc.MoveWindow(0, top, width, width);
+	top += width + 20;
+	m_chkOblique.MoveWindow(0, top, width, width);
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
 }
@@ -183,5 +198,22 @@ void CDlgMainToolbar::OnBnClickedMfcbuttonCalc()
 	if (m_pView)
 	{
 		m_pView->OnButtonCalc();
+	}
+}
+
+void CDlgMainToolbar::OnBnClickedCheckOblique()
+{
+	if (m_pView)
+	{
+		m_pView->OnButtonToggleOblique();
+		m_chkOblique.SetCheck(m_pView->m_bDoubleCalc);
+		if (m_pView->m_bDoubleCalc)
+		{
+			m_chkOblique.SetBitmap(hBit9);
+		}
+		else
+		{
+			m_chkOblique.SetBitmap(hBit8);
+		}
 	}
 }

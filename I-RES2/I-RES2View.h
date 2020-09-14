@@ -183,6 +183,7 @@ public:
 	void OnButtonRotate();
 	void OnButtonSetNormal();
 	void OnButtonMakeDatum();
+	void OnButtonToggleOblique();
 	MOUSE_SELECTION_MODE m_iSelectionMode;
 	int m_iCurrentStatus;
 	osg::Vec3 m_ptXMin;

@@ -318,7 +318,7 @@ CIRES2View::CIRES2View()
 	, m_isCreateFolder(false)
 	, m_pTranslationDlg(0)
 	, m_iSelectionMode(SELECTION_NONE)
-	, m_bDoubleCalc(true)
+	, m_bDoubleCalc(false)
 {
 	//m_iHULLPos[0] = 0;
 	//m_iHULLPos[1] = 0;
@@ -4153,6 +4153,10 @@ void CIRES2View::WRITE_OUT()
 //	}
 //}
 
+void CIRES2View::OnButtonToggleOblique()
+{
+	m_bDoubleCalc = !m_bDoubleCalc;
+}
 
 void CIRES2View::OnButtonShowHideSectionCut()
 {
@@ -6381,14 +6385,14 @@ void CIRES2View::CheckDouble()
 
 			double prev_offset = m_ptXMax.y() - m_ptXMin.y();
 			double current_offset = max_pt.y() - min_pt.y();
-			if (abs(prev_offset - current_offset) > 1.0)
-			{
-				m_bDoubleCalc = false;
-			}
-			else
-			{
-				m_bDoubleCalc = true;
-			}
+			//if (abs(prev_offset - current_offset) > 1.0)
+			//{
+			//	m_bDoubleCalc = false;
+			//}
+			//else
+			//{
+			//	m_bDoubleCalc = true;
+			//}
 		}
 	}
 }
@@ -6520,11 +6524,15 @@ void CIRES2View::OnButtonSaveSectionData()
 			if (save_file)
 			{
 				fprintf_s(save_file, "Water Line  Data : %d\n", m_aWaterLinePointData.size());
-				fprintf_s(save_file, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", 
-					"x",  "y", "z", "nx", "ny", "nz", "alpha", "beta", "gamma");
+				fprintf_s(save_file, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", 
+					"x",  "y", "z", "nx", "ny", "nz", "alpha", "beta", "gamma", "FX", "FY", "FZ");
 				for (int i = 0; i < m_aWaterLinePointData.size(); i++)
 				{
-					fprintf_s(save_file, "%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\n",
+					float X_TEM = GAUS(i + 1, 1);
+					float Y_TEM = GAUS(i + 1, 2);
+					float Z_TEM = GAUS(i + 1, 3);
+
+					fprintf_s(save_file, "%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\n",
 						m_aWaterLinePointData[i].pnt.x() * UNIT_TO_M,
 						m_aWaterLinePointData[i].pnt.y() * UNIT_TO_M,
 						m_aWaterLinePointData[i].pnt.z() * UNIT_TO_M,
@@ -6533,7 +6541,8 @@ void CIRES2View::OnButtonSaveSectionData()
 						m_aWaterLinePointData[i].normal.z(),
 						m_aWaterLinePointData[i].angle_alpha,
 						m_aWaterLinePointData[i].angle_beta,
-						m_aWaterLinePointData[i].angle_gamma);
+						m_aWaterLinePointData[i].angle_gamma,
+						X_TEM, Y_TEM, Z_TEM);
 					if (i == 0)
 					{
 						max_y = m_aWaterLinePointData[i].pnt.y() * UNIT_TO_M;
@@ -6560,6 +6569,7 @@ void CIRES2View::OnButtonSaveSectionData()
 				}
 
 				fprintf_s(save_file, "Section  Data : %d\n", m_aSectionPointDataList.size());
+
 				for (int i = 0; i < m_aSectionPointDataList.size(); i++)
 				{
 					fprintf_s(save_file, "[%d] Section  Point : %d\n", i+1, m_aSectionPointDataList[i].size());

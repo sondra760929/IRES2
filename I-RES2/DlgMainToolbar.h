@@ -37,4 +37,8 @@ public:
 	afx_msg void OnBnClickedMfcbuttonSetunit();
 	afx_msg void OnBnClickedMfcbuttonCalc();
 	CMFCButton m_btnSetUnit;
+	CButton m_chkOblique;
+	afx_msg void OnBnClickedCheckOblique();
+	HBITMAP hBit8;
+	HBITMAP hBit9;
 };
