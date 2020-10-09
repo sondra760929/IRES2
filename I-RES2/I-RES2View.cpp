@@ -43,6 +43,7 @@
 #include "FrameContainer.h"
 #include "PosterPrinter.h"
 #include "DlgCalc.h"
+#include <BRep_Tool.hxx>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -233,13 +234,13 @@ float GIRTH_LENGTH[5000] = { 0 };
 float N_END_GIRTH[5000] = { 0 };
 float R_BO[5000] = { 0 };
 
-float X_COOR[5000] = { 0 };
+float __X_COOR[5000] = { 0 };
 float Y[5000] = { 0 };
 float Z_COOR[5000] = { 0 };
 float X_NORM[5000] = { 0 };
 float Y_NORM[5000] = { 0 };
 float Z_NORM[5000] = { 0 };
-float ALPHA[5000] = { 0 };
+float __ALPHA[5000] = { 0 };
 float BETA[5000] = { 0 };
 float GAMMA[5000] = { 0 };
 float max_y;
@@ -596,6 +597,7 @@ void CIRES2View::OnDestroy()
 void CIRES2View::OnInitialUpdate()
 {
 	CView::OnInitialUpdate();
+	PI3 = acos(-1.0f);
 
 	m_pMainFrame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
 	if (m_pMainFrame)
@@ -3443,7 +3445,6 @@ void CIRES2View::CAL_COND()
 {
 	RHO0 = RHO - RHOL;
 
-	PI3 = acos(-1.0f);
 	float SV = (VE - VS) / VI + 1.0f;
 	if (VS == VE) SV = 1.0f;
 	NV = (int)SV;
@@ -3540,13 +3541,13 @@ void CIRES2View::READ_HULL(int ID)
 			{
 				if (ifp.ReadOneLineFromFile() > 7)
 				{
-					X_COOR[i+1] = (atof(ifp.m_array_strOutput[0]));
+					__X_COOR[i+1] = (atof(ifp.m_array_strOutput[0]));
 					Y[i+1] = (atof(ifp.m_array_strOutput[1]));
 					Z_COOR[i+1] = (atof(ifp.m_array_strOutput[2]));
 					X_NORM[i+1] = (atof(ifp.m_array_strOutput[3]));
 					Y_NORM[i+1] = (atof(ifp.m_array_strOutput[4]));
 					Z_NORM[i+1] = (atof(ifp.m_array_strOutput[5]));
-					ALPHA[i+1] = (atof(ifp.m_array_strOutput[6]));
+					__ALPHA[i+1] = (atof(ifp.m_array_strOutput[6]));
 					BETA[i+1] = (atof(ifp.m_array_strOutput[7]));
 					GAMMA[i+1] = (atof(ifp.m_array_strOutput[8]));
 				}
@@ -3562,20 +3563,20 @@ void CIRES2View::READ_HULL(int ID)
 	for (int I = 1; I <= N_FRAME; I++)
 	{
 		fprintf_s(fp_6, "%lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf\n",
-			X_COOR[I], Y[I], Z_COOR[I], X_NORM[I], Y_NORM[I], Z_NORM[I], ALPHA[I], BETA[I], GAMMA[I]);
+			__X_COOR[I], Y[I], Z_COOR[I], X_NORM[I], Y_NORM[I], Z_NORM[I], __ALPHA[I], BETA[I], GAMMA[I]);
 
-		ALPHA[I] = ALPHA[I] / (180 / PI3);
+		__ALPHA[I] = __ALPHA[I] / (180 / PI3);
 		BETA[I] = BETA[I] / (180 / PI3);
 		GAMMA[I] = GAMMA[I] / (180 / PI3);
 	}
 
-	X_COOR[N_FRAME + 1] = 2.0f * X_COOR[N_FRAME] - X_COOR[N_FRAME - 1];
+	__X_COOR[N_FRAME + 1] = 2.0f * __X_COOR[N_FRAME] - __X_COOR[N_FRAME - 1];
 	Y[N_FRAME + 1] = Y[N_FRAME];
 	Z_COOR[N_FRAME + 1] = Z_COOR[N_FRAME];
 	X_NORM[N_FRAME + 1] = X_NORM[N_FRAME];
 	Y_NORM[N_FRAME + 1] = Y_NORM[N_FRAME];
 	Z_NORM[N_FRAME + 1] = Z_NORM[N_FRAME];
-	ALPHA[N_FRAME + 1] = ALPHA[N_FRAME];
+	__ALPHA[N_FRAME + 1] = __ALPHA[N_FRAME];
 	BETA[N_FRAME + 1] = BETA[N_FRAME];
 	GAMMA[N_FRAME + 1] = GAMMA[N_FRAME];
 
@@ -3587,8 +3588,8 @@ void CIRES2View::READ_HULL(int ID)
 	{
 		float TEM_I = min(1.0f, max(-1.0f, (Z_NORM[II] * Z_NORM[II] + Y_NORM[II] * Y_NORM[II])));
 		float TEM_J = min(1.0f, max(-1.0f, (X_NORM[II] * Y_NORM[II])));
-		ALPHA[II] = abs(acos(TEM_I));
-		fprintf_s(fp_6, "   %d   %lf   %lf\n", II, ALPHA[II] * 180 / PI3, BETA[II] * 180 / PI3);
+		__ALPHA[II] = abs(acos(TEM_I));
+		fprintf_s(fp_6, "   %d   %lf   %lf\n", II, __ALPHA[II] * 180 / PI3, BETA[II] * 180 / PI3);
 	}
 
 	if (ID == 1)
@@ -3751,7 +3752,7 @@ void CIRES2View::CLEARING1()
 	//YH.resize(N_FRAME + 10);
 	for (int I = 1; I <= N_FRAME; I++)
 	{
-		YH[I] = tan(ALPHA[I]);
+		YH[I] = tan(__ALPHA[I]);
 	}
 
 	float B5 = 0.0;
@@ -3985,33 +3986,33 @@ void CIRES2View::BOUYANCY1()
 
 float ALP(float X, int II)
 {
-	float A = X_COOR[1] - X_COOR[II];
-	float B = X_COOR[1] - X_COOR[II+1];
-	float DXX = X_COOR[II] - X_COOR[II + 1];
-	return (ALPHA[II] * (B - X) + ALPHA[II + 1] * (X - A)) / DXX;
+	float A = __X_COOR[1] - __X_COOR[II];
+	float B = __X_COOR[1] - __X_COOR[II+1];
+	float DXX = __X_COOR[II] - __X_COOR[II + 1];
+	return (__ALPHA[II] * (B - X) + __ALPHA[II + 1] * (X - A)) / DXX;
 }
 
 float BT(float X, int II)
 {
-	float A = X_COOR[1] - X_COOR[II];
-	float B = X_COOR[1] - X_COOR[II+1];
-	float DXX = X_COOR[II] - X_COOR[II+1];
+	float A = __X_COOR[1] - __X_COOR[II];
+	float B = __X_COOR[1] - __X_COOR[II+1];
+	float DXX = __X_COOR[II] - __X_COOR[II+1];
 	return (BETA[II] * (B - X) + BETA[II + 1] * (X - A)) / DXX;
 }
 
 float YY(float X, int II)
 {
-	float A = X_COOR[1] - X_COOR[II];
-	float B = X_COOR[1] - X_COOR[II + 1];
-	float DXX = X_COOR[II] - X_COOR[II + 1];
+	float A = __X_COOR[1] - __X_COOR[II];
+	float B = __X_COOR[1] - __X_COOR[II + 1];
+	float DXX = __X_COOR[II] - __X_COOR[II + 1];
 	return (Y[II] * (B - X) + Y[II + 1] * (X - A)) / DXX;
 }
 
 float YYH(float X, int II)
 {
-	float A = X_COOR[1] - X_COOR[II];
-	float B = X_COOR[1] - X_COOR[II + 1];
-	float DXX = X_COOR[II] - X_COOR[II + 1];
+	float A = __X_COOR[1] - __X_COOR[II];
+	float B = __X_COOR[1] - __X_COOR[II + 1];
+	float DXX = __X_COOR[II] - __X_COOR[II + 1];
 	return (YH[II] * (B - X) + YH[II + 1] * (X - A)) / DXX;
 }
 
@@ -4045,65 +4046,137 @@ float FB6(float X, int II)
 
 float CIRES2View::GAUS(int II, int IOP)
 {
-	float W[] = {0,  .2955242247, .2692667193, .2190863625, .1494513491, .0666713443 };
-	float X[] = {0,  .1488743389, .4333953941, .6794095682, .8650633666, .9739065285 };
+	float W[] = { 0,  .2955242247, .2692667193, .2190863625, .1494513491, .0666713443 };
+	float X[] = { 0,  .1488743389, .4333953941, .6794095682, .8650633666, .9739065285 };
 
-	float A = X_COOR[1] - X_COOR[II];
-	float B = X_COOR[1] - X_COOR[II+1];
+	float A = __X_COOR[1] - __X_COOR[II];
+	float B = __X_COOR[1] - __X_COOR[II + 1];
 	float XM = 0.5*(B + A);
 	float XR = 0.5*(B - A);
 	float SS = 0;
 	float DX = 0;
+	if (XR == 0)
+	{
+		return 0;
+	}
 	switch (IOP)
 	{
 	case 1:
 	{
-			  for (int J = 1; J <= 5; J++)
-			  {
-				  DX = XR*X[J];
-				  SS = SS + W[J] * (FFX(XM + DX, II) + FFX(XM - DX, II));
-			  }
+		for (int J = 1; J <= 5; J++)
+		{
+			DX = XR * X[J];
+			SS = SS + W[J] * (FFX(XM + DX, II) + FFX(XM - DX, II));
+		}
 	}
-		break;
+	break;
 	case 2:
 	{
-			  for (int J = 1; J <= 5; J++)
-			  {
-				  DX = XR*X[J];
-				  SS = SS + W[J] * (FY(XM + DX, II) + FY(XM - DX, II));
-			  }
+		for (int J = 1; J <= 5; J++)
+		{
+			DX = XR * X[J];
+			SS = SS + W[J] * (FY(XM + DX, II) + FY(XM - DX, II));
+		}
 	}
-		break;
+	break;
 	case 3:
 	{
-			  for (int J = 1; J <= 5; J++)
-			  {
-				  DX = XR*X[J];
-				  SS = SS + W[J] * (FFZ(XM + DX, II) + FFZ(XM - DX, II));
-			  }
+		for (int J = 1; J <= 5; J++)
+		{
+			DX = XR * X[J];
+			SS = SS + W[J] * (FFZ(XM + DX, II) + FFZ(XM - DX, II));
+		}
 	}
-		break;
+	break;
 	case 15:
 	{
-			   for (int J = 1; J <= 5; J++)
-			   {
-				   DX = XR*X[J];
-				   SS = SS + W[J] * (FB5(XM + DX, II) + FB5(XM - DX, II));
-			   }
+		for (int J = 1; J <= 5; J++)
+		{
+			DX = XR * X[J];
+			SS = SS + W[J] * (FB5(XM + DX, II) + FB5(XM - DX, II));
+		}
 	}
-		break;
+	break;
 	case 16:
 	{
-			   for (int J = 1; J <= 5; J++)
-			   {
-				   DX = XR*X[J];
-				   SS = SS + W[J] * (FB6(XM + DX, II) + FB6(XM - DX, II));
-			   }
+		for (int J = 1; J <= 5; J++)
+		{
+			DX = XR * X[J];
+			SS = SS + W[J] * (FB6(XM + DX, II) + FB6(XM - DX, II));
+		}
 	}
-		break;
+	break;
 	}
 
-	SS = XR*SS;
+	SS = XR * SS;
+	return SS;
+}
+
+float CIRES2View::GAUS2(int II, int IOP)
+{
+	float W[] = { 0,  .2955242247, .2692667193, .2190863625, .1494513491, .0666713443 };
+	float X[] = { 0,  .1488743389, .4333953941, .6794095682, .8650633666, .9739065285 };
+
+	float A = __X_COOR[1] - __X_COOR[II];
+	float B = __X_COOR[1] - (__X_COOR[II]-0.5);
+	float XM = 0.5*(B + A);
+	float XR = 0.5*(B - A);
+	float SS = 0;
+	float DX = 0;
+	if (XR == 0)
+	{
+		return 0;
+	}
+	switch (IOP)
+	{
+	case 1:
+	{
+		for (int J = 1; J <= 5; J++)
+		{
+			DX = XR * X[J];
+			SS = SS + W[J] * (FFX(XM + DX, II) + FFX(XM - DX, II));
+		}
+	}
+	break;
+	case 2:
+	{
+		for (int J = 1; J <= 5; J++)
+		{
+			DX = XR * X[J];
+			SS = SS + W[J] * (FY(XM + DX, II) + FY(XM - DX, II));
+		}
+	}
+	break;
+	case 3:
+	{
+		for (int J = 1; J <= 5; J++)
+		{
+			DX = XR * X[J];
+			SS = SS + W[J] * (FFZ(XM + DX, II) + FFZ(XM - DX, II));
+		}
+	}
+	break;
+	case 15:
+	{
+		for (int J = 1; J <= 5; J++)
+		{
+			DX = XR * X[J];
+			SS = SS + W[J] * (FB5(XM + DX, II) + FB5(XM - DX, II));
+		}
+	}
+	break;
+	case 16:
+	{
+		for (int J = 1; J <= 5; J++)
+		{
+			DX = XR * X[J];
+			SS = SS + W[J] * (FB6(XM + DX, II) + FB6(XM - DX, II));
+		}
+	}
+	break;
+	}
+
+	SS = XR * SS;
 	return SS;
 }
 
@@ -6570,14 +6643,89 @@ void CIRES2View::OnButtonSaveSectionData()
 
 				fprintf_s(save_file, "Section  Data : %d\n", m_aSectionPointDataList.size());
 
+
+				N_FRAME = m_aSectionPointDataList.size();
+				int max_data_count = 0;
+				int max_data_index = 0;
 				for (int i = 0; i < m_aSectionPointDataList.size(); i++)
 				{
+					if (max_data_count < m_aSectionPointDataList[i].size())
+					{
+						max_data_count = m_aSectionPointDataList[i].size();
+						max_data_index = i;
+					}
+				}
+
+				vector< int > section_index;
+				section_index.resize(m_aSectionPointDataList.size(), 0);
+				for (int i = 0; i < max_data_count; i++)
+				{
+					double ref_x = m_aSectionPointDataList[max_data_index][i].pnt.x();
+					double ref_y = m_aSectionPointDataList[max_data_index][i].pnt.y();
+					double ref_z = m_aSectionPointDataList[max_data_index][i].pnt.z();
+					for (int j = 0; j < m_aSectionPointDataList.size(); j++)
+					{
+						double max_offset = 10000000.0;
+						for (int k = 0; k < m_aSectionPointDataList[j].size(); k++)
+						{
+							double current_x = m_aSectionPointDataList[j][k].pnt.x();
+							double current_y = m_aSectionPointDataList[j][k].pnt.y();
+							double current_z = m_aSectionPointDataList[j][k].pnt.z();
+
+							double current_z_offset = abs(current_z - ref_z) * 10.0;
+							double current_y_offset = abs(current_y - ref_y);
+
+							if (max_offset > current_z_offset + current_y_offset)
+							{
+								section_index[j] = k;
+								max_offset = current_z_offset + current_y_offset;
+								__X_COOR[j + 1] = m_aSectionPointDataList[j][k].pnt.x();
+								Y[j + 1] = m_aSectionPointDataList[j][k].pnt.y();
+								Z_COOR[j + 1] = m_aSectionPointDataList[j][k].pnt.z();
+								X_NORM[j + 1] = m_aSectionPointDataList[j][k].normal.x();
+								Y_NORM[j + 1] = m_aSectionPointDataList[j][k].normal.y();
+								Z_NORM[j + 1] = m_aSectionPointDataList[j][k].normal.z();
+								__ALPHA[j + 1] = m_aSectionPointDataList[j][k].angle_alpha;
+								BETA[j + 1] = m_aSectionPointDataList[j][k].angle_beta;
+								GAMMA[j + 1] = m_aSectionPointDataList[j][k].angle_gamma;
+							}
+						}
+					}
+
+					for (int I = 1; I <= N_FRAME; I++)
+					{
+						__ALPHA[I] = __ALPHA[I] / (180 / PI3);
+						BETA[I] = BETA[I] / (180 / PI3);
+						GAMMA[I] = GAMMA[I] / (180 / PI3);
+					}
+
+					__X_COOR[N_FRAME + 1] = 2.0f * __X_COOR[N_FRAME] - __X_COOR[N_FRAME - 1];
+					Y[N_FRAME + 1] = Y[N_FRAME];
+					Z_COOR[N_FRAME + 1] = Z_COOR[N_FRAME];
+					X_NORM[N_FRAME + 1] = X_NORM[N_FRAME];
+					Y_NORM[N_FRAME + 1] = Y_NORM[N_FRAME];
+					Z_NORM[N_FRAME + 1] = Z_NORM[N_FRAME];
+					__ALPHA[N_FRAME + 1] = __ALPHA[N_FRAME];
+					BETA[N_FRAME + 1] = BETA[N_FRAME];
+					GAMMA[N_FRAME + 1] = GAMMA[N_FRAME];
+
+					for (int j = 0; j < m_aSectionPointDataList.size(); j++)
+					{
+						m_aSectionPointDataList[j][section_index[j]].fx = GAUS(j + 1, 1);
+						m_aSectionPointDataList[j][section_index[j]].fy = GAUS(j + 1, 2);
+						m_aSectionPointDataList[j][section_index[j]].fz = GAUS(j + 1, 3);
+					}
+				}
+
+				for (int i = 0; i < m_aSectionPointDataList.size(); i++)
+				{
+
 					fprintf_s(save_file, "[%d] Section  Point : %d\n", i+1, m_aSectionPointDataList[i].size());
-					fprintf_s(save_file, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-						"x", "y", "z", "nx", "ny", "nz", "alpha", "beta", "gamma");
+					fprintf_s(save_file, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+						"x", "y", "z", "nx", "ny", "nz", "alpha", "beta", "gamma", "FX", "FY", "FZ");
 					for (int j = 0; j < m_aSectionPointDataList[i].size(); j++)
 					{
-						fprintf_s(save_file, "%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\n",
+						fprintf_s(save_file, "%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.3lf\t%.6lf\t%.6lf\t%.6lf\n",
 							m_aSectionPointDataList[i][j].pnt.x() * UNIT_TO_M,
 							m_aSectionPointDataList[i][j].pnt.y() * UNIT_TO_M,
 							m_aSectionPointDataList[i][j].pnt.z() * UNIT_TO_M,
@@ -6586,12 +6734,16 @@ void CIRES2View::OnButtonSaveSectionData()
 							m_aSectionPointDataList[i][j].normal.z(),
 							m_aSectionPointDataList[i][j].angle_alpha,
 							m_aSectionPointDataList[i][j].angle_beta,
-							m_aSectionPointDataList[i][j].angle_gamma);
+							m_aSectionPointDataList[i][j].angle_gamma,
+							m_aSectionPointDataList[i][j].fx,
+							m_aSectionPointDataList[i][j].fy,
+							m_aSectionPointDataList[i][j].fz);
 					}
 					fprintf_s(save_file, "\n");
 				}
 
 				fclose(save_file);
+				CalculateOutputResult();
 			}
 		}
 	}

@@ -44,6 +44,9 @@ public:
 	bool gamma_exist;
 	double angle_gamma;
 	osg::Vec3 pnt_gamma;
+	double fx;
+	double fy;
+	double fz;
 
 	PointData()
 	{
@@ -134,6 +137,7 @@ public:
 	void BOUYANCY1();
 	void WRITE_OUT();
 	float GAUS(int II, int IOP);
+	float GAUS2(int II, int IOP);
 	void CalculateOutputResult(bool refresh = true);
 	void CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 plane_point, int align_axis, vector< PointData >& section_point_data, bool check_point_distance, float point_distance, vector< vector< osg::Vec3 > >& section_line, bool use_start_end = false, float start_pos = 0, float end_pos = 0);
 	bool GetNormal(osg::Drawable* geo, PointData& pd);
