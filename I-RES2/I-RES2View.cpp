@@ -3731,6 +3731,14 @@ void CIRES2View::BREAKING1()
 		Sum_Z = Sum_Z + Z_TEM;
 	}
 
+	for (int IS = 1; IS <= NSIGMA; IS++)
+	{
+		for (int IH = 1; IH <= NH; IH++)
+		{
+			R_BR[IH][IS] = 0;
+		}
+	}
+
 	float Eta_1 = Sum_Z / Sum_X;
 	//R_BR.clear();
 	//vector< float > sigmas(NSIGMA + 10);
@@ -3742,7 +3750,7 @@ void CIRES2View::BREAKING1()
 			for (int IH = 1; IH <= NH; IH++)
 			{
 				float R_Lamda = pow(((3.0 * RHO * GG) / (E_young * pow(THCK[IH], 3.0))), (1.0 / 4.0));
-				R_BR[IH][IS] = (R_Lamda * SIGMA[IS] * THCK[IH] * THCK[IH] / (1.93 * Eta_1)) * Y[I];
+				R_BR[IH][IS] += (R_Lamda * SIGMA[IS] * THCK[IH] * THCK[IH] / (1.93 * Eta_1)) * Y[I];
 			}
 		}
 	}
@@ -4193,7 +4201,7 @@ void CIRES2View::WRITE_OUT()
 				fprintf_s(fp_8, " IV = %d   SIGMA = %d   THICK = %d\n", IV, IS, IH);
 				R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
 				fprintf_s(fp_7, "%9.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf\n",
-					VSP[IV], THCK[IH], SIGMA[IS] * 0.001f, R_BREAK[IH][IS] * 0.001f, R_CLEAR[IH][IV] * 0.001f, R_BOUYA[IH] * 0.001f, R_TOTAL * 0.001f);
+					VSP[IV], THCK[IH], SIGMA[IS], R_BREAK[IH][IS] * 0.001f, R_CLEAR[IH][IV] * 0.001f, R_BOUYA[IH] * 0.001f, R_TOTAL * 0.001f);
 			}
 		}
 	}

@@ -92,6 +92,7 @@ void CDlgCrossSection::OnBnClickedMfcbuttonCalculate()
 	UpdateData();
 	m_pView->m_fCrossSectionStart = m_fStart * M_TO_UNIT;
 	m_pView->m_fCrossSectionEnd = m_fEnd * M_TO_UNIT;
+	m_pView->m_fWaterlineEndPos = m_pView->m_fCrossSectionEnd;
 	m_pView->m_fCrossSectionOffset = m_fInterval * M_TO_UNIT;
 	if (m_pView->m_bUseDistanceForAxis)
 	{
