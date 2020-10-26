@@ -4117,6 +4117,9 @@ float CIRES2View::GAUS(int II, int IOP)
 	}
 
 	SS = XR * SS;
+
+	if (SS > 100000000 || SS < -100000000)
+		SS = 0;
 	return SS;
 }
 
