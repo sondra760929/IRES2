@@ -44,6 +44,10 @@ BOOL CDlgExcelView::OnInitDialog()
 	m_wndExcelView.m_pParentDlg = this;
 	m_wndExcelView.SetVScrollMode(UG_SCROLLTRACKING);
 	m_wndExcelView.SetHScrollMode(UG_SCROLLTRACKING);
+	satellite_files.clear();
+	satellite_files_option[0].clear();
+	satellite_files_option[1].clear();
+	satellite_files_option[2].clear();
 
 	CRect rect;
 	GetClientRect(&rect);
@@ -57,8 +61,6 @@ BOOL CDlgExcelView::OnInitDialog()
 
 		//	satellite 파일이 있는지 확인
 		CFileFind finder;
-		vector < CString > satellite_files;
-		vector < CString > satellite_files_option[3];
 		BOOL bworking = finder.FindFile(m_strProjectPath + "\\JOB\\" + m_strJobName + "\\*.*");
 		while (bworking)
 		{
@@ -90,89 +92,103 @@ BOOL CDlgExcelView::OnInitDialog()
 		}
 		if (satellite_files.size() > 0)
 		{
-			m_wndExcelView.SetNumberCols(10);
-			col_count = 10;
-			int col_index = 0;
-			int current_index = 0;
-			int option_index = 0;
 			for (int i = 0; i < satellite_files.size(); i++)
 			{
-				FILE* fp;
-				fopen_s(&fp, satellite_files[i], "rt");
-				if (fp)
-				{
-					row_count++;
-					m_wndExcelView.SetNumberRows(row_count);
-					option_index = row_count - 1;
-					m_wndExcelView.QuickSetText(0, row_count - 1, satellite_files_option[0][i]);
-					m_wndExcelView.QuickSetText(1, row_count - 1, satellite_files_option[1][i]);
-					m_wndExcelView.QuickSetText(2, row_count - 1, satellite_files_option[2][i]);
-
-					COptImportExportBase ifp;
-					vector< float > resiatance;
-					ifp.m_fp_input = fp;
-					ifp.m_array_strSplit.push_back(' ');
-					int count = ifp.ReadOneLineFromFile();
-					current_index = 0;
-					while (count > 0)
-					{
-						row_count++;
-						m_wndExcelView.SetNumberRows(row_count);
-						m_wndExcelView.QuickSetNumber(-1, row_count - 1, current_index);
-
-						for (int j = 0; j < count; j++)
-						{
-							m_wndExcelView.QuickSetText(j, row_count - 1, ifp.m_array_strOutput[j]);
-						}
-						if (current_index > 0)
-						{
-							resiatance.push_back(atof(ifp.m_array_strOutput[count-1]));
-						}
-						count = ifp.ReadOneLineFromFile();
-						current_index++;
-					}
-
-					if (resiatance.size() > 15)
-					{
-						if (m_pCurrentView)
-						{
-							if (m_pCurrentView->m_fTargetResistance > 0.0f)
-							{
-								if (m_pCurrentView->m_fTargetResistance < resiatance[0])
-								{
-									m_pCurrentView->m_fEstimationSpeed = 0.0f;
-								}
-								else if (m_pCurrentView->m_fTargetResistance > resiatance[resiatance.size() - 1])
-								{
-									float offset = resiatance[resiatance.size() - 1] - resiatance[resiatance.size() - 2];
-									float target_offset = m_pCurrentView->m_fTargetResistance - resiatance[resiatance.size() - 1];
-									float ratio = target_offset / offset;
-									int up_speed = round(ratio);
-									m_pCurrentView->m_fEstimationSpeed = 16 + up_speed;
-								}
-								else
-								{
-									for (int i = 0; i < 15; i++)
-									{
-										if (m_pCurrentView->m_fTargetResistance >= resiatance[i] && m_pCurrentView->m_fTargetResistance <= resiatance[i + 1])
-										{
-											float offset = resiatance[i + 1] - resiatance[i];
-											float target_offset = m_pCurrentView->m_fTargetResistance - resiatance[i];
-											float ratio = target_offset / offset;
-											m_pCurrentView->m_fEstimationSpeed = (float)(i + 1) + ratio;
-											break;
-										}
-									}
-								}
-
-								//	추정 속도 찾음
-								m_wndExcelView.QuickSetText(4, option_index, "Estimation Speed");
-								m_wndExcelView.QuickSetNumber(5, option_index, m_pCurrentView->m_fEstimationSpeed);
-							}
-						}
-					}
-				}
+				CButton* new_button = new CButton();
+				new_button->Create(NULL, BS_PUSHBUTTON | WS_VISIBLE | WS_CHILD,
+					CRect(0, 0, 10, 10), this, WM_USER + i);
+				new_button->SetWindowText(satellite_files_option[0][i]);
+				m_aButtons.push_back(new_button);
 			}
+			CRect rect;
+			GetClientRect(&rect);
+			SetSize(rect.Width(), rect.Height());
+
+			LoadFile(0);
+
+			//m_wndExcelView.SetNumberCols(10);
+			//col_count = 10;
+			//int col_index = 0;
+			//int current_index = 0;
+			//int option_index = 0;
+			//for (int i = 0; i < satellite_files.size(); i++)
+			//{
+			//	FILE* fp;
+			//	fopen_s(&fp, satellite_files[i], "rt");
+			//	if (fp)
+			//	{
+			//		row_count++;
+			//		m_wndExcelView.SetNumberRows(row_count);
+			//		option_index = row_count - 1;
+			//		m_wndExcelView.QuickSetText(0, row_count - 1, satellite_files_option[0][i]);
+			//		m_wndExcelView.QuickSetText(1, row_count - 1, satellite_files_option[1][i]);
+			//		m_wndExcelView.QuickSetText(2, row_count - 1, satellite_files_option[2][i]);
+
+			//		COptImportExportBase ifp;
+			//		vector< float > resiatance;
+			//		ifp.m_fp_input = fp;
+			//		ifp.m_array_strSplit.push_back(' ');
+			//		int count = ifp.ReadOneLineFromFile();
+			//		current_index = 0;
+			//		while (count > 0)
+			//		{
+			//			row_count++;
+			//			m_wndExcelView.SetNumberRows(row_count);
+			//			m_wndExcelView.QuickSetNumber(-1, row_count - 1, current_index);
+
+			//			for (int j = 0; j < count; j++)
+			//			{
+			//				m_wndExcelView.QuickSetText(j, row_count - 1, ifp.m_array_strOutput[j]);
+			//			}
+			//			if (current_index > 0)
+			//			{
+			//				resiatance.push_back(atof(ifp.m_array_strOutput[count-1]));
+			//			}
+			//			count = ifp.ReadOneLineFromFile();
+			//			current_index++;
+			//		}
+
+			//		if (resiatance.size() > 15)
+			//		{
+			//			if (m_pCurrentView)
+			//			{
+			//				if (m_pCurrentView->m_fTargetResistance > 0.0f)
+			//				{
+			//					if (m_pCurrentView->m_fTargetResistance < resiatance[0])
+			//					{
+			//						m_pCurrentView->m_fEstimationSpeed = 0.0f;
+			//					}
+			//					else if (m_pCurrentView->m_fTargetResistance > resiatance[resiatance.size() - 1])
+			//					{
+			//						float offset = resiatance[resiatance.size() - 1] - resiatance[resiatance.size() - 2];
+			//						float target_offset = m_pCurrentView->m_fTargetResistance - resiatance[resiatance.size() - 1];
+			//						float ratio = target_offset / offset;
+			//						int up_speed = round(ratio);
+			//						m_pCurrentView->m_fEstimationSpeed = 16 + up_speed;
+			//					}
+			//					else
+			//					{
+			//						for (int i = 0; i < 15; i++)
+			//						{
+			//							if (m_pCurrentView->m_fTargetResistance >= resiatance[i] && m_pCurrentView->m_fTargetResistance <= resiatance[i + 1])
+			//							{
+			//								float offset = resiatance[i + 1] - resiatance[i];
+			//								float target_offset = m_pCurrentView->m_fTargetResistance - resiatance[i];
+			//								float ratio = target_offset / offset;
+			//								m_pCurrentView->m_fEstimationSpeed = (float)(i + 1) + ratio;
+			//								break;
+			//							}
+			//						}
+			//					}
+
+			//					//	추정 속도 찾음
+			//					m_wndExcelView.QuickSetText(4, option_index, "Estimation Speed");
+			//					m_wndExcelView.QuickSetNumber(5, option_index, m_pCurrentView->m_fEstimationSpeed);
+			//				}
+			//			}
+			//		}
+			//	}
+			//}
 		}
 		else if (PathFileExists(job_file))
 		{
@@ -272,7 +288,20 @@ void CDlgExcelView::SetSize(int cx, int cy)
 		int btn_offset = 5;
 
 		GetDlgItem(IDC_BUTTON_SAVE)->MoveWindow(0, 0, btn_width, btn_height);
-		m_wndExcelView.MoveWindow(0, btn_height, cx, cy - btn_height);
+
+		if (m_aButtons.size() > 0)
+		{
+			btn_width = cx / m_aButtons.size();
+			for (int i = 0; i < m_aButtons.size(); i++)
+			{
+				m_aButtons[i]->MoveWindow(i * btn_width, btn_height, btn_width, btn_height);
+			}
+			m_wndExcelView.MoveWindow(0, btn_height * 2, cx, cy - (btn_height * 2));
+		}
+		else
+		{
+			m_wndExcelView.MoveWindow(0, btn_height, cx, cy - btn_height);
+		}
 		//m_wndExcelView.MoveWindow(0, 0, cx, cy - (btn_height + btn_offset));
 		//GetDlgItem(IDOK)->MoveWindow(cx - (btn_width * 2 + btn_offset), cy - btn_height, btn_width, btn_height);
 		//GetDlgItem(IDCANCEL)->MoveWindow(cx - btn_width, cy - btn_height, btn_width, btn_height);
@@ -299,4 +328,109 @@ void CDlgExcelView::OnBnClickedButtonSave()
 			CopyFile(job_file, pDlg.GetPathName(), FALSE);
 		}
 	}
+}
+
+void CDlgExcelView::LoadFile(int index)
+{
+	m_wndExcelView.SetNumberCols(10);
+	int col_count = 10;
+	int col_index = 0;
+	int current_index = 0;
+	int option_index = 0;
+	int row_count = 0;
+	if(index >= 0 && index < satellite_files.size())
+	{
+		FILE* fp;
+		fopen_s(&fp, satellite_files[index], "rt");
+		if (fp)
+		{
+			row_count++;
+			m_wndExcelView.SetNumberRows(row_count);
+			option_index = row_count - 1;
+			m_wndExcelView.QuickSetText(0, row_count - 1, satellite_files_option[0][index]);
+			m_wndExcelView.QuickSetText(1, row_count - 1, satellite_files_option[1][index]);
+			m_wndExcelView.QuickSetText(2, row_count - 1, satellite_files_option[2][index]);
+
+			COptImportExportBase ifp;
+			vector< float > resiatance;
+			ifp.m_fp_input = fp;
+			ifp.m_array_strSplit.push_back(' ');
+			int count = ifp.ReadOneLineFromFile();
+			current_index = 0;
+			while (count > 0)
+			{
+				row_count++;
+				m_wndExcelView.SetNumberRows(row_count);
+				m_wndExcelView.QuickSetNumber(-1, row_count - 1, current_index);
+
+				for (int j = 0; j < count; j++)
+				{
+					m_wndExcelView.QuickSetText(j, row_count - 1, ifp.m_array_strOutput[j]);
+				}
+				if (current_index > 0)
+				{
+					resiatance.push_back(atof(ifp.m_array_strOutput[count - 1]));
+				}
+				count = ifp.ReadOneLineFromFile();
+				current_index++;
+			}
+
+			if (resiatance.size() > 15)
+			{
+				if (m_pCurrentView)
+				{
+					if (m_pCurrentView->m_fTargetResistance > 0.0f)
+					{
+						if (m_pCurrentView->m_fTargetResistance < resiatance[0])
+						{
+							m_pCurrentView->m_fEstimationSpeed = 0.0f;
+						}
+						else if (m_pCurrentView->m_fTargetResistance > resiatance[resiatance.size() - 1])
+						{
+							float offset = resiatance[resiatance.size() - 1] - resiatance[resiatance.size() - 2];
+							float target_offset = m_pCurrentView->m_fTargetResistance - resiatance[resiatance.size() - 1];
+							float ratio = target_offset / offset;
+							int up_speed = round(ratio);
+							m_pCurrentView->m_fEstimationSpeed = 16 + up_speed;
+						}
+						else
+						{
+							for (int i = 0; i < 15; i++)
+							{
+								if (m_pCurrentView->m_fTargetResistance >= resiatance[i] && m_pCurrentView->m_fTargetResistance <= resiatance[i + 1])
+								{
+									float offset = resiatance[i + 1] - resiatance[i];
+									float target_offset = m_pCurrentView->m_fTargetResistance - resiatance[i];
+									float ratio = target_offset / offset;
+									m_pCurrentView->m_fEstimationSpeed = (float)(i + 1) + ratio;
+									break;
+								}
+							}
+						}
+
+						//	추정 속도 찾음
+						m_wndExcelView.QuickSetText(4, option_index, "Estimation Speed");
+						m_wndExcelView.QuickSetNumber(5, option_index, m_pCurrentView->m_fEstimationSpeed);
+					}
+				}
+			}
+		}
+		m_wndExcelView.BestFit(-1, col_count - 1, 0, UG_BESTFIT_TOPHEADINGS);
+	}
+}
+
+BOOL CDlgExcelView::OnCommand(WPARAM wParam, LPARAM lParam)
+{
+	if (wParam >= WM_USER && wParam < WM_USER + m_aButtons.size())
+	{
+		for (int i = 0; i < m_aButtons.size(); i++)
+		{
+			if (wParam == WM_USER + i)
+			{
+				LoadFile(i);
+			}
+		}
+	}
+
+	return CDialog::OnCommand(wParam, lParam);
 }

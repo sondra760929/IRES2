@@ -205,6 +205,7 @@
     <ClInclude Include="ClassView2.h" />
     <ClInclude Include="CreateCheckboxImageList.h" />
     <ClInclude Include="CToolbarWnd.h" />
+    <ClInclude Include="CurveCtrl.h" />
     <ClInclude Include="Dlg1.h" />
     <ClInclude Include="Dlg2.h" />
     <ClInclude Include="DlgCalc.h" />
@@ -228,6 +229,7 @@
     <ClInclude Include="I-RES2Doc.h" />
     <ClInclude Include="I-RES2View.h" />
     <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="MemDC.h" />
     <ClInclude Include="MFC_OSG2.h" />
     <ClInclude Include="Mycug.h" />
     <ClInclude Include="OptImportExportBase.h" />
@@ -312,6 +314,7 @@
     <ClCompile Include="ClassView2.cpp" />
     <ClCompile Include="CreateCheckboxImageList.cpp" />
     <ClCompile Include="CToolbarWnd.cpp" />
+    <ClCompile Include="CurveCtrl.cpp" />
     <ClCompile Include="Dlg1.cpp" />
     <ClCompile Include="Dlg2.cpp" />
     <ClCompile Include="DlgCalc.cpp" />
