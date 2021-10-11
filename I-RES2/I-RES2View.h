@@ -131,6 +131,7 @@ public:
 	void READ_ICE_INPUT();
 	void READ_ICECOFF_INPUT();
 	void CALC_ATTAINABLE_SPEED();
+	void CALC_SATELLITE(float concentration, float flexural_strength, float ice_thickness);
 	void SEL_MODE1();
 	void BREAKING1();
 	void CLEARING1();
@@ -138,7 +139,8 @@ public:
 	void WRITE_OUT();
 	float GAUS(int II, int IOP);
 	float GAUS2(int II, int IOP);
-	void CalculateOutputResult(bool refresh = true);
+	int current_calculate_type = 0;
+	void CalculateOutputResult(int type, bool refresh = true);
 	void CalculateSectionWaterline(osg::Vec3 plane_normal, osg::Vec3 plane_point, int align_axis, vector< PointData >& section_point_data, bool check_point_distance, float point_distance, vector< vector< osg::Vec3 > >& section_line, bool use_start_end = false, float start_pos = 0, float end_pos = 0);
 	bool GetNormal(osg::Drawable* geo, PointData& pd);
 	void AddSectionDataGeo(vector< PointData >& pt_list, osg::Group* group);
@@ -155,6 +157,12 @@ public:
 	osg::ref_ptr< osg::Vec3Array > m_ptSelectionRect;
 	osg::ref_ptr< osg::Geometry > m_geometrySelectionRect;
 	osg::ref_ptr< osg::Geode > m_goedeRectangle;
+	vector< float > m_fConcentration;
+	vector< float > m_fFlexuralStrength;
+	vector< float > m_fIceThickness;
+	vector< float > m_fShipSpeed;
+	float m_fTargetResistance;
+	float m_fEstimationSpeed;
 	void SetSelectionWindow(CPoint start, CPoint end);
 	bool m_bInitialize;
 	//FILE* FileLog;
@@ -174,7 +182,7 @@ public:
 	float m_fWaterlinePointGap;
 	void CalculateWaterSectionPoint();
 	void CalculateSectionPoint();
-	bool CreateJob(CString job_name);
+	bool CreateJob(CString job_name, int type);
 	bool SelectJob(CString job_name);
 	bool DeleteJob(CString job_name);
 	void LoadIceInput();

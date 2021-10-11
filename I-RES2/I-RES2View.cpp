@@ -607,6 +607,15 @@ void CIRES2View::OnInitialUpdate()
 		m_pMainFrame->m_wndClassView.m_pView = this;
 		m_pMainFrame->m_wndClassView.m_MainToolbar.m_pView = this;
 		m_pMainFrame->m_wndClassView.m_SectionToolbar.m_pView = this;
+
+		m_pMainFrame->m_wndClassView1.m_pView = this;
+		m_pMainFrame->m_wndClassView1.m_MainToolbar.m_pView = this;
+		m_pMainFrame->m_wndClassView1.m_SectionToolbar.m_pView = this;
+
+		m_pMainFrame->m_wndClassView2.m_pView = this;
+		m_pMainFrame->m_wndClassView2.m_MainToolbar.m_pView = this;
+		m_pMainFrame->m_wndClassView2.m_SectionToolbar.m_pView = this;
+
 		m_pMainFrame->m_wndFileView.m_pView = this;
 		//m_pEditStart = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START));
 		//m_pEditEnd = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END));
@@ -763,8 +772,22 @@ void CIRES2View::OnButtonOpen()
 				m_pMainFrame->m_wndClassView.SetMaterialStatus(true);
 				m_pMainFrame->m_wndClassView.SetConditionStatus(true);
 
+				m_pMainFrame->m_wndClassView1.SetHulllStatus(true);
+				m_pMainFrame->m_wndClassView1.SetDraftStatus(true);
+				m_pMainFrame->m_wndClassView1.SetCrossStatus(true);
+				m_pMainFrame->m_wndClassView1.SetMaterialStatus(true);
+				//m_pMainFrame->m_wndClassView1.SetConditionStatus(true);
+
+				m_pMainFrame->m_wndClassView2.SetHulllStatus(true);
+				m_pMainFrame->m_wndClassView2.SetDraftStatus(true);
+				m_pMainFrame->m_wndClassView2.SetCrossStatus(true);
+				m_pMainFrame->m_wndClassView2.SetMaterialStatus(true);
+				//m_pMainFrame->m_wndClassView2.SetConditionStatus(true);
+
 				m_pMainFrame->m_wndFileView.Clear();
 				m_pMainFrame->m_wndClassView.ClearJobList();
+				m_pMainFrame->m_wndClassView1.ClearJobList();
+				m_pMainFrame->m_wndClassView2.ClearJobList();
 
 				//LoadDatumFile();
 
@@ -892,7 +915,7 @@ void CIRES2View::OnButtonRotate()
 	if (osgHull->getNumChildren() < 1)
 	{
 		AfxMessageBox("Import HULL data first.");
-		CalculateOutputResult(false);
+		CalculateOutputResult(current_calculate_type, false);
 		return;
 	}
 
@@ -910,7 +933,7 @@ void CIRES2View::OnButtonTranslate()
 	if (osgHull->getNumChildren() < 1)
 	{
 		AfxMessageBox("Import HULL data first.");
-		CalculateOutputResult(false);
+		CalculateOutputResult(current_calculate_type, false);
 		return;
 	}
 
@@ -981,6 +1004,8 @@ void CIRES2View::OnButtonImportHull()
 					m_isCreateFolder = true;
 					ClearSections();
 					m_pMainFrame->m_wndClassView.SetHulllStatus(true);
+					m_pMainFrame->m_wndClassView1.SetHulllStatus(true);
+					m_pMainFrame->m_wndClassView2.SetHulllStatus(true);
 				}
 			}
 		}
@@ -1009,6 +1034,8 @@ void CIRES2View::OnButtonImportHull()
 				m_isCreateFolder = true;
 				ClearSections();
 				m_pMainFrame->m_wndClassView.SetHulllStatus(true);
+				m_pMainFrame->m_wndClassView1.SetHulllStatus(true);
+				m_pMainFrame->m_wndClassView2.SetHulllStatus(true);
 			}
 		}
 
@@ -2947,13 +2974,13 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	if (osgHull->getNumChildren() < 1)
 	{
 		AfxMessageBox("Import HULL data first.");
-		CalculateOutputResult(false);
+		CalculateOutputResult(current_calculate_type, false);
 		return;
 	}
 	else if (osgSectionPosList.size() < 1)
 	{
 		AfxMessageBox("Define Sections first.");
-		CalculateOutputResult(false);
+		CalculateOutputResult(current_calculate_type, false);
 		return;
 	}
 
@@ -3027,8 +3054,11 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	//SetCurrentStep(3);
 }
 
-void CIRES2View::CalculateOutputResult(bool refresh)
+void CIRES2View::CalculateOutputResult(int type, bool refresh)
 {
+	DeleteTempFiles(m_strProjectPath);
+
+	current_calculate_type = type;
 	if (refresh)
 	{
 		//	결과 파일 저장
@@ -3125,75 +3155,158 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 
 	READ_ICE_INPUT();
 	READ_ICECOFF_INPUT();
-
-	CAL_COND();
-	READ_HULL(1);
-	SEL_MODE1();
-
-	for (int IH = 1; IH <= NH; IH++)
+	switch (current_calculate_type)
 	{
-		R_BOUYA[IH] = R_BO[IH];
-		for (int IVS = 1; IVS <= NV; IVS++)
+	case 0:
+	{
+		CAL_COND();
+		READ_HULL(1);
+		SEL_MODE1();
+
+		for (int IH = 1; IH <= NH; IH++)
 		{
-			R_CLEAR[IH][IVS] = R_CL[IH][IVS];
+			R_BOUYA[IH] = R_BO[IH];
+			for (int IVS = 1; IVS <= NV; IVS++)
+			{
+				R_CLEAR[IH][IVS] = R_CL[IH][IVS];
+			}
+			for (int IS = 1; IS <= NSIGMA; IS++)
+			{
+				R_BREAK[IH][IS] = R_BR[IH][IS];
+			}
 		}
-		for (int IS = 1; IS <= NSIGMA; IS++)
+
+		//R_CLEAR.assign(R_CL.begin(), R_CL.end());
+		//R_BREAK.assign(R_BR.begin(), R_BR.end());
+		//R_BOUYA.assign(R_BO.begin(), R_BO.end());
+
+		//if (HULL_TYPE == 2)
+		//{
+		//	R_CL.clear();
+		//	R_BR.clear();
+		//	READ_HULL(2);
+		//	//SEL_MODE2();
+		//	for (int i = 0; i < R_CLEAR.size(); i++)
+		//	{
+		//		for (int j = 0; j < R_CLEAR[i].size(); j++)
+		//		{
+		//			R_CLEAR[i][j] = R_CLEAR[i][j] + R_CL[i][j];
+		//		}
+		//	}
+		//	for (int i = 0; i < R_BREAK.size(); i++)
+		//	{
+		//		for (int j = 0; j < R_BREAK[i].size(); j++)
+		//		{
+		//			R_BREAK[i][j] = R_BREAK[i][j] + R_BR[i][j];
+		//		}
+		//	}
+		//}
+
+		//if (HULL_TYPE == 3)
+		//{
+		//	R_CL.clear();
+		//	R_BR.clear();
+		//	READ_HULL(3);
+		//	//SEL_MODE2();
+		//	for (int i = 0; i < R_CLEAR.size(); i++)
+		//	{
+		//		for (int j = 0; j < R_CLEAR[i].size(); j++)
+		//		{
+		//			R_CLEAR[i][j] = R_CLEAR[i][j] + R_CL[i][j];
+		//		}
+		//	}
+		//	for (int i = 0; i < R_BREAK.size(); i++)
+		//	{
+		//		for (int j = 0; j < R_BREAK[i].size(); j++)
+		//		{
+		//			R_BREAK[i][j] = R_BREAK[i][j] + R_BR[i][j];
+		//		}
+		//	}
+		//}
+
+		CALC_ATTAINABLE_SPEED();
+
+		WRITE_OUT();
+
+		if (current_calculate_type == 1)
 		{
-			R_BREAK[IH][IS] = R_BR[IH][IS];
+			CALC_SATELLITE(0, 0, 0);
 		}
 	}
+	break;
+	case 1:
+	{
+		int count = m_fConcentration.size();
+		for (int i = 0; i < count; i++)
+		{
+			HH = m_fIceThickness[i];
+			HK = m_fIceThickness[i];
+			SIGMAP = m_fFlexuralStrength[i];
+			SIGMAK = m_fFlexuralStrength[i];
+			VS = m_fShipSpeed[i];
+			if (VS <= 0.0f)
+				VS = 1.0f;
+			VE = VS;
 
-	//R_CLEAR.assign(R_CL.begin(), R_CL.end());
-	//R_BREAK.assign(R_BR.begin(), R_BR.end());
-	//R_BOUYA.assign(R_BO.begin(), R_BO.end());
+			CAL_COND();
+			READ_HULL(1);
+			SEL_MODE1();
 
-	//if (HULL_TYPE == 2)
-	//{
-	//	R_CL.clear();
-	//	R_BR.clear();
-	//	READ_HULL(2);
-	//	//SEL_MODE2();
-	//	for (int i = 0; i < R_CLEAR.size(); i++)
-	//	{
-	//		for (int j = 0; j < R_CLEAR[i].size(); j++)
-	//		{
-	//			R_CLEAR[i][j] = R_CLEAR[i][j] + R_CL[i][j];
-	//		}
-	//	}
-	//	for (int i = 0; i < R_BREAK.size(); i++)
-	//	{
-	//		for (int j = 0; j < R_BREAK[i].size(); j++)
-	//		{
-	//			R_BREAK[i][j] = R_BREAK[i][j] + R_BR[i][j];
-	//		}
-	//	}
-	//}
+			for (int IH = 1; IH <= NH; IH++)
+			{
+				R_BOUYA[IH] = R_BO[IH];
+				for (int IVS = 1; IVS <= NV; IVS++)
+				{
+					R_CLEAR[IH][IVS] = R_CL[IH][IVS];
+				}
+				for (int IS = 1; IS <= NSIGMA; IS++)
+				{
+					R_BREAK[IH][IS] = R_BR[IH][IS];
+				}
+			}
 
-	//if (HULL_TYPE == 3)
-	//{
-	//	R_CL.clear();
-	//	R_BR.clear();
-	//	READ_HULL(3);
-	//	//SEL_MODE2();
-	//	for (int i = 0; i < R_CLEAR.size(); i++)
-	//	{
-	//		for (int j = 0; j < R_CLEAR[i].size(); j++)
-	//		{
-	//			R_CLEAR[i][j] = R_CLEAR[i][j] + R_CL[i][j];
-	//		}
-	//	}
-	//	for (int i = 0; i < R_BREAK.size(); i++)
-	//	{
-	//		for (int j = 0; j < R_BREAK[i].size(); j++)
-	//		{
-	//			R_BREAK[i][j] = R_BREAK[i][j] + R_BR[i][j];
-	//		}
-	//	}
-	//}
+			WRITE_OUT();
+			CALC_SATELLITE(m_fConcentration[i], m_fFlexuralStrength[i], HH);
+		}
+	}
+	break;
+	case 2:
+	{
+		VS = 1.0f;
+		VE = 16.0f;
+		VI = 1.0f;
 
-	CALC_ATTAINABLE_SPEED();
+		int count = m_fConcentration.size();
+		for (int i = 0; i < count; i++)
+		{
+			HH = m_fIceThickness[i];
+			HK = m_fIceThickness[i];
+			SIGMAP = m_fFlexuralStrength[i];
+			SIGMAK = m_fFlexuralStrength[i];
 
-	WRITE_OUT();
+			CAL_COND();
+			READ_HULL(1);
+			SEL_MODE1();
+
+			for (int IH = 1; IH <= NH; IH++)
+			{
+				R_BOUYA[IH] = R_BO[IH];
+				for (int IVS = 1; IVS <= NV; IVS++)
+				{
+					R_CLEAR[IH][IVS] = R_CL[IH][IVS];
+				}
+				for (int IS = 1; IS <= NSIGMA; IS++)
+				{
+					R_BREAK[IH][IS] = R_BR[IH][IS];
+				}
+			}
+
+			WRITE_OUT();
+			CALC_SATELLITE(m_fConcentration[i], m_fFlexuralStrength[i], HH);
+		}
+	}
+	break;
+	}
 
 	if (fp_4)
 	{
@@ -3230,6 +3343,8 @@ void CIRES2View::CalculateOutputResult(bool refresh)
 
 	//	입력한 파라미터 유지되도록 프로그램 폴더로 복사
 	CopyFiles(m_strProjectPath, m_strAppPath);
+
+	DeleteTempFiles(m_strAppPath);
 
 	for (int i = 0; i < m_aAnalysisPGM.size(); i++)
 	{
@@ -3283,21 +3398,21 @@ void CIRES2View::CALC_ATTAINABLE_SPEED()
 				float sheep_speed = VSP[IV];
 				float Preswan_resistance = R_TOTAL * 0.001f;
 
-				float Attainable_Net_Thurst = (-0.007f*pow(sheep_speed, 4.0f) + -0.0198f*pow(sheep_speed, 3.0f) + 1.4903f*pow(sheep_speed, 2.0f) - 17.543f*sheep_speed + 989.57f);
+				float Attainable_Net_Thurst = (-0.007f * pow(sheep_speed, 4.0f) + -0.0198f * pow(sheep_speed, 3.0f) + 1.4903f * pow(sheep_speed, 2.0f) - 17.543f * sheep_speed + 989.57f);
 
 				float factor_60 = ($B$2 + $C$2 * ice_thickness + $D$2 * pow(ice_thickness, 2.0f) + $E$2 * $G$5) +
-					($F$2 + $G$2 * ice_thickness + $H$2 * pow(ice_thickness, 2.0f) + $I$2 * $G$5)*sheep_speed +
-					($J$2 + $K$2 * ice_thickness + $L$2 * pow(ice_thickness, 2.0f) + $M$2 * $G$5)*pow(sheep_speed, 2.0f);
+					($F$2 + $G$2 * ice_thickness + $H$2 * pow(ice_thickness, 2.0f) + $I$2 * $G$5) * sheep_speed +
+					($J$2 + $K$2 * ice_thickness + $L$2 * pow(ice_thickness, 2.0f) + $M$2 * $G$5) * pow(sheep_speed, 2.0f);
 				float r_total_60 = factor_60 * Preswan_resistance;
 
 				float factor_80 = ($B$2 + $C$2 * ice_thickness + $D$2 * pow(ice_thickness, 2.0f) + $E$2 * $I$5) +
-					($F$2 + $G$2 * ice_thickness + $H$2 * pow(ice_thickness, 2.0f) + $I$2 * $I$5)*sheep_speed +
-					($J$2 + $K$2 * ice_thickness + $L$2 * pow(ice_thickness, 2.0f) + $M$2 * $I$5)*pow(sheep_speed, 2.0f);
+					($F$2 + $G$2 * ice_thickness + $H$2 * pow(ice_thickness, 2.0f) + $I$2 * $I$5) * sheep_speed +
+					($J$2 + $K$2 * ice_thickness + $L$2 * pow(ice_thickness, 2.0f) + $M$2 * $I$5) * pow(sheep_speed, 2.0f);
 				float r_total_80 = factor_80 * Preswan_resistance;
 
 				float factor_90 = ($B$2 + $C$2 * ice_thickness + $D$2 * pow(ice_thickness, 2.0f) + $E$2 * $K$5) +
-					($F$2 + $G$2 * ice_thickness + $H$2 * pow(ice_thickness, 2.0f) + $I$2 * $K$5)*sheep_speed +
-					($J$2 + $K$2 * ice_thickness + $L$2 * pow(ice_thickness, 2.0f) + $M$2 * $K$5)*pow(sheep_speed, 2.0f);
+					($F$2 + $G$2 * ice_thickness + $H$2 * pow(ice_thickness, 2.0f) + $I$2 * $K$5) * sheep_speed +
+					($J$2 + $K$2 * ice_thickness + $L$2 * pow(ice_thickness, 2.0f) + $M$2 * $K$5) * pow(sheep_speed, 2.0f);
 				float r_total_90 = factor_90 * Preswan_resistance;
 
 				if (Attainable_Net_Thurst >= r_total_60)
@@ -3337,6 +3452,56 @@ void CIRES2View::CALC_ATTAINABLE_SPEED()
 		for (int i = 0; i < ICE_S.size(); i++)
 		{
 			fprintf_s(fp, "%10.3f,%10.3f,%10.3f,%10.3f,%10.3f\n", ICE_S[i], ICE_T[i], A_SPEED[0][i], A_SPEED[1][i], A_SPEED[2][i]);
+		}
+
+		fclose(fp);
+	}
+
+}
+void CIRES2View::CALC_SATELLITE(float concentration, float flexural_strength, float ice_thickness)
+{
+	float R_TOTAL;
+	float a0 = -1.4530f;
+	float a1 = -0.1154;
+	float a2 = 0.0771f;
+	float a3 = 0.0324f;
+	float b0 = 0.1746f;
+	float b1 = 0.3493f;
+	float b2 = -0.1314f;
+	float b3 = -0.0069f;
+	float c0 = 0.0159f;
+	float c1 = -0.0775f;
+	float c2 = 0.0311f;
+	float c3 = 0.0006f;
+
+	CString file_desc;
+	file_desc.Format("%lf_%lf_%lf", concentration, flexural_strength, ice_thickness);
+	FILE* fp;
+	fopen_s(&fp, m_strProjectPath + "\\satellite" + file_desc + ".out", "wt");
+	if (fp)
+	{
+		float R_TOTAL;
+		float pre_swan;
+		float factor;
+		float pack;
+		fprintf_s(fp, "   Vs(kts)      Hi(m)     sigf(kPa)         R_br(kN)          R_cl(kN)          R_bu(kN)           R_i(kN)            pre-swan           factor             pack\n");
+		for (int IV = 1; IV <= NV; IV++)
+		{
+			for (int IS = 1; IS <= NSIGMA; IS++)
+			{
+				for (int IH = 1; IH <= NH; IH++)
+				{
+					R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
+					pre_swan = ((R_TOTAL * 0.001f) - (R_BREAK[IH][IS] * 0.001f)) * 2.0f;
+					factor = (a0 + (a1 * THCK[IH]) + (a2 * THCK[IH] * THCK[IH]) + (a3 * concentration)) +
+						((b0 + (b1 * THCK[IH]) + (b2 * THCK[IH] * THCK[IH]) + (b3 * concentration)) * VSP[IV]) +
+						((c0 + (c1 * THCK[IH]) + (c2 * THCK[IH] * THCK[IH]) + (c3 * concentration)) * VSP[IV] * VSP[IV]);
+					pack = pre_swan * factor;
+					fprintf_s(fp, "%9.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf\n",
+						VSP[IV], THCK[IH], SIGMA[IS], R_BREAK[IH][IS] * 0.001f, R_CLEAR[IH][IV] * 0.001f, R_BOUYA[IH] * 0.001f, R_TOTAL * 0.001f,
+						pre_swan, factor, pack);
+				}
+			}
 		}
 
 		fclose(fp);
@@ -4605,11 +4770,11 @@ void CIRES2View::OnButtonAnalysis()
 	if (m_iCurrentStep < 3)
 	{
 		AfxMessageBox("Calculate Section Points first.");
-		CalculateOutputResult(false);
+		CalculateOutputResult(current_calculate_type, false);
 		return;
 	}
 
-	CalculateOutputResult();
+	CalculateOutputResult(current_calculate_type);
 	//SetCurrentStep(4);
 }
 
@@ -5501,6 +5666,8 @@ void CIRES2View::CalculateWaterSectionPoint()
 	EndProgress();
 
 	m_pMainFrame->m_wndClassView.SetDraftStatus(true);
+	m_pMainFrame->m_wndClassView1.SetDraftStatus(true);
+	m_pMainFrame->m_wndClassView2.SetDraftStatus(true);
 }
 
 void CIRES2View::CalculateSectionPoint()
@@ -5585,6 +5752,8 @@ void CIRES2View::CalculateSectionPoint()
 	EndProgress();
 
 	m_pMainFrame->m_wndClassView.SetCrossStatus(true);
+	m_pMainFrame->m_wndClassView1.SetCrossStatus(true);
+	m_pMainFrame->m_wndClassView2.SetCrossStatus(true);
 }
 
 void CIRES2View::OnMouseHWheel(UINT nFlags, short zDelta, CPoint pt)
@@ -5742,16 +5911,16 @@ bool CIRES2View::DeleteJob(CString job_name)
 	return false;
 }
 
-bool CIRES2View::CreateJob(CString job_name)
+bool CIRES2View::CreateJob(CString job_name, int type)
 {
-	CalculateOutputResult();
+	CalculateOutputResult(type);
 
 	CString job_path = m_strProjectPath + "\\JOB\\";
 	CreateDirectory(job_path, NULL);
 	job_path = m_strProjectPath + "\\JOB\\" + job_name + "\\";
 	CreateDirectory(job_path, NULL);
 
-	CopyFiles(m_strProjectPath, m_strProjectPath + "\\JOB\\" + job_name);
+	CopyFiles(m_strProjectPath, m_strProjectPath + "\\JOB\\" + job_name, true);
 
 	//CopyFile(m_strAppPath + "\\ICE_INPUT.inp", m_strAppPath + "\\JOB\\" + job_name + "\\ICE_INPUT.inp", FALSE);
 	//CopyFile(m_strAppPath + "\\ICECOFF_INPUT.inp", m_strAppPath + "\\JOB\\" + job_name + "\\ICECOFF_INPUT.inp", FALSE);
@@ -6128,7 +6297,7 @@ void CIRES2View::OnButtonMakeDatum()
 	if (osgHull->getNumChildren() < 1)
 	{
 		AfxMessageBox("Import HULL data first.");
-		CalculateOutputResult(false);
+		CalculateOutputResult(current_calculate_type, false);
 		return;
 	}
 
@@ -6585,8 +6754,23 @@ void CIRES2View::ClearProject(CString current_project_path)
 	m_pMainFrame->m_wndClassView.SetCrossStatus(false);
 	m_pMainFrame->m_wndClassView.SetMaterialStatus(false);
 	m_pMainFrame->m_wndClassView.SetConditionStatus(false);
+
+	m_pMainFrame->m_wndClassView1.SetHulllStatus(false);
+	m_pMainFrame->m_wndClassView1.SetDraftStatus(false);
+	m_pMainFrame->m_wndClassView1.SetCrossStatus(false);
+	m_pMainFrame->m_wndClassView1.SetMaterialStatus(false);
+	//m_pMainFrame->m_wndClassView1.SetConditionStatus(false);
+
+	m_pMainFrame->m_wndClassView2.SetHulllStatus(false);
+	m_pMainFrame->m_wndClassView2.SetDraftStatus(false);
+	m_pMainFrame->m_wndClassView2.SetCrossStatus(false);
+	m_pMainFrame->m_wndClassView2.SetMaterialStatus(false);
+	//m_pMainFrame->m_wndClassView2.SetConditionStatus(false);
+
 	m_pMainFrame->m_wndFileView.Clear();
 	m_pMainFrame->m_wndClassView.ClearJobList();
+	m_pMainFrame->m_wndClassView1.ClearJobList();
+	m_pMainFrame->m_wndClassView2.ClearJobList();
 	if (m_isCreateFolder)
 	{
 		if (current_project_path != m_strAppPath)
@@ -6754,7 +6938,7 @@ void CIRES2View::OnButtonSaveSectionData()
 				}
 
 				fclose(save_file);
-				CalculateOutputResult();
+				CalculateOutputResult(current_calculate_type);
 			}
 		}
 	}

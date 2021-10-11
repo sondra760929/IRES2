@@ -201,6 +201,8 @@
     <ClInclude Include="CDlgProgress.h" />
     <ClInclude Include="CDlgSelectSections.h" />
     <ClInclude Include="ClassView.h" />
+    <ClInclude Include="ClassView1.h" />
+    <ClInclude Include="ClassView2.h" />
     <ClInclude Include="CreateCheckboxImageList.h" />
     <ClInclude Include="CToolbarWnd.h" />
     <ClInclude Include="Dlg1.h" />
@@ -216,6 +218,7 @@
     <ClInclude Include="DlgMainToolbar.h" />
     <ClInclude Include="DlgMaterial.h" />
     <ClInclude Include="DlgOutputToolbar.h" />
+    <ClInclude Include="DlgSatelliteData.h" />
     <ClInclude Include="DlgSectionToolbar.h" />
     <ClInclude Include="DlgTranslation.h" />
     <ClInclude Include="FileView.h" />
@@ -305,6 +308,8 @@
     <ClCompile Include="CDlgProgress.cpp" />
     <ClCompile Include="CDlgSelectSections.cpp" />
     <ClCompile Include="ClassView.cpp" />
+    <ClCompile Include="ClassView1.cpp" />
+    <ClCompile Include="ClassView2.cpp" />
     <ClCompile Include="CreateCheckboxImageList.cpp" />
     <ClCompile Include="CToolbarWnd.cpp" />
     <ClCompile Include="Dlg1.cpp" />
@@ -320,6 +325,7 @@
     <ClCompile Include="DlgMainToolbar.cpp" />
     <ClCompile Include="DlgMaterial.cpp" />
     <ClCompile Include="DlgOutputToolbar.cpp" />
+    <ClCompile Include="DlgSatelliteData.cpp" />
     <ClCompile Include="DlgSectionToolbar.cpp" />
     <ClCompile Include="DlgTranslation.cpp" />
     <ClCompile Include="FileView.cpp" />

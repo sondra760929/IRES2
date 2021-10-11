@@ -1,7 +1,7 @@
 ﻿
 #include "stdafx.h"
 #include "MainFrm.h"
-#include "ClassView.h"
+#include "ClassView2.h"
 #include "Resource.h"
 #include "I-RES2.h"
 #include "DlgDraftSection.h"
@@ -9,15 +9,16 @@
 #include "DlgCondition.h"
 #include "DlgMaterial.h"
 #include "DlgCreateJob.h"
+#include "DlgSatelliteData.h"
 
-class CClassViewMenuButton : public CMFCToolBarMenuButton
+class CClassView2MenuButton : public CMFCToolBarMenuButton
 {
-	friend class CClassView;
+	friend class CClassView2;
 
-	DECLARE_SERIAL(CClassViewMenuButton)
+	DECLARE_SERIAL(CClassView2MenuButton)
 
 public:
-	CClassViewMenuButton(HMENU hMenu = nullptr) noexcept : CMFCToolBarMenuButton((UINT)-1, hMenu, -1)
+	CClassView2MenuButton(HMENU hMenu = nullptr) noexcept : CMFCToolBarMenuButton((UINT)-1, hMenu, -1)
 	{
 	}
 
@@ -35,13 +36,13 @@ public:
 	}
 };
 
-IMPLEMENT_SERIAL(CClassViewMenuButton, CMFCToolBarMenuButton, 1)
+IMPLEMENT_SERIAL(CClassView2MenuButton, CMFCToolBarMenuButton, 1)
 
 //////////////////////////////////////////////////////////////////////
 // 생성/소멸
 //////////////////////////////////////////////////////////////////////
 
-CClassView::CClassView() noexcept
+CClassView2::CClassView2() noexcept
 {
 	m_nCurrSort = ID_SORTING_GROUPBYTYPE;
 	itemModelStatus = false;
@@ -50,17 +51,18 @@ CClassView::CClassView() noexcept
 	itemDraftSectionStatus = false;
 	itemCrossSectionStatus = false;
 	itemMaterialStatus = false;
-	itemConditionStatus = false;
+	//itemConditionStatus = false;
+	itemEstimationStatus = false;
 	itemAnalysisStatus = false;
 	m_iCurrentToolbar = -1;
 	m_pView = NULL;
 }
 
-CClassView::~CClassView()
+CClassView2::~CClassView2()
 {
 }
 
-BEGIN_MESSAGE_MAP(CClassView, CDockablePane)
+BEGIN_MESSAGE_MAP(CClassView2, CDockablePane)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
 	ON_WM_CONTEXTMENU()
@@ -73,17 +75,17 @@ BEGIN_MESSAGE_MAP(CClassView, CDockablePane)
 	ON_WM_SETFOCUS()
 	ON_COMMAND_RANGE(ID_SORTING_GROUPBYTYPE, ID_SORTING_SORTBYACCESS, OnSort)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_SORTING_GROUPBYTYPE, ID_SORTING_SORTBYACCESS, OnUpdateSort)
-	ON_NOTIFY(TVN_SELCHANGED, 2, &CClassView::OnTvnSelchanged)
-	ON_NOTIFY(NM_DBLCLK, 2, &CClassView::OnTvnDoubleClicked)
-	ON_COMMAND(ID_ANALYSIS_ADD, &CClassView::OnAnalysisAdd)
-	ON_COMMAND(ID_ANALYSIS_CLEAR, &CClassView::OnAnalysisClear)
-	ON_COMMAND(ID_ANALYSIS1_DELETE, &CClassView::OnAnalysis1Delete)
+	ON_NOTIFY(TVN_SELCHANGED, 2, &CClassView2::OnTvnSelchanged)
+	ON_NOTIFY(NM_DBLCLK, 2, &CClassView2::OnTvnDoubleClicked)
+	ON_COMMAND(ID_ANALYSIS_ADD, &CClassView2::OnAnalysisAdd)
+	ON_COMMAND(ID_ANALYSIS_CLEAR, &CClassView2::OnAnalysisClear)
+	ON_COMMAND(ID_ANALYSIS1_DELETE, &CClassView2::OnAnalysis1Delete)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
-// CClassView 메시지 처리기
+// CClassView2 메시지 처리기
 
-int CClassView::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int CClassView2::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CDockablePane::OnCreate(lpCreateStruct) == -1)
 		return -1;
@@ -126,9 +128,9 @@ int CClassView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//CMenu menuSort;
 	//menuSort.LoadMenu(IDR_POPUP_SORT);
 
-	//m_wndToolBar.ReplaceButton(ID_SORT_MENU, CClassViewMenuButton(menuSort.GetSubMenu(0)->GetSafeHmenu()));
+	//m_wndToolBar.ReplaceButton(ID_SORT_MENU, CClassView2MenuButton(menuSort.GetSubMenu(0)->GetSafeHmenu()));
 
-	//CClassViewMenuButton* pButton =  DYNAMIC_DOWNCAST(CClassViewMenuButton, m_wndToolBar.GetButton(0));
+	//CClassView2MenuButton* pButton =  DYNAMIC_DOWNCAST(CClassView2MenuButton, m_wndToolBar.GetButton(0));
 
 	//if (pButton != nullptr)
 	//{
@@ -144,13 +146,13 @@ int CClassView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
-void CClassView::OnSize(UINT nType, int cx, int cy)
+void CClassView2::OnSize(UINT nType, int cx, int cy)
 {
 	CDockablePane::OnSize(nType, cx, cy);
 	AdjustLayout();
 }
 
-void CClassView::FillClassView()
+void CClassView2::FillClassView()
 {
 	itemModel = m_wndClassView.InsertItem(_T("Model <font color = \"red\">[?]</font></b>"), 0, 0);
 	itemHull = m_wndClassView.InsertItem(_T("<b>Hull <font color = \"red\">[?]</font>"), 1, 1, itemModel);
@@ -158,14 +160,15 @@ void CClassView::FillClassView()
 	itemDraftSection = m_wndClassView.InsertItem(_T("<b>Draft Section <font color = \"red\">[?]</font>"), 5, 5, itemModel);
 	itemCrossSection = m_wndClassView.InsertItem(_T("<b>Cross Section <font color = \"red\">[?]</font>"), 5, 5, itemModel);
 	itemMaterial = m_wndClassView.InsertItem(_T("<b>Material <font color = \"red\">[?]</font>"), 3, 3, itemModel);
-	itemCondition = m_wndClassView.InsertItem(_T("<b>Condition <font color = \"red\">[?]</font>"), 4, 4, itemModel);
+	//itemCondition = m_wndClassView.InsertItem(_T("<b>Condition <font color = \"red\">[?]</font>"), 4, 4, itemModel);
+	itemEstimation = m_wndClassView.InsertItem(_T("<b>Estimation input data <font color = \"red\">[?]</font>"), 4, 4, itemModel);
 	m_wndClassView.Expand(itemModel, TVE_EXPAND);
 	//m_wndClassView.Expand(itemSection, TVE_EXPAND);
 
 	itemAnalysis = m_wndClassView.InsertItem(_T("Analysis"), 0, 0);
 }
 
-void CClassView::OnContextMenu(CWnd* pWnd, CPoint point)
+void CClassView2::OnContextMenu(CWnd* pWnd, CPoint point)
 {
 	CTreeCtrl* pWndTree = (CTreeCtrl*)&m_wndClassView;
 	ASSERT_VALID(pWndTree);
@@ -238,7 +241,7 @@ void CClassView::OnContextMenu(CWnd* pWnd, CPoint point)
 	//}
 }
 
-void CClassView::AdjustLayout()
+void CClassView2::AdjustLayout()
 {
 	if (GetSafeHwnd() == nullptr)
 	{
@@ -278,12 +281,12 @@ void CClassView::AdjustLayout()
 	}
 }
 
-BOOL CClassView::PreTranslateMessage(MSG* pMsg)
+BOOL CClassView2::PreTranslateMessage(MSG* pMsg)
 {
 	return CDockablePane::PreTranslateMessage(pMsg);
 }
 
-void CClassView::OnSort(UINT id)
+void CClassView2::OnSort(UINT id)
 {
 	if (m_nCurrSort == id)
 	{
@@ -292,7 +295,7 @@ void CClassView::OnSort(UINT id)
 
 	m_nCurrSort = id;
 
-	//CClassViewMenuButton* pButton =  DYNAMIC_DOWNCAST(CClassViewMenuButton, m_wndToolBar.GetButton(0));
+	//CClassView2MenuButton* pButton =  DYNAMIC_DOWNCAST(CClassView2MenuButton, m_wndToolBar.GetButton(0));
 
 	//if (pButton != nullptr)
 	//{
@@ -302,37 +305,37 @@ void CClassView::OnSort(UINT id)
 	//}
 }
 
-void CClassView::OnUpdateSort(CCmdUI* pCmdUI)
+void CClassView2::OnUpdateSort(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck(pCmdUI->m_nID == m_nCurrSort);
 }
 
-void CClassView::OnClassAddMemberFunction()
+void CClassView2::OnClassAddMemberFunction()
 {
 	AfxMessageBox(_T("멤버 함수 추가..."));
 }
 
-void CClassView::OnClassAddMemberVariable()
+void CClassView2::OnClassAddMemberVariable()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 }
 
-void CClassView::OnClassDefinition()
+void CClassView2::OnClassDefinition()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 }
 
-void CClassView::OnClassProperties()
+void CClassView2::OnClassProperties()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 }
 
-void CClassView::OnNewFolder()
+void CClassView2::OnNewFolder()
 {
 	AfxMessageBox(_T("새 폴더..."));
 }
 
-void CClassView::OnPaint()
+void CClassView2::OnPaint()
 {
 	CPaintDC dc(this); // 그리기를 위한 디바이스 컨텍스트입니다.
 
@@ -344,14 +347,14 @@ void CClassView::OnPaint()
 	dc.Draw3dRect(rectTree, ::GetSysColor(COLOR_3DSHADOW), ::GetSysColor(COLOR_3DSHADOW));
 }
 
-void CClassView::OnSetFocus(CWnd* pOldWnd)
+void CClassView2::OnSetFocus(CWnd* pOldWnd)
 {
 	CDockablePane::OnSetFocus(pOldWnd);
 
 	m_wndClassView.SetFocus();
 }
 
-void CClassView::OnChangeVisualStyle()
+void CClassView2::OnChangeVisualStyle()
 {
 	m_ClassViewImages.DeleteImageList();
 
@@ -381,7 +384,7 @@ void CClassView::OnChangeVisualStyle()
 	//m_wndToolBar.LoadBitmap(theApp.m_bHiColorIcons ? IDB_SORT_24 : IDR_SORT, 0, 0, TRUE /* 잠금 */);
 }
 
-int CClassView::CountTreeItems(HTREEITEM hItem, bool Recurse)
+int CClassView2::CountTreeItems(HTREEITEM hItem, bool Recurse)
 {
 	int count = 0;
 	if (hItem == NULL)
@@ -403,7 +406,7 @@ int CClassView::CountTreeItems(HTREEITEM hItem, bool Recurse)
 	return count;
 }
 
-void CClassView::ClearJobList(bool delete_job_folder)
+void CClassView2::ClearJobList(bool delete_job_folder)
 {
 	if (m_wndClassView.ItemHasChildren(itemAnalysis))
 	{
@@ -426,13 +429,13 @@ void CClassView::ClearJobList(bool delete_job_folder)
 	}
 }
 
-void CClassView::AddJobItem(CString job_name)
+void CClassView2::AddJobItem(CString job_name)
 {
 	m_wndClassView.InsertItem(job_name, 6, 6, itemAnalysis);
 	m_wndClassView.Expand(itemAnalysis, TVE_EXPAND);
 }
 
-void CClassView::CreateJob(HTREEITEM current_item)
+void CClassView2::CreateJob(HTREEITEM current_item)
 {
 	CMainFrame* m_pFrame = (CMainFrame*)AfxGetMainWnd();
 
@@ -455,12 +458,12 @@ void CClassView::CreateJob(HTREEITEM current_item)
 			AddJobItem(pDlg.m_strJobName);
 			m_pFrame->m_wndFileView.AddItem(pDlg.m_strJobName);
 
-			m_pView->CreateJob(pDlg.m_strJobName, 0);
+			m_pView->CreateJob(pDlg.m_strJobName, 2);
 		}
 	}
 }
 
-void CClassView::DeleteJob(HTREEITEM current_item)
+void CClassView2::DeleteJob(HTREEITEM current_item)
 {
 	CMainFrame* m_pFrame = (CMainFrame*)AfxGetMainWnd();
 
@@ -473,7 +476,7 @@ void CClassView::DeleteJob(HTREEITEM current_item)
 	}
 }
 
-void CClassView::SelectJob(HTREEITEM current_item)
+void CClassView2::SelectJob(HTREEITEM current_item)
 {
 	CString job_name = m_wndClassView.GetItemText(current_item);
 	if (AfxMessageBox("Reset all setting from [" + job_name + "]", MB_YESNO) == IDYES)
@@ -486,7 +489,7 @@ void CClassView::SelectJob(HTREEITEM current_item)
 	//}
 }
 
-void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
+void CClassView2::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	HTREEITEM current_item = m_wndClassView.GetSelectedItem();
@@ -514,7 +517,7 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 					if (m_pView->osgHull->getNumChildren() < 1)
 					{
 						AfxMessageBox("Import HULL data first.");
-						m_pView->CalculateOutputResult(0, false);
+						m_pView->CalculateOutputResult(2, false);
 						return;
 					}
 					CDlgDraftSection pDlg(m_pView);
@@ -534,7 +537,7 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 					if (m_pView->osgHull->getNumChildren() < 1)
 					{
 						AfxMessageBox("Import HULL data first.");
-						m_pView->CalculateOutputResult(0, false);
+						m_pView->CalculateOutputResult(2, false);
 						return;
 					}
 
@@ -545,20 +548,20 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 					}
 				}
 			}
-			else if (current_item == itemCondition)
-			{
-				m_iCurrentToolbar = -1;
-				AdjustLayout();
-				if (!GetConditionStatus())
-				{
-					CDlgCondition pDlg(m_pView);
-					if (pDlg.DoModal() == IDOK)
-					{
-						SetConditionStatus(true);
-						CopyFiles(m_strProjectPath, m_strAppPath);
-					}
-				}
-			}
+			//else if (current_item == itemCondition)
+			//{
+			//	m_iCurrentToolbar = -1;
+			//	AdjustLayout();
+			//	if (!GetConditionStatus())
+			//	{
+			//		CDlgCondition pDlg(m_pView);
+			//		if (pDlg.DoModal() == IDOK)
+			//		{
+			//			SetConditionStatus(true);
+			//			CopyFiles(m_strProjectPath, m_strAppPath);
+			//		}
+			//	}
+			//}
 			else if (current_item == itemMaterial)
 			{
 				m_iCurrentToolbar = -1;
@@ -569,6 +572,20 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 					if (pDlg.DoModal() == IDOK)
 					{
 						SetMaterialStatus(true);
+						CopyFiles(m_strProjectPath, m_strAppPath);
+					}
+				}
+			}
+			else if (current_item == itemEstimation)
+			{
+				m_iCurrentToolbar = -1;
+				AdjustLayout();
+				if (!GetEstimationStatus())
+				{
+					CDlgSatelliteData pDlg(1, m_pView);
+					if (pDlg.DoModal() == IDOK)
+					{
+						SetEstimationStatus(true);
 						CopyFiles(m_strProjectPath, m_strAppPath);
 					}
 				}
@@ -603,7 +620,7 @@ void CClassView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 }
 
-void CClassView::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
+void CClassView2::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	HTREEITEM current_item = m_wndClassView.GetSelectedItem();
@@ -619,7 +636,7 @@ void CClassView::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
 				if (m_pView->osgHull->getNumChildren() < 1)
 				{
 					AfxMessageBox("Import HULL data first.");
-					m_pView->CalculateOutputResult(0, false);
+					m_pView->CalculateOutputResult(2, false);
 					return;
 				}
 
@@ -634,7 +651,7 @@ void CClassView::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
 				if (m_pView->osgHull->getNumChildren() < 1)
 				{
 					AfxMessageBox("Import HULL data first.");
-					m_pView->CalculateOutputResult(0, false);
+					m_pView->CalculateOutputResult(2, false);
 					return;
 				}
 
@@ -644,21 +661,30 @@ void CClassView::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
 					CopyFiles(m_strProjectPath, m_strAppPath);
 				}
 			}
-			else if (current_item == itemCondition && GetConditionStatus())
-			{
-				CDlgCondition pDlg(m_pView);
-				if (pDlg.DoModal() == IDOK)
-				{
-					SetConditionStatus(true);
-					CopyFiles(m_strProjectPath, m_strAppPath);
-				}
-			}
+			//else if (current_item == itemCondition && GetConditionStatus())
+			//{
+			//	CDlgCondition pDlg(m_pView);
+			//	if (pDlg.DoModal() == IDOK)
+			//	{
+			//		SetConditionStatus(true);
+			//		CopyFiles(m_strProjectPath, m_strAppPath);
+			//	}
+			//}
 			else if (current_item == itemMaterial && GetMaterialStatus())
 			{
 				CDlgMaterial pDlg(m_pView);
 				if (pDlg.DoModal() == IDOK)
 				{
 					SetMaterialStatus(true);
+					CopyFiles(m_strProjectPath, m_strAppPath);
+				}
+			}
+			else if (current_item == itemEstimation && GetEstimationStatus())
+			{
+				CDlgSatelliteData pDlg(1, m_pView);
+				if (pDlg.DoModal() == IDOK)
+				{
+					SetEstimationStatus(true);
 					CopyFiles(m_strProjectPath, m_strAppPath);
 				}
 			}
@@ -680,7 +706,7 @@ void CClassView::OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 }
 
-void CClassView::SetModelStatus(bool is_on)
+void CClassView2::SetModelStatus(bool is_on)
 {
 	itemModelStatus = is_on;
 	if (is_on)
@@ -693,7 +719,7 @@ void CClassView::SetModelStatus(bool is_on)
 	}
 }
 
-void CClassView::SetHulllStatus(bool is_on)
+void CClassView2::SetHulllStatus(bool is_on)
 {
 	itemHullStatus = is_on;
 	if (is_on)
@@ -706,7 +732,7 @@ void CClassView::SetHulllStatus(bool is_on)
 	}
 }
 
-//void CClassView::SetSectionStatus(bool is_on)
+//void CClassView2::SetSectionStatus(bool is_on)
 //{
 //	itemSectionStatus = is_on;
 //	if (is_on)
@@ -719,19 +745,19 @@ void CClassView::SetHulllStatus(bool is_on)
 //	}
 //}
 //
-void CClassView::UpdateStatus()
+void CClassView2::UpdateStatus()
 {
 	//if (itemCrossSectionStatus && itemDraftSectionStatus)
 	//{
 	//	SetSectionStatus(true);
 	//}
 
-	if (itemHullStatus && itemCrossSectionStatus && itemDraftSectionStatus && itemMaterialStatus && itemConditionStatus)
+	if (itemHullStatus && itemCrossSectionStatus && itemDraftSectionStatus && itemMaterialStatus/* && itemConditionStatus*/)
 	{
 		SetModelStatus(true);
 	}
 }
-void CClassView::SetDraftStatus(bool is_on)
+void CClassView2::SetDraftStatus(bool is_on)
 {
 	itemDraftSectionStatus = is_on;
 	if (is_on)
@@ -745,7 +771,7 @@ void CClassView::SetDraftStatus(bool is_on)
 	}
 }
 
-void CClassView::SetCrossStatus(bool is_on)
+void CClassView2::SetCrossStatus(bool is_on)
 {
 	itemCrossSectionStatus = is_on;
 	if (is_on)
@@ -759,7 +785,7 @@ void CClassView::SetCrossStatus(bool is_on)
 	}
 }
 
-void CClassView::SetMaterialStatus(bool is_on)
+void CClassView2::SetMaterialStatus(bool is_on)
 {
 	itemMaterialStatus = is_on;
 	if (is_on)
@@ -773,72 +799,91 @@ void CClassView::SetMaterialStatus(bool is_on)
 	}
 }
 
-void CClassView::SetConditionStatus(bool is_on)
+//void CClassView2::SetConditionStatus(bool is_on)
+//{
+//	itemConditionStatus = is_on;
+//	if (is_on)
+//	{
+//		m_wndClassView.SetItemText(itemCondition, _T("<b>Condition <font color = \"green\">[O]</font>"));
+//		UpdateStatus();
+//	}
+//	else
+//	{
+//		m_wndClassView.SetItemText(itemCondition, _T("<b>Condition <font color = \"red\">[?]</font>"));
+//	}
+//}
+
+void CClassView2::SetEstimationStatus(bool is_on)
 {
-	itemConditionStatus = is_on;
+	itemEstimationStatus = is_on;
 	if (is_on)
 	{
-		m_wndClassView.SetItemText(itemCondition, _T("<b>Condition <font color = \"green\">[O]</font>"));
+		m_wndClassView.SetItemText(itemEstimation, _T("<b>Estimation data input <font color = \"green\">[O]</font>"));
 		UpdateStatus();
 	}
 	else
 	{
-		m_wndClassView.SetItemText(itemCondition, _T("<b>Condition <font color = \"red\">[?]</font>"));
+		m_wndClassView.SetItemText(itemEstimation, _T("<b>Estimation data input <font color = \"red\">[?]</font>"));
 	}
 }
 
-void CClassView::SetAnalysisStatus(bool is_on)
+void CClassView2::SetAnalysisStatus(bool is_on)
 {
 	itemAnalysisStatus = is_on;
 }
 
-int CClassView::GetModelStatus()
+int CClassView2::GetModelStatus()
 {
 	return itemModelStatus;
 }
 
-int CClassView::GetHulllStatus()
+int CClassView2::GetHulllStatus()
 {
 	return itemHullStatus;
 }
 
-//int CClassView::GetSectionStatus()
+//int CClassView2::GetSectionStatus()
 //{
 //	return itemSectionStatus;
 //}
 
-int CClassView::GetDraftStatus()
+int CClassView2::GetDraftStatus()
 {
 	return itemDraftSectionStatus;
 }
 
-int CClassView::GetCrossStatus()
+int CClassView2::GetCrossStatus()
 {
 	return itemCrossSectionStatus;
 }
 
-int CClassView::GetMaterialStatus()
+int CClassView2::GetMaterialStatus()
 {
 	return itemMaterialStatus;
 }
 
-int CClassView::GetConditionStatus()
+//int CClassView2::GetConditionStatus()
+//{
+//	return itemConditionStatus;
+//}
+
+int CClassView2::GetEstimationStatus()
 {
-	return itemConditionStatus;
+	return itemEstimationStatus;
 }
 
-int CClassView::GetAnalysisStatus()
+int CClassView2::GetAnalysisStatus()
 {
 	return itemAnalysisStatus;
 }
 
-void CClassView::OnAnalysisAdd()
+void CClassView2::OnAnalysisAdd()
 {
 	CreateJob(itemAnalysis);
 }
 
 
-void CClassView::OnAnalysisClear()
+void CClassView2::OnAnalysisClear()
 {
 	if (AfxMessageBox("Delete All JOBs ?", MB_YESNO) == IDYES)
 	{
@@ -847,7 +892,7 @@ void CClassView::OnAnalysisClear()
 }
 
 
-void CClassView::OnAnalysis1Delete()
+void CClassView2::OnAnalysis1Delete()
 {
 	HTREEITEM current_item = m_wndClassView.GetSelectedItem();
 	if (current_item)

@@ -129,8 +129,12 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	m_wndFileView.EnableDocking(CBRS_ALIGN_ANY);
 	m_wndClassView.EnableDocking(CBRS_ALIGN_ANY);
+	m_wndClassView1.EnableDocking(CBRS_ALIGN_ANY);
+	m_wndClassView2.EnableDocking(CBRS_ALIGN_ANY);
 	m_wndFileView.EnableGripper(FALSE);
 	m_wndClassView.EnableGripper(FALSE);
+	m_wndClassView1.EnableGripper(FALSE);
+	m_wndClassView2.EnableGripper(FALSE);
 	DockPane(&m_wndClassView);
 
 	//m_wndToolbar.EnableDocking(CBRS_ALIGN_ANY);
@@ -141,6 +145,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//m_wndDlgToolbar.SetToolbar(0);
 
 	CDockablePane* pTabbedBar = nullptr;
+	m_wndClassView1.AttachToTabWnd(&m_wndClassView, DM_SHOW, TRUE, &pTabbedBar);
+	m_wndClassView2.AttachToTabWnd(&m_wndClassView, DM_SHOW, TRUE, &pTabbedBar);
 	m_wndFileView.AttachToTabWnd(&m_wndClassView, DM_SHOW, TRUE, &pTabbedBar);
 	m_wndClassView.ShowPane(TRUE, FALSE, TRUE);
 
@@ -185,6 +191,18 @@ BOOL CMainFrame::CreateDockingWindows()
 	bNameValid = strClassView.LoadString(IDS_CLASS_VIEW);
 	ASSERT(bNameValid);
 	if (!m_wndClassView.Create(_T("Model"), this, CRect(0, 0, 200, 200), TRUE, ID_VIEW_CLASSVIEW, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT | CBRS_FLOAT_MULTI))
+	{
+		TRACE0("클래스 뷰 창을 만들지 못했습니다.\n");
+		return FALSE; // 만들지 못했습니다.
+	}
+
+	if (!m_wndClassView1.Create(_T("Satellite"), this, CRect(0, 0, 200, 200), TRUE, ID_VIEW_CLASSVIEW, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT | CBRS_FLOAT_MULTI))
+	{
+		TRACE0("클래스 뷰 창을 만들지 못했습니다.\n");
+		return FALSE; // 만들지 못했습니다.
+	}
+
+	if (!m_wndClassView2.Create(_T("Estimation"), this, CRect(0, 0, 200, 200), TRUE, ID_VIEW_CLASSVIEW, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT | CBRS_FLOAT_MULTI))
 	{
 		TRACE0("클래스 뷰 창을 만들지 못했습니다.\n");
 		return FALSE; // 만들지 못했습니다.

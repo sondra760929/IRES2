@@ -49,7 +49,109 @@ BOOL CDlgChartView::OnInitDialog()
 	{
 		CString job_file;
 		job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\ice_result.OUT";
-		if (PathFileExists(job_file))
+		//	satellite 파일이 있는지 확인
+		CFileFind finder;
+		vector < CString > satellite_files;
+		vector < CString > satellite_files_option[3];
+		BOOL bworking = finder.FindFile(m_strProjectPath + "\\JOB\\" + m_strJobName + "\\*.*");
+		while (bworking)
+		{
+			bworking = finder.FindNextFile();
+			CString file_name = finder.GetFileName();
+			CString extention = file_name.Left(9).MakeLower();
+			if (extention == "satellite")
+			{
+				satellite_files.push_back(finder.GetFilePath());
+				file_name.Delete(0, 9);
+				file_name.Delete(file_name.GetLength() - 4, 4);
+				int index = file_name.Find("_");
+				if (index > 0)
+				{
+					satellite_files_option[0].push_back(file_name.Left(index));
+
+					file_name.Delete(0, index + 1);
+
+					index = file_name.Find("_");
+					if (index > 0)
+					{
+						satellite_files_option[1].push_back(file_name.Left(index));
+
+						file_name.Delete(0, index + 1);
+						satellite_files_option[2].push_back(file_name);
+					}
+				}
+			}
+		}
+		if (satellite_files.size() > 0)
+		{
+			int col_index = 0;
+			int current_index = 0;
+			for (int i = 0; i < satellite_files.size(); i++)
+			{
+				FILE* fp;
+				fopen_s(&fp, satellite_files[i], "rt");
+				if (fp)
+				{
+					V_CHARTDATAD vData1;
+					COptImportExportBase ifp;
+					vector< float > resiatance;
+					ifp.m_fp_input = fp;
+					ifp.m_array_strSplit.push_back(' ');
+					ifp.ReadOneLineFromFile();	//	첫줄 타이틀
+					int count = ifp.ReadOneLineFromFile();
+					current_index = 0;
+					while (count > 0)
+					{
+						vData1.push_back(PointD(atof(ifp.m_array_strOutput[0]), atof(ifp.m_array_strOutput[count-1])));
+						resiatance.push_back(atof(ifp.m_array_strOutput[count - 1]));
+						count = ifp.ReadOneLineFromFile();
+					}
+					int chartIdx = m_chartContainer.AddChart(true, show_pnts, string(satellite_files_option[0][i]), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 0, 0, 0), vData1, true);
+					if (resiatance.size() > 15)
+					{
+						if (m_pCurrentView)
+						{
+							if (m_pCurrentView->m_fTargetResistance > 0.0f)
+							{
+								if (m_pCurrentView->m_fTargetResistance < resiatance[0])
+								{
+									m_pCurrentView->m_fEstimationSpeed = 0.0f;
+								}
+								else if (m_pCurrentView->m_fTargetResistance > resiatance[resiatance.size() - 1])
+								{
+									float offset = resiatance[resiatance.size() - 1] - resiatance[resiatance.size() - 2];
+									float target_offset = m_pCurrentView->m_fTargetResistance - resiatance[resiatance.size() - 1];
+									float ratio = target_offset / offset;
+									int up_speed = round(ratio);
+									m_pCurrentView->m_fEstimationSpeed = 16 + up_speed;
+								}
+								else
+								{
+									for (int i = 0; i < 15; i++)
+									{
+										if (m_pCurrentView->m_fTargetResistance >= resiatance[i] && m_pCurrentView->m_fTargetResistance <= resiatance[i + 1])
+										{
+											float offset = resiatance[i + 1] - resiatance[i];
+											float target_offset = m_pCurrentView->m_fTargetResistance - resiatance[i];
+											float ratio = target_offset / offset;
+											m_pCurrentView->m_fEstimationSpeed = (float)(i + 1) + ratio;
+											break;
+										}
+									}
+								}
+
+								//	추정 속도 찾음
+								V_CHARTDATAD vData2;
+								vData2.push_back(PointD(0.0, m_pCurrentView->m_fTargetResistance));
+								vData2.push_back(PointD(17.0, m_pCurrentView->m_fTargetResistance));
+								chartIdx = m_chartContainer.AddChart(true, show_pnts, string(satellite_files_option[0][i] + "_Target"), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 255, 0, 0), vData2, true);
+							}
+						}
+					}
+				}
+			}
+		}
+		else if (PathFileExists(job_file))
 		{
 			FILE* fp;
 			fopen_s(&fp, job_file, "rt");
@@ -87,7 +189,7 @@ BOOL CDlgChartView::OnInitDialog()
 				int chartIdx = m_chartContainer.AddChart(true, show_pnts, string(str1), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 255, 0, 0), vData1, true);
 				chartIdx = m_chartContainer.AddChart(true, show_pnts, string(str2), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 0, 255, 0), vData2, true);
 				chartIdx = m_chartContainer.AddChart(true, show_pnts, string(str3), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 0, 0, 255), vData3, true);
-				chartIdx = m_chartContainer.AddChart(true, show_pnts, string(str4), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 255, 2550, 0), vData4, true);
+				chartIdx = m_chartContainer.AddChart(true, show_pnts, string(str4), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 255, 255, 0), vData4, true);
 			}
 		}
 	}	

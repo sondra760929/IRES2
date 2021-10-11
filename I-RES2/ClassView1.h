@@ -1,0 +1,103 @@
+﻿
+#pragma once
+
+#include "ViewTree.h"
+#include "XHtmlTree.h"
+#include "DlgMainToolbar.h"
+#include "DlgSectionToolbar.h"
+
+class CIRES2View;
+class CClassView1 : public CDockablePane
+{
+public:
+	CClassView1() noexcept;
+	virtual ~CClassView1();
+
+	void AdjustLayout();
+	void OnChangeVisualStyle();
+	HTREEITEM itemModel;
+	HTREEITEM itemHull;
+	//HTREEITEM itemSection;
+	HTREEITEM itemDraftSection;
+	HTREEITEM itemCrossSection;
+	HTREEITEM itemMaterial;
+	//HTREEITEM itemCondition;
+	HTREEITEM itemSatellite;
+	HTREEITEM itemAnalysis;
+	bool itemModelStatus;
+	bool itemHullStatus;
+	//bool itemSectionStatus;
+	bool itemDraftSectionStatus;
+	bool itemCrossSectionStatus;
+	bool itemMaterialStatus;
+	//bool itemConditionStatus;
+	bool itemSatelliteStatus;
+	bool itemAnalysisStatus;
+
+	void SetModelStatus(bool is_on);
+	void SetHulllStatus(bool is_on);
+	//void SetSectionStatus(bool is_on);
+	void SetDraftStatus(bool is_on);
+	void SetCrossStatus(bool is_on);
+	void SetMaterialStatus(bool is_on);
+	//void SetConditionStatus(bool is_on);
+	void SetSatelliteStatus(bool is_on);
+	void SetAnalysisStatus(bool is_on);
+	int GetModelStatus();
+	int GetHulllStatus();
+	//int GetSectionStatus();
+	int GetDraftStatus();
+	int GetCrossStatus();
+	int GetMaterialStatus();
+	//int GetConditionStatus();
+	int GetSatelliteStatus();
+	int GetAnalysisStatus();
+	void UpdateStatus();
+	CIRES2View* m_pView;
+
+	int m_iCurrentToolbar;
+	CDlgMainToolbar m_MainToolbar;
+	CDlgSectionToolbar m_SectionToolbar;
+	void SetToolbar(int index);
+	int CountTreeItems(HTREEITEM hItem = NULL, bool Recurse = false);
+	void CreateJob(HTREEITEM current_item);
+	void DeleteJob(HTREEITEM current_item);
+	void SelectJob(HTREEITEM current_item);
+	void ClearJobList(bool delete_job_folder = false);
+	void AddJobItem(CString job_name);
+protected:
+	//CClassToolBar m_wndToolBar;
+	CXHtmlTree m_wndClassView;
+	CImageList m_ClassViewImages;
+	UINT m_nCurrSort;
+
+	void FillClassView();
+
+// 재정의입니다.
+public:
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
+
+protected:
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
+	afx_msg void OnClassAddMemberFunction();
+	afx_msg void OnClassAddMemberVariable();
+	afx_msg void OnClassDefinition();
+	afx_msg void OnClassProperties();
+	afx_msg void OnNewFolder();
+	afx_msg void OnPaint();
+	afx_msg void OnSetFocus(CWnd* pOldWnd);
+	afx_msg LRESULT OnChangeActiveTab(WPARAM, LPARAM);
+	afx_msg void OnSort(UINT id);
+	afx_msg void OnUpdateSort(CCmdUI* pCmdUI);
+
+	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnTvnDoubleClicked(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnAnalysisAdd();
+	afx_msg void OnAnalysisClear();
+	afx_msg void OnAnalysis1Delete();
+};
+

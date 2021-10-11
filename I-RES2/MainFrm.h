@@ -17,6 +17,8 @@
 //#include "PropertiesWnd.h"
 #include "FileView.h"
 #include "ClassView.h"
+#include "ClassView1.h"
+#include "ClassView2.h"
 #include "CToolbarWnd.h"
 
 class CMainFrame : public CFrameWndEx
@@ -47,6 +49,8 @@ public:
 #endif
 	CFileView         m_wndFileView;
 	CClassView        m_wndClassView;
+	CClassView1        m_wndClassView1;
+	CClassView2        m_wndClassView2;
 	CMFCToolBar       m_wndToolBar;
 
 protected:  // 컨트롤 모음이 포함된 멤버입니다.

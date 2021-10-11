@@ -54,7 +54,127 @@ BOOL CDlgExcelView::OnInitDialog()
 	{
 		CString job_file;
 		job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\ice_result.OUT";
-		if (PathFileExists(job_file))
+
+		//	satellite 파일이 있는지 확인
+		CFileFind finder;
+		vector < CString > satellite_files;
+		vector < CString > satellite_files_option[3];
+		BOOL bworking = finder.FindFile(m_strProjectPath + "\\JOB\\" + m_strJobName + "\\*.*");
+		while (bworking)
+		{
+			bworking = finder.FindNextFile();
+			CString file_name = finder.GetFileName();
+			CString extention = file_name.Left(9).MakeLower();
+			if (extention == "satellite")
+			{
+				satellite_files.push_back(finder.GetFilePath());
+				file_name.Delete(0, 9);
+				file_name.Delete(file_name.GetLength() - 4, 4);
+				int index = file_name.Find("_");
+				if (index > 0)
+				{
+					satellite_files_option[0].push_back(file_name.Left(index));
+
+					file_name.Delete(0, index + 1);
+					
+					index = file_name.Find("_");
+					if (index > 0)
+					{
+						satellite_files_option[1].push_back(file_name.Left(index));
+
+						file_name.Delete(0, index + 1);
+						satellite_files_option[2].push_back(file_name);
+					}
+				}
+			}
+		}
+		if (satellite_files.size() > 0)
+		{
+			m_wndExcelView.SetNumberCols(10);
+			col_count = 10;
+			int col_index = 0;
+			int current_index = 0;
+			int option_index = 0;
+			for (int i = 0; i < satellite_files.size(); i++)
+			{
+				FILE* fp;
+				fopen_s(&fp, satellite_files[i], "rt");
+				if (fp)
+				{
+					row_count++;
+					m_wndExcelView.SetNumberRows(row_count);
+					option_index = row_count - 1;
+					m_wndExcelView.QuickSetText(0, row_count - 1, satellite_files_option[0][i]);
+					m_wndExcelView.QuickSetText(1, row_count - 1, satellite_files_option[1][i]);
+					m_wndExcelView.QuickSetText(2, row_count - 1, satellite_files_option[2][i]);
+
+					COptImportExportBase ifp;
+					vector< float > resiatance;
+					ifp.m_fp_input = fp;
+					ifp.m_array_strSplit.push_back(' ');
+					int count = ifp.ReadOneLineFromFile();
+					current_index = 0;
+					while (count > 0)
+					{
+						row_count++;
+						m_wndExcelView.SetNumberRows(row_count);
+						m_wndExcelView.QuickSetNumber(-1, row_count - 1, current_index);
+
+						for (int j = 0; j < count; j++)
+						{
+							m_wndExcelView.QuickSetText(j, row_count - 1, ifp.m_array_strOutput[j]);
+						}
+						if (current_index > 0)
+						{
+							resiatance.push_back(atof(ifp.m_array_strOutput[count-1]));
+						}
+						count = ifp.ReadOneLineFromFile();
+						current_index++;
+					}
+
+					if (resiatance.size() > 15)
+					{
+						if (m_pCurrentView)
+						{
+							if (m_pCurrentView->m_fTargetResistance > 0.0f)
+							{
+								if (m_pCurrentView->m_fTargetResistance < resiatance[0])
+								{
+									m_pCurrentView->m_fEstimationSpeed = 0.0f;
+								}
+								else if (m_pCurrentView->m_fTargetResistance > resiatance[resiatance.size() - 1])
+								{
+									float offset = resiatance[resiatance.size() - 1] - resiatance[resiatance.size() - 2];
+									float target_offset = m_pCurrentView->m_fTargetResistance - resiatance[resiatance.size() - 1];
+									float ratio = target_offset / offset;
+									int up_speed = round(ratio);
+									m_pCurrentView->m_fEstimationSpeed = 16 + up_speed;
+								}
+								else
+								{
+									for (int i = 0; i < 15; i++)
+									{
+										if (m_pCurrentView->m_fTargetResistance >= resiatance[i] && m_pCurrentView->m_fTargetResistance <= resiatance[i + 1])
+										{
+											float offset = resiatance[i + 1] - resiatance[i];
+											float target_offset = m_pCurrentView->m_fTargetResistance - resiatance[i];
+											float ratio = target_offset / offset;
+											m_pCurrentView->m_fEstimationSpeed = (float)(i + 1) + ratio;
+											break;
+										}
+									}
+								}
+
+								//	추정 속도 찾음
+								m_wndExcelView.QuickSetText(4, option_index, "Estimation Speed");
+								m_wndExcelView.QuickSetNumber(5, option_index, m_pCurrentView->m_fEstimationSpeed);
+							}
+						}
+					}
+				}
+			}
+		}
+		else if (PathFileExists(job_file))
 		{
 			m_wndExcelView.SetNumberCols(7);
 			col_count = 7;
