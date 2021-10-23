@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "ChartDef.h"
-#include "ChartContainer.h"
+//#include "ChartDef.h"
+//#include "ChartContainer.h"
 #include "CurveCtrl.h"
 
 

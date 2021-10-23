@@ -131,7 +131,7 @@ public:
 	void READ_ICE_INPUT();
 	void READ_ICECOFF_INPUT();
 	void CALC_ATTAINABLE_SPEED();
-	void CALC_SATELLITE(float concentration, float flexural_strength, float ice_thickness);
+	void CALC_SATELLITE(float concentration, float flexural_strength, float ice_thickness, bool save_file = true);
 	void SEL_MODE1();
 	void BREAKING1();
 	void CLEARING1();
@@ -162,6 +162,9 @@ public:
 	vector< float > m_fIceThickness;
 	vector< float > m_fShipSpeed;
 	float m_fTargetResistance;
+	float m_fInitSpeed;
+	float m_fMaxSpeed;
+	float m_fIncreSpeed;
 	float m_fEstimationSpeed;
 	void SetSelectionWindow(CPoint start, CPoint end);
 	bool m_bInitialize;
@@ -270,6 +273,7 @@ public:
 	queue < PreFrameUpdateData > m_QRemoveChild;
 	// 작업입니다.
 	bool m_isCreateFolder;
+	vector< float > SATELLITE_DATA[10];
 
 	CDlgTranslation* m_pTranslationDlg;
 	void OnKeyESC();

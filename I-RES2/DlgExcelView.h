@@ -15,6 +15,7 @@ public:
 	void SetSize(int cx, int cy);
 	CString m_strJobName;
 	CString m_strInputFile;
+	int m_iCurrentFileIndex;
 	int m_iType;
 	vector < CString > satellite_files;
 	vector < CString > satellite_files_option[3];

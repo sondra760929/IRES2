@@ -64,3 +64,36 @@
  IV = 14   SIGMA = 1   THICK = 1
  IV = 15   SIGMA = 1   THICK = 1
  IV = 16   SIGMA = 1   THICK = 1
+ VS =   1.000000     VE =   16.000000     VI =   1.000000
+ VSP =   1.000000     FROUD =   0.053270
+ VSP =   2.000000     FROUD =   0.106540
+ VSP =   3.000000     FROUD =   0.159811
+ VSP =   4.000000     FROUD =   0.213081
+ VSP =   5.000000     FROUD =   0.266351
+ VSP =   6.000000     FROUD =   0.319621
+ VSP =   7.000000     FROUD =   0.372891
+ VSP =   8.000000     FROUD =   0.426162
+ VSP =   9.000000     FROUD =   0.479432
+ VSP =   10.000000     FROUD =   0.532702
+ VSP =   11.000000     FROUD =   0.585972
+ VSP =   12.000000     FROUD =   0.639242
+ VSP =   13.000000     FROUD =   0.692513
+ VSP =   14.000000     FROUD =   0.745783
+ VSP =   15.000000     FROUD =   0.799053
+ VSP =   16.000000     FROUD =   0.852323
+ IV = 1   SIGMA = 1   THICK = 1
+ IV = 2   SIGMA = 1   THICK = 1
+ IV = 3   SIGMA = 1   THICK = 1
+ IV = 4   SIGMA = 1   THICK = 1
+ IV = 5   SIGMA = 1   THICK = 1
+ IV = 6   SIGMA = 1   THICK = 1
+ IV = 7   SIGMA = 1   THICK = 1
+ IV = 8   SIGMA = 1   THICK = 1
+ IV = 9   SIGMA = 1   THICK = 1
+ IV = 10   SIGMA = 1   THICK = 1
+ IV = 11   SIGMA = 1   THICK = 1
+ IV = 12   SIGMA = 1   THICK = 1
+ IV = 13   SIGMA = 1   THICK = 1
+ IV = 14   SIGMA = 1   THICK = 1
+ IV = 15   SIGMA = 1   THICK = 1
+ IV = 16   SIGMA = 1   THICK = 1

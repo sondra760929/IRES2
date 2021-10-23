@@ -320,6 +320,9 @@ CIRES2View::CIRES2View()
 	, m_pTranslationDlg(0)
 	, m_iSelectionMode(SELECTION_NONE)
 	, m_bDoubleCalc(false)
+	, m_fInitSpeed(0)
+	, m_fMaxSpeed(0)
+	, m_fIncreSpeed(0)
 {
 	//m_iHULLPos[0] = 0;
 	//m_iHULLPos[1] = 0;
@@ -3237,6 +3240,11 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 	case 1:
 	{
 		int count = m_fConcentration.size();
+		for (int i = 0; i < 10; i++)
+		{
+			SATELLITE_DATA[i].clear();
+		}
+
 		for (int i = 0; i < count; i++)
 		{
 			HH = m_fIceThickness[i];
@@ -3266,15 +3274,47 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			}
 
 			WRITE_OUT();
-			CALC_SATELLITE(m_fConcentration[i], m_fFlexuralStrength[i], HH);
+			CALC_SATELLITE(m_fConcentration[i], m_fFlexuralStrength[i], HH, false);
 		}
+
+		FILE* fp;
+		fopen_s(&fp, m_strProjectPath + "\\satellite" + "from_data" + ".out", "wt");
+		if (fp)
+		{
+			float R_TOTAL;
+			float pre_swan;
+			float factor;
+			float pack;
+			fprintf_s(fp, "   Vs(kts)      Hi(m)     sigf(kPa)         R_br(kN)          R_cl(kN)          R_bu(kN)           R_i(kN)            pre-swan           factor             pack\n");
+			for (int i = 0; i < SATELLITE_DATA[0].size(); i++)
+			{
+				fprintf_s(fp, "%9.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf\n",
+					SATELLITE_DATA[0][i], SATELLITE_DATA[1][i], SATELLITE_DATA[2][i],
+					SATELLITE_DATA[3][i], SATELLITE_DATA[4][i], SATELLITE_DATA[5][i],
+					SATELLITE_DATA[6][i],
+					SATELLITE_DATA[7][i], SATELLITE_DATA[8][i], SATELLITE_DATA[9][i]);
+			}
+
+			fclose(fp);
+		}
+
+
 	}
 	break;
 	case 2:
 	{
-		VS = 1.0f;
-		VE = 16.0f;
-		VI = 1.0f;
+		if (m_fInitSpeed > 0.0f && m_fMaxSpeed > m_fInitSpeed && m_fIncreSpeed > 0)
+		{
+			VS = m_fInitSpeed;
+			VE = m_fMaxSpeed;
+			VI = m_fIncreSpeed;
+		}
+		else
+		{
+			VS = 1.0f;
+			VE = 16.0f;
+			VI = 1.0f;
+		}
 
 		int count = m_fConcentration.size();
 		for (int i = 0; i < count; i++)
@@ -3458,7 +3498,7 @@ void CIRES2View::CALC_ATTAINABLE_SPEED()
 	}
 
 }
-void CIRES2View::CALC_SATELLITE(float concentration, float flexural_strength, float ice_thickness)
+void CIRES2View::CALC_SATELLITE(float concentration, float flexural_strength, float ice_thickness, bool save_file)
 {
 	float R_TOTAL;
 	float a0 = -1.4530f;
@@ -3474,17 +3514,47 @@ void CIRES2View::CALC_SATELLITE(float concentration, float flexural_strength, fl
 	float c2 = 0.0311f;
 	float c3 = 0.0006f;
 
-	CString file_desc;
-	file_desc.Format("%lf_%lf_%lf", concentration, flexural_strength, ice_thickness);
-	FILE* fp;
-	fopen_s(&fp, m_strProjectPath + "\\satellite" + file_desc + ".out", "wt");
-	if (fp)
+	if (save_file)
+	{
+		CString file_desc;
+		file_desc.Format("%lf_%lf_%lf", concentration, flexural_strength, ice_thickness);
+		FILE* fp;
+		fopen_s(&fp, m_strProjectPath + "\\satellite" + file_desc + ".out", "wt");
+		if (fp)
+		{
+			float R_TOTAL;
+			float pre_swan;
+			float factor;
+			float pack;
+			fprintf_s(fp, "   Vs(kts)      Hi(m)     sigf(kPa)         R_br(kN)          R_cl(kN)          R_bu(kN)           R_i(kN)            pre-swan           factor             pack\n");
+			for (int IV = 1; IV <= NV; IV++)
+			{
+				for (int IS = 1; IS <= NSIGMA; IS++)
+				{
+					for (int IH = 1; IH <= NH; IH++)
+					{
+						R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
+						pre_swan = ((R_TOTAL * 0.001f) - (R_BREAK[IH][IS] * 0.001f)) * 2.0f;
+						factor = (a0 + (a1 * THCK[IH]) + (a2 * THCK[IH] * THCK[IH]) + (a3 * concentration)) +
+							((b0 + (b1 * THCK[IH]) + (b2 * THCK[IH] * THCK[IH]) + (b3 * concentration)) * VSP[IV]) +
+							((c0 + (c1 * THCK[IH]) + (c2 * THCK[IH] * THCK[IH]) + (c3 * concentration)) * VSP[IV] * VSP[IV]);
+						pack = pre_swan * factor;
+						fprintf_s(fp, "%9.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf\n",
+							VSP[IV], THCK[IH], SIGMA[IS], R_BREAK[IH][IS] * 0.001f, R_CLEAR[IH][IV] * 0.001f, R_BOUYA[IH] * 0.001f, R_TOTAL * 0.001f,
+							pre_swan, factor, pack);
+					}
+				}
+			}
+
+			fclose(fp);
+		}
+	}
+	else
 	{
 		float R_TOTAL;
 		float pre_swan;
 		float factor;
 		float pack;
-		fprintf_s(fp, "   Vs(kts)      Hi(m)     sigf(kPa)         R_br(kN)          R_cl(kN)          R_bu(kN)           R_i(kN)            pre-swan           factor             pack\n");
 		for (int IV = 1; IV <= NV; IV++)
 		{
 			for (int IS = 1; IS <= NSIGMA; IS++)
@@ -3497,16 +3567,21 @@ void CIRES2View::CALC_SATELLITE(float concentration, float flexural_strength, fl
 						((b0 + (b1 * THCK[IH]) + (b2 * THCK[IH] * THCK[IH]) + (b3 * concentration)) * VSP[IV]) +
 						((c0 + (c1 * THCK[IH]) + (c2 * THCK[IH] * THCK[IH]) + (c3 * concentration)) * VSP[IV] * VSP[IV]);
 					pack = pre_swan * factor;
-					fprintf_s(fp, "%9.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf\n",
-						VSP[IV], THCK[IH], SIGMA[IS], R_BREAK[IH][IS] * 0.001f, R_CLEAR[IH][IV] * 0.001f, R_BOUYA[IH] * 0.001f, R_TOTAL * 0.001f,
-						pre_swan, factor, pack);
+
+					SATELLITE_DATA[0].push_back(VSP[IV]);
+					SATELLITE_DATA[1].push_back(THCK[IH]);
+					SATELLITE_DATA[2].push_back(SIGMA[IS]);
+					SATELLITE_DATA[3].push_back(R_BREAK[IH][IS] * 0.001f);
+					SATELLITE_DATA[4].push_back(R_CLEAR[IH][IV] * 0.001f);
+					SATELLITE_DATA[5].push_back(R_BOUYA[IH] * 0.001f);
+					SATELLITE_DATA[6].push_back(R_TOTAL * 0.001f);
+					SATELLITE_DATA[7].push_back(pre_swan);
+					SATELLITE_DATA[8].push_back(factor);
+					SATELLITE_DATA[9].push_back(pack);
 				}
 			}
 		}
-
-		fclose(fp);
 	}
-
 }
 
 void CIRES2View::READ_ICE_INPUT()

@@ -31,7 +31,7 @@ void CDlgCalc::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_1, m_fAvg);
 	DDX_Text(pDX, IDC_EDIT_2, m_fMean);
 	DDX_Text(pDX, IDC_EDIT_3, m_iRows);
-	DDX_Control(pDX, IDC_STCHARTCONTAINER, m_chartContainer);
+	//DDX_Control(pDX, IDC_STCHARTCONTAINER, m_chartContainer);
 	DDX_Text(pDX, IDC_EDIT_RESULT, m_strResult);
 }
 
@@ -50,6 +50,12 @@ END_MESSAGE_MAP()
 BOOL CDlgCalc::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+
+	m_pCurveCtrl = new CCurveCtrl;
+	m_pCurveCtrl->Create(CRect(70, 50, 50, 50), this, ID_CURVE_CONTROL);
+	m_pCurveCtrl->SetGridLineStyle(PS_DOT);
+	m_pCurveCtrl->SetMargin(CRect(70, 50, 50, 50));
+	m_pCurveCtrl->ShowCross(TRUE);
 
 	m_wndExcelView.AttachGrid(this, IDC_GRID);
 	m_wndExcelView.m_pParentDlg = this;
@@ -114,8 +120,11 @@ void CDlgCalc::SetSize(int cx, int cy)
 		m_wndExcelView.MoveWindow(btn_offset, btn_height + btn_offset*2, (cx - (btn_offset*3)) / 2, cy - (btn_height + btn_offset + btn_offset) * 2);
 
 		chart_height = (cy - (btn_height + btn_offset) * 4 - btn_offset * 2) / 2;
-		m_chartContainer.MoveWindow((cx - (btn_offset * 3)) / 2 + btn_offset*2, (btn_height + btn_offset) * 3 + btn_offset, (cx - (btn_offset * 3)) / 2, chart_height);
-		m_chartContainer.RefreshWnd();
+		if (m_pCurveCtrl)
+		{
+			m_pCurveCtrl->MoveWindow((cx - (btn_offset * 3)) / 2 + btn_offset * 2, (btn_height + btn_offset) * 3 + btn_offset, (cx - (btn_offset * 3)) / 2, chart_height);
+			m_pCurveCtrl->Invalidate();
+		}
 
 		m_wndReportView.MoveWindow((cx - (btn_offset * 3)) / 2 + btn_offset * 2, (btn_height + btn_offset) * 3 + btn_offset + chart_height, (cx - (btn_offset * 3)) / 2, chart_height);
 
@@ -258,7 +267,13 @@ void CDlgCalc::OnBnClickedButtonDoCalc()
 	m_wndReportView.SetNumberRows(count.size());
 	CString x_string, range_string;
 
-	V_CHARTDATAD vData1;
+	m_pCurveCtrl->RemoveAll();
+	int chart_index = m_pCurveCtrl->AddCurve("STD", RGB(255, 0, 0));
+	m_pCurveCtrl->GetCurve(chart_index)->ShowCurve();
+	m_pCurveCtrl->GetCurve(chart_index)->Select();
+	m_pCurveCtrl->GetCurve(chart_index)->SetCurveWidth(2);
+
+	//V_CHARTDATAD vData1;
 	for (int i = 0; i < count.size(); i++)
 	{
 		x_string.Format("%.1lf", cal_min + (i * 10));
@@ -266,15 +281,18 @@ void CDlgCalc::OnBnClickedButtonDoCalc()
 		m_wndReportView.QuickSetText(0, i, x_string);
 		m_wndReportView.QuickSetText(1, i, range_string);
 		m_wndReportView.QuickSetNumber(2, i, count[i]);
-		vData1.push_back(PointD(cal_min + (i * 10), count[i]));
+		//vData1.push_back(PointD(cal_min + (i * 10), count[i]));
+		m_pCurveCtrl->AddData("STD", cal_min + (i * 10), count[i]);
 	}
 
-	if(chartIdx > -1)
-		m_chartContainer.RemoveChart(chartIdx, true, true);
+	//if(chartIdx > -1)
+	//	m_chartContainer.RemoveChart(chartIdx, true, true);
 
-	chartIdx = m_chartContainer.AddChart(true, true, string("STD"), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 255, 0, 0), vData1, true);
-	m_chartContainer.RefreshWnd();
-	m_chartContainer.ShowAxisXBoundaries(true, true);
+	//chartIdx = m_chartContainer.AddChart(true, true, string("STD"), "Y", 3, DashStyleSolid, 2, float(0), Color(255, 255, 0, 0), vData1, true);
+	//m_chartContainer.RefreshWnd();
+	//m_chartContainer.ShowAxisXBoundaries(true, true);
+	m_pCurveCtrl->Restore();
+	m_pCurveCtrl->Invalidate();
 	m_wndReportView.BestFit(-1, 2, 0, UG_BESTFIT_TOPHEADINGS);
 
 	m_strResult.Format("\tAvg : %lf\r\n\tSTD : %lf", m_fAvg, m_fMean);

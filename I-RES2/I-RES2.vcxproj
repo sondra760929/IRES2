@@ -22,7 +22,7 @@
     <ProjectGuid>{0E4024EE-CE86-4F7E-9C97-B1B124BD83F3}</ProjectGuid>
     <RootNamespace>IRES2</RootNamespace>
     <Keyword>MFCProj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -85,8 +85,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\include;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\include;E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\inc;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\include;$(ProjectDir)Ultimate_Grid\Include;E:\library\ChartCtrl\ChartCtrlDemoSource\VS2010\Projects\ChartCtrlLib\ChartCtrlLib;E:\Library\RInside\include;E:\Library\Rcpp\include;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\win64\vc14\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\lib;E:\library\ChartCtrl\ChartCtrlDemoSource\VS2010\Projects\ChartCtrlLib\x64\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\include;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\include;E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\inc;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\include;$(ProjectDir)Ultimate_Grid\Include;E:\Library\RInside\include;E:\Library\Rcpp\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\win64\vc14\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -177,7 +177,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>TKBRep.lib;TKernel.lib;TKG3d.lib;TKGeomBase.lib;TKMath.lib;TKIGES.lib;TKXDEIGES.lib;TKMesh.lib;TKXSBase.lib;OpenThreads.lib;osg.lib;osgGA.lib;osgDB.lib;osgFx.lib;osgText.lib;osgManipulator.lib;osgUtil.lib;osgShadow.lib;osgViewer.lib;osgWidget.lib;opengl32.lib;ChartCtrlLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TKBRep.lib;TKernel.lib;TKG3d.lib;TKGeomBase.lib;TKMath.lib;TKIGES.lib;TKXDEIGES.lib;TKMesh.lib;TKXSBase.lib;OpenThreads.lib;osg.lib;osgGA.lib;osgDB.lib;osgFx.lib;osgText.lib;osgManipulator.lib;osgUtil.lib;osgShadow.lib;osgViewer.lib;osgWidget.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableUAC>true</EnableUAC>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>

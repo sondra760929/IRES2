@@ -155,3 +155,16 @@ void DeleteTempFiles(CString from)
 		DeleteFile(delete_file_list[i]);
 	}
 }
+
+bool parse_double(std::string in, double& res) {
+	try {
+		size_t read = 0;
+		res = std::stod(in, &read);
+		if (in.size() != read)
+			return false;
+	}
+	catch (std::invalid_argument) {
+		return false;
+	}
+	return true;
+}

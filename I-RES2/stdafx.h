@@ -122,6 +122,7 @@ extern float M_TO_UNIT;
 extern UNIT_MODE m_iCurrentUnitMode;
 extern void CopyFiles(CString from, CString to, bool is_delete = false);
 extern void DeleteTempFiles(CString from);
+extern bool parse_double(std::string in, double& res);
 
 #ifdef _UNICODE
 #if defined _M_IX86

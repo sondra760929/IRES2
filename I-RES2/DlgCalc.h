@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "Mycug.h"
-#include "ChartDef.h"
-#include "ChartContainer.h"
+#include "CurveCtrl.h"
 
 
 // CDlgCalc 대화 상자
@@ -15,7 +14,7 @@ public:
 	virtual ~CDlgCalc();
 	MyCug m_wndExcelView;
 	MyCug m_wndReportView;
-	CChartContainer m_chartContainer;
+	CCurveCtrl* m_pCurveCtrl;
 	int chartIdx;
 	void SetSize(int cx, int cy);
 	void SetNumRows(int irow);

@@ -100,7 +100,7 @@ void CDlgSatelliteData::SetSize(int cx, int cy)
 	if (m_wndDataView)
 	{
 		int btn_height = 25;
-		int btn_width = 70;
+		int btn_width = 80;
 		int btn_offset = 5;
 
 		int w1 = btn_width * 2;
@@ -113,15 +113,29 @@ void CDlgSatelliteData::SetSize(int cx, int cy)
 		if (m_iType == 0)
 		{
 			GetDlgItem(IDC_STATIC_TITLE2)->ShowWindow(SW_HIDE);
+			GetDlgItem(IDC_STATIC_TITLE3)->ShowWindow(SW_HIDE);
+			GetDlgItem(IDC_STATIC_TITLE4)->ShowWindow(SW_HIDE);
+			GetDlgItem(IDC_STATIC_TITLE5)->ShowWindow(SW_HIDE);
+
 			GetDlgItem(IDC_EDIT_TARGET)->ShowWindow(SW_HIDE);
+			GetDlgItem(IDC_EDIT_TARGET2)->ShowWindow(SW_HIDE);
+			GetDlgItem(IDC_EDIT_TARGET3)->ShowWindow(SW_HIDE);
+			GetDlgItem(IDC_EDIT_TARGET4)->ShowWindow(SW_HIDE);
 			m_wndDataView.MoveWindow(btn_offset, btn_height + btn_offset * 2, cx - btn_offset - btn_offset, cy - (btn_height * 2 + btn_offset * 4));
 		}
 		else
 		{
 			GetDlgItem(IDC_STATIC_TITLE2)->MoveWindow(btn_offset, btn_height + btn_offset * 2, w1, btn_height);
-			GetDlgItem(IDC_EDIT_TARGET)->MoveWindow(btn_offset * 2 + btn_width * 2, btn_height + btn_offset * 2, w2, btn_height);
+			GetDlgItem(IDC_STATIC_TITLE3)->MoveWindow(btn_offset, btn_height * 2 + btn_offset * 3, w1, btn_height);
+			GetDlgItem(IDC_STATIC_TITLE4)->MoveWindow(btn_offset, btn_height * 3 + btn_offset * 4, w1, btn_height);
+			GetDlgItem(IDC_STATIC_TITLE5)->MoveWindow(btn_offset, btn_height * 4 + btn_offset * 5, w1, btn_height);
 
-			m_wndDataView.MoveWindow(btn_offset, btn_height*2 + btn_offset * 3, cx - btn_offset - btn_offset, cy - (btn_height * 3 + btn_offset * 5));
+			GetDlgItem(IDC_EDIT_TARGET)->MoveWindow(btn_offset * 2 + btn_width * 2, btn_height + btn_offset * 2, w2, btn_height);
+			GetDlgItem(IDC_EDIT_TARGET2)->MoveWindow(btn_offset * 2 + btn_width * 2, btn_height * 2 + btn_offset * 3, w2, btn_height);
+			GetDlgItem(IDC_EDIT_TARGET3)->MoveWindow(btn_offset * 2 + btn_width * 2, btn_height * 3 + btn_offset * 4, w2, btn_height);
+			GetDlgItem(IDC_EDIT_TARGET4)->MoveWindow(btn_offset * 2 + btn_width * 2, btn_height * 4 + btn_offset * 5, w2, btn_height);
+
+			m_wndDataView.MoveWindow(btn_offset, btn_height*5 + btn_offset * 6, cx - btn_offset - btn_offset, cy - (btn_height * 6 + btn_offset * 8));
 		}
 		GetDlgItem(IDOK)->MoveWindow(cx - (btn_width * 2 + btn_offset * 2), cy - btn_height - btn_offset, btn_width, btn_height);
 		GetDlgItem(IDCANCEL)->MoveWindow(cx - (btn_width + btn_offset), cy - btn_height - btn_offset, btn_width, btn_height);
@@ -132,6 +146,10 @@ BOOL CDlgSatelliteData::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+	if (m_iType == 1)
+	{
+		SetWindowText("Estimation data input");
+	}
 	m_wndDataView.AttachGrid(this, IDC_GRID_DATA);
 	m_wndDataView.m_pParentDlg = this;
 	m_wndDataView.SetVScrollMode(UG_SCROLLTRACKING);
@@ -182,16 +200,88 @@ void CDlgSatelliteData::OnOK()
 		m_pCurrentView->m_fShipSpeed.clear();
 
 		CString file_path;
+		double edit_value;
 		GetDlgItem(IDC_EDIT_TARGET)->GetWindowText(file_path);
-		m_pCurrentView->m_fTargetResistance = atof(file_path);
+		if (file_path != "" && parse_double(string(file_path), edit_value))
+		{
+			m_pCurrentView->m_fTargetResistance = edit_value;
+		}
+		else
+		{
+			m_pCurrentView->m_fTargetResistance = 0;
+		}
+		GetDlgItem(IDC_EDIT_TARGET2)->GetWindowText(file_path);
+		if (file_path != "" && parse_double(string(file_path), edit_value))
+		{
+			m_pCurrentView->m_fInitSpeed = edit_value;
+		}
+		else
+		{
+			m_pCurrentView->m_fInitSpeed = 0;
+		}
+		GetDlgItem(IDC_EDIT_TARGET3)->GetWindowText(file_path);
+		if (file_path != "" && parse_double(string(file_path), edit_value))
+		{
+			m_pCurrentView->m_fMaxSpeed = edit_value;
+		}
+		else
+		{
+			m_pCurrentView->m_fMaxSpeed = 0;
+		}
+		GetDlgItem(IDC_EDIT_TARGET4)->GetWindowText(file_path);
+		if (file_path != "" && parse_double(string(file_path), edit_value))
+		{
+			m_pCurrentView->m_fIncreSpeed = edit_value;
+		}
+		else
+		{
+			m_pCurrentView->m_fIncreSpeed = 0;
+		}
+
 
 		int rows = m_wndDataView.GetNumberRows();
 		for (int i = 0; i < rows; i++)
 		{
-			m_pCurrentView->m_fConcentration.push_back(atof(m_wndDataView.QuickGetText(0, i)));
-			m_pCurrentView->m_fFlexuralStrength.push_back(atof(m_wndDataView.QuickGetText(1, i)));
-			m_pCurrentView->m_fIceThickness.push_back(atof(m_wndDataView.QuickGetText(2, i)));
-			m_pCurrentView->m_fShipSpeed.push_back(atof(m_wndDataView.QuickGetText(3, i)));
+			double d;
+			if (parse_double(m_wndDataView.QuickGetText(0, i), d))
+			{
+				m_pCurrentView->m_fConcentration.push_back(d);
+			}
+			else
+			{
+				m_pCurrentView->m_fConcentration.push_back(0.0f);
+			}
+			if (parse_double(m_wndDataView.QuickGetText(1, i), d))
+			{
+				m_pCurrentView->m_fFlexuralStrength.push_back(d);
+			}
+			else
+			{
+				m_pCurrentView->m_fFlexuralStrength.push_back(0.0f);
+			}
+			if (parse_double(m_wndDataView.QuickGetText(2, i), d))
+			{
+				m_pCurrentView->m_fIceThickness.push_back(d);
+			}
+			else
+			{
+				m_pCurrentView->m_fIceThickness.push_back(0.0f);
+			}
+
+			CString value = m_wndDataView.QuickGetText(3, i);
+			//string value(m_wndDataView.QuickGetText(3, i));
+			if (value != "" && parse_double(string(value), d))
+			{
+				m_pCurrentView->m_fShipSpeed.push_back(d);
+			}
+			else
+			{
+				m_pCurrentView->m_fShipSpeed.push_back(1.0f);
+			}
+			//m_pCurrentView->m_fConcentration.push_back(atof(m_wndDataView.QuickGetText(0, i)));
+			//m_pCurrentView->m_fFlexuralStrength.push_back(atof(m_wndDataView.QuickGetText(1, i)));
+			//m_pCurrentView->m_fIceThickness.push_back(atof(m_wndDataView.QuickGetText(2, i)));
+			//m_pCurrentView->m_fShipSpeed.push_back(atof(m_wndDataView.QuickGetText(3, i)));
 		}
 	}
 	CDialog::OnOK();
