@@ -70,7 +70,7 @@ BOOL CDlgExcelView::OnInitDialog()
 			if (extention == "satellite")
 			{
 				satellite_files.push_back(finder.GetFilePath());
-				file_name.Delete(0, 9);
+				file_name.Delete(0, 10);
 				file_name.Delete(file_name.GetLength() - 4, 4);
 				int index = file_name.Find("_");
 				if (index > 0)
@@ -87,6 +87,10 @@ BOOL CDlgExcelView::OnInitDialog()
 						file_name.Delete(0, index + 1);
 						satellite_files_option[2].push_back(file_name);
 					}
+				}
+				else
+				{
+					satellite_files_option[0].push_back(file_name);
 				}
 			}
 		}
@@ -364,6 +368,7 @@ void CDlgExcelView::LoadFile(int index)
 			ifp.m_fp_input = fp;
 			ifp.m_array_strSplit.push_back(' ');
 			int count = ifp.ReadOneLineFromFile();
+			m_wndExcelView.SetNumberCols(count);
 			if (count > 0)
 			{
 				for (int j = 0; j < count; j++)
@@ -386,14 +391,11 @@ void CDlgExcelView::LoadFile(int index)
 				{
 					m_wndExcelView.QuickSetText(j, row_count - 1, ifp.m_array_strOutput[j]);
 				}
-				//if (current_index > 0)
-				//{
-				//	resiatance.push_back(atof(ifp.m_array_strOutput[count - 1]));
-				//}
+				//resiatance.push_back(atof(ifp.m_array_strOutput[count - 1]));
 				count = ifp.ReadOneLineFromFile();
 			}
 
-			//if (resiatance.size() > 15)
+			//if (resiatance.size() > 1)
 			//{
 			//	if (m_pCurrentView)
 			//	{
@@ -413,7 +415,7 @@ void CDlgExcelView::LoadFile(int index)
 			//			}
 			//			else
 			//			{
-			//				for (int i = 0; i < 15; i++)
+			//				for (int i = 0; i < resiatance.size(); i++)
 			//				{
 			//					if (m_pCurrentView->m_fTargetResistance >= resiatance[i] && m_pCurrentView->m_fTargetResistance <= resiatance[i + 1])
 			//					{
@@ -427,12 +429,15 @@ void CDlgExcelView::LoadFile(int index)
 			//			}
 
 			//			//	추정 속도 찾음
-			//			m_wndExcelView.QuickSetText(4, option_index, "Estimation Speed");
-			//			m_wndExcelView.QuickSetNumber(5, option_index, m_pCurrentView->m_fEstimationSpeed);
+			//			row_count++;
+			//			m_wndExcelView.SetNumberRows(row_count);
+			//			m_wndExcelView.QuickSetText(0, row_count - 1, "Estimation Speed");
+			//			m_wndExcelView.QuickSetNumber(1, row_count - 1, m_pCurrentView->m_fEstimationSpeed);
 			//		}
 			//	}
 			//}
 		}
+		m_wndExcelView.RedrawAll();
 		m_wndExcelView.BestFit(-1, col_count - 1, 0, UG_BESTFIT_TOPHEADINGS);
 	}
 }

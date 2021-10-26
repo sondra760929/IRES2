@@ -65,7 +65,7 @@ BOOL CDlgChartView::OnInitDialog()
 			if (extention == "satellite")
 			{
 				satellite_files.push_back(finder.GetFilePath());
-				file_name.Delete(0, 9);
+				file_name.Delete(0, 10);
 				file_name.Delete(file_name.GetLength() - 4, 4);
 				int index = file_name.Find("_");
 				if (index > 0)
@@ -82,6 +82,10 @@ BOOL CDlgChartView::OnInitDialog()
 						file_name.Delete(0, index + 1);
 						satellite_files_option[2].push_back(file_name);
 					}
+				}
+				else
+				{
+					satellite_files_option[0].push_back(file_name);
 				}
 			}
 		}

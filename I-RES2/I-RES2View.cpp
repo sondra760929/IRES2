@@ -3245,6 +3245,8 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			SATELLITE_DATA[i].clear();
 		}
 
+		READ_HULL(1);
+
 		for (int i = 0; i < count; i++)
 		{
 			HH = m_fIceThickness[i];
@@ -3256,8 +3258,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 				VS = 1.0f;
 			VE = VS;
 
-			CAL_COND();
-			READ_HULL(1);
+			CAL_COND(false);
 			SEL_MODE1();
 
 			for (int IH = 1; IH <= NH; IH++)
@@ -3273,12 +3274,12 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 				}
 			}
 
-			WRITE_OUT();
+			//WRITE_OUT();
 			CALC_SATELLITE(m_fConcentration[i], m_fFlexuralStrength[i], HH, false);
 		}
 
 		FILE* fp;
-		fopen_s(&fp, m_strProjectPath + "\\satellite" + "from_data" + ".out", "wt");
+		fopen_s(&fp, m_strProjectPath + "\\satellite" + "_from_data" + ".out", "wt");
 		if (fp)
 		{
 			float R_TOTAL;
@@ -3316,6 +3317,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			VI = 1.0f;
 		}
 
+		READ_HULL(1);
 		int count = m_fConcentration.size();
 		for (int i = 0; i < count; i++)
 		{
@@ -3324,8 +3326,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			SIGMAP = m_fFlexuralStrength[i];
 			SIGMAK = m_fFlexuralStrength[i];
 
-			CAL_COND();
-			READ_HULL(1);
+			CAL_COND(false);
 			SEL_MODE1();
 
 			for (int IH = 1; IH <= NH; IH++)
@@ -3341,8 +3342,52 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 				}
 			}
 
-			WRITE_OUT();
+			//WRITE_OUT();
 			CALC_SATELLITE(m_fConcentration[i], m_fFlexuralStrength[i], HH);
+		}
+
+		vector< float > estimation_speed;
+		FILE* fp;
+		fopen_s(&fp, m_strProjectPath + "\\satellite" + "_from_estimation" + ".out", "wt");
+		if (fp)
+		{
+			float R_TOTAL;
+			float pre_swan;
+			float factor;
+			float pack;
+			fprintf_s(fp, "   Vs(kts)      Hi(m)     sigf(kPa)         R_br(kN)          R_cl(kN)          R_bu(kN)           R_i(kN)            pre-swan           factor             pack\n");
+			for (int i = 0; i < ESTIMATION_DATA[0].size(); i++)
+			{
+				float es = GetEstimatonSpeed(m_fTargetResistance, ESTIMATION_DATA[0][i], ESTIMATION_DATA[9][i]);
+				estimation_speed.push_back(es);
+				for (int j = 0; j < ESTIMATION_DATA[0][i].size(); j++)
+				{
+					fprintf_s(fp, "%9.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf\n",
+						ESTIMATION_DATA[0][i][j], ESTIMATION_DATA[1][i][j], ESTIMATION_DATA[2][i][j],
+						ESTIMATION_DATA[3][i][j], ESTIMATION_DATA[4][i][j], ESTIMATION_DATA[5][i][j],
+						ESTIMATION_DATA[6][i][j],
+						ESTIMATION_DATA[7][i][j], ESTIMATION_DATA[8][i][j], ESTIMATION_DATA[9][i][j]);
+				}
+			}
+
+			fclose(fp);
+		}
+
+		fopen_s(&fp, m_strProjectPath + "\\satellite" + "_to_estimation" + ".out", "wt");
+		if (fp)
+		{
+			float R_TOTAL;
+			float pre_swan;
+			float factor;
+			float pack;
+			fprintf_s(fp, "   Vs(kts)\n");
+			for (int i = 0; i < estimation_speed.size(); i++)
+			{
+					fprintf_s(fp, "%9.6lf\n",
+						estimation_speed[i]);
+			}
+
+			fclose(fp);
 		}
 	}
 	break;
@@ -3516,38 +3561,80 @@ void CIRES2View::CALC_SATELLITE(float concentration, float flexural_strength, fl
 
 	if (save_file)
 	{
-		CString file_desc;
-		file_desc.Format("%lf_%lf_%lf", concentration, flexural_strength, ice_thickness);
-		FILE* fp;
-		fopen_s(&fp, m_strProjectPath + "\\satellite" + file_desc + ".out", "wt");
-		if (fp)
+		//CString file_desc;
+		//file_desc.Format("%lf_%lf_%lf", concentration, flexural_strength, ice_thickness);
+		//FILE* fp;
+		//fopen_s(&fp, m_strProjectPath + "\\satellite" + file_desc + ".out", "wt");
+		//if (fp)
+		//{
+		//	float R_TOTAL;
+		//	float pre_swan;
+		//	float factor;
+		//	float pack;
+		//	fprintf_s(fp, "   Vs(kts)      Hi(m)     sigf(kPa)         R_br(kN)          R_cl(kN)          R_bu(kN)           R_i(kN)            pre-swan           factor             pack\n");
+		//	for (int IV = 1; IV <= NV; IV++)
+		//	{
+		//		for (int IS = 1; IS <= NSIGMA; IS++)
+		//		{
+		//			for (int IH = 1; IH <= NH; IH++)
+		//			{
+		//				R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
+		//				pre_swan = ((R_TOTAL * 0.001f) - (R_BREAK[IH][IS] * 0.001f)) * 2.0f;
+		//				factor = (a0 + (a1 * THCK[IH]) + (a2 * THCK[IH] * THCK[IH]) + (a3 * concentration)) +
+		//					((b0 + (b1 * THCK[IH]) + (b2 * THCK[IH] * THCK[IH]) + (b3 * concentration)) * VSP[IV]) +
+		//					((c0 + (c1 * THCK[IH]) + (c2 * THCK[IH] * THCK[IH]) + (c3 * concentration)) * VSP[IV] * VSP[IV]);
+		//				pack = pre_swan * factor;
+		//				fprintf_s(fp, "%9.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf\n",
+		//					VSP[IV], THCK[IH], SIGMA[IS], R_BREAK[IH][IS] * 0.001f, R_CLEAR[IH][IV] * 0.001f, R_BOUYA[IH] * 0.001f, R_TOTAL * 0.001f,
+		//					pre_swan, factor, pack);
+		//			}
+		//		}
+		//	}
+
+		//	fclose(fp);
+		//}
+		float R_TOTAL;
+		float pre_swan;
+		float factor;
+		float pack;
+		vector< float > value[10];
+		for (int IV = 1; IV <= NV; IV++)
 		{
-			float R_TOTAL;
-			float pre_swan;
-			float factor;
-			float pack;
-			fprintf_s(fp, "   Vs(kts)      Hi(m)     sigf(kPa)         R_br(kN)          R_cl(kN)          R_bu(kN)           R_i(kN)            pre-swan           factor             pack\n");
-			for (int IV = 1; IV <= NV; IV++)
+			for (int IS = 1; IS <= NSIGMA; IS++)
 			{
-				for (int IS = 1; IS <= NSIGMA; IS++)
+				for (int IH = 1; IH <= NH; IH++)
 				{
-					for (int IH = 1; IH <= NH; IH++)
-					{
-						R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
-						pre_swan = ((R_TOTAL * 0.001f) - (R_BREAK[IH][IS] * 0.001f)) * 2.0f;
-						factor = (a0 + (a1 * THCK[IH]) + (a2 * THCK[IH] * THCK[IH]) + (a3 * concentration)) +
-							((b0 + (b1 * THCK[IH]) + (b2 * THCK[IH] * THCK[IH]) + (b3 * concentration)) * VSP[IV]) +
-							((c0 + (c1 * THCK[IH]) + (c2 * THCK[IH] * THCK[IH]) + (c3 * concentration)) * VSP[IV] * VSP[IV]);
-						pack = pre_swan * factor;
-						fprintf_s(fp, "%9.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf\n",
-							VSP[IV], THCK[IH], SIGMA[IS], R_BREAK[IH][IS] * 0.001f, R_CLEAR[IH][IV] * 0.001f, R_BOUYA[IH] * 0.001f, R_TOTAL * 0.001f,
-							pre_swan, factor, pack);
-					}
+					R_TOTAL = R_BREAK[IH][IS] + R_CLEAR[IH][IV] + R_BOUYA[IH];
+					pre_swan = ((R_TOTAL * 0.001f) - (R_BREAK[IH][IS] * 0.001f)) * 2.0f;
+					factor = (a0 + (a1 * THCK[IH]) + (a2 * THCK[IH] * THCK[IH]) + (a3 * concentration)) +
+						((b0 + (b1 * THCK[IH]) + (b2 * THCK[IH] * THCK[IH]) + (b3 * concentration)) * VSP[IV]) +
+						((c0 + (c1 * THCK[IH]) + (c2 * THCK[IH] * THCK[IH]) + (c3 * concentration)) * VSP[IV] * VSP[IV]);
+					pack = pre_swan * factor;
+
+					value[0].push_back(VSP[IV]);
+					value[1].push_back(THCK[IH]);
+					value[2].push_back(SIGMA[IS]);
+					value[3].push_back(R_BREAK[IH][IS] * 0.001f);
+					value[4].push_back(R_CLEAR[IH][IV] * 0.001f);
+					value[5].push_back(R_BOUYA[IH] * 0.001f);
+					value[6].push_back(R_TOTAL * 0.001f);
+					value[7].push_back(pre_swan);
+					value[8].push_back(factor);
+					value[9].push_back(pack);
 				}
 			}
-
-			fclose(fp);
 		}
+
+		ESTIMATION_DATA[0].push_back(value[0]);
+		ESTIMATION_DATA[1].push_back(value[1]);
+		ESTIMATION_DATA[2].push_back(value[2]);
+		ESTIMATION_DATA[3].push_back(value[3]);
+		ESTIMATION_DATA[4].push_back(value[4]);
+		ESTIMATION_DATA[5].push_back(value[5]);
+		ESTIMATION_DATA[6].push_back(value[6]);
+		ESTIMATION_DATA[7].push_back(value[7]);
+		ESTIMATION_DATA[8].push_back(value[8]);
+		ESTIMATION_DATA[9].push_back(value[9]);
 	}
 	else
 	{
@@ -3681,7 +3768,7 @@ void CIRES2View::READ_ICECOFF_INPUT()
 	}
 }
 
-void CIRES2View::CAL_COND()
+void CIRES2View::CAL_COND(bool save_file)
 {
 	RHO0 = RHO - RHOL;
 
@@ -3689,7 +3776,7 @@ void CIRES2View::CAL_COND()
 	if (VS == VE) SV = 1.0f;
 	NV = (int)SV;
 
-	if (fp_8)
+	if (fp_8 && save_file)
 	{
 		fprintf_s(fp_8, " VS =   %lf     VE =   %lf     VI =   %lf\n", VS, VE, VI);
 	}
@@ -3711,7 +3798,7 @@ void CIRES2View::CAL_COND()
 		VELOCI[IVS] = VSP[IVS] * 0.5144f;
 		FROUD[IVS] = VELOCI[IVS] / sqrt(GG * BREADTH);
 		//fprintf(stderr, "%lf, %lf\n", VSP[IVS], FROUD[IVS]);
-		if (fp_8)
+		if (fp_8 && save_file)
 		{
 			fprintf_s(fp_8, " VSP =   %lf     FROUD =   %lf\n", VSP[IVS], FROUD[IVS]);
 		}
@@ -3730,7 +3817,7 @@ void CIRES2View::CAL_COND()
 	}
 
 
-	if (fp_6)
+	if (fp_6 && save_file)
 	{
 		fprintf_s(fp_6, "     SPEED            = %lf  Knots \n", VS);
 		fprintf_s(fp_6, "     BREADTH          = %lf\n", BREADTH);
@@ -3741,17 +3828,18 @@ void CIRES2View::CAL_COND()
 void CIRES2View::READ_HULL(int ID)
 {
 	//	READ_HULL
+	errno_t errno;
 	if (ID == 1)
 	{
-		fopen_s(&fp_5, m_strProjectPath + "\\WATERLINE_OUTSIDE.inp", "rt");
+		errno = fopen_s(&fp_5, m_strProjectPath + "\\WATERLINE_OUTSIDE.inp", "rt");
 	}
 	else if (ID == 2)
 	{
-		fopen_s(&fp_5, m_strProjectPath + "\\WATERLINE_INSIDE.inp", "rt");
+		errno = fopen_s(&fp_5, m_strProjectPath + "\\WATERLINE_INSIDE.inp", "rt");
 	}
 	else if (ID == 3)
 	{
-		fopen_s(&fp_5, m_strProjectPath + "\\WATERLINE_MIDDLE.inp", "rt");
+		errno = fopen_s(&fp_5, m_strProjectPath + "\\WATERLINE_MIDDLE.inp", "rt");
 	}
 	else
 	{
@@ -3796,6 +3884,12 @@ void CIRES2View::READ_HULL(int ID)
 			//N_FRAME = X_COOR.size();
 		}
 		ifp.m_fp_input = NULL;
+		fclose(fp_5);
+		fp_5 = NULL;
+	}
+	else
+	{
+		AfxMessageBox("READ_HULL ERROR");
 	}
 
 	fprintf_s(fp_6, "THE NUMBER OF FRAMES = %d\n", N_FRAME);
@@ -3820,9 +3914,7 @@ void CIRES2View::READ_HULL(int ID)
 	BETA[N_FRAME + 1] = BETA[N_FRAME];
 	GAMMA[N_FRAME + 1] = GAMMA[N_FRAME];
 
-	fclose(fp_5);
-	fp_5 = NULL;
-	vector< float > element(10);
+	//vector< float > element(10);
 
 	for (int II = 1; II <= N_FRAME; II++)
 	{
@@ -7021,4 +7113,48 @@ void CIRES2View::OnButtonSaveSectionData()
 	{
 		AfxMessageBox("Generate Section Data First.");
 	}
+}
+
+float CIRES2View::GetEstimatonSpeed(float target_sistance, vector<float>& speed, vector<float>& resistance)
+{
+	float estimation_speed = 0;
+	if (target_sistance > 0.0f)
+	{
+		if (target_sistance < resistance[0])
+		{
+			estimation_speed = 0.0f;
+		}
+		else if (target_sistance > resistance[resistance.size() - 1])
+		{
+			float resistance_offset = resistance[resistance.size() - 1] - resistance[resistance.size() - 2];
+			if (resistance_offset <= 0.0f)
+			{
+				estimation_speed = speed[resistance.size() - 1];
+			}
+			else
+			{
+				float speed_offset = speed[resistance.size() - 1] - speed[resistance.size() - 2];
+				float target_offset = target_sistance - resistance[resistance.size() - 1];
+				float ratio = target_offset / resistance_offset;
+				//int up_speed = round(ratio);
+				estimation_speed = speed[resistance.size() - 1] + (speed_offset * ratio);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < resistance.size(); i++)
+			{
+				if (target_sistance >= resistance[i] && target_sistance <= resistance[i + 1])
+				{
+					float resistance_offset = resistance[i + 1] - resistance[i];
+					float speed_offset = speed[i + 1] - speed[i];
+					float target_offset = target_sistance - resistance[i];
+					float ratio = target_offset / resistance_offset;
+					estimation_speed = speed[i] + (speed_offset * ratio);
+					break;
+				}
+			}
+		}
+	}
+	return estimation_speed;
 }

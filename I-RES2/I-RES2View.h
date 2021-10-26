@@ -126,7 +126,7 @@ public:
 	osg::Vec3 m_geoVertex;
 	void UpdateGlobalAxis(float length);
 	void DefineSections();
-	void CAL_COND();
+	void CAL_COND(bool save_file = true);
 	void READ_HULL(int ID);
 	void READ_ICE_INPUT();
 	void READ_ICECOFF_INPUT();
@@ -274,6 +274,7 @@ public:
 	// 작업입니다.
 	bool m_isCreateFolder;
 	vector< float > SATELLITE_DATA[10];
+	vector< vector< float > > ESTIMATION_DATA[10];
 
 	CDlgTranslation* m_pTranslationDlg;
 	void OnKeyESC();
@@ -300,6 +301,7 @@ public:
 	void UpdateWaterLineGeo();
 	void SaveIceInput();
 	void OnButtonSaveSectionData();
+	float GetEstimatonSpeed(float target_sistance, vector<float>& speed, vector<float>& resistance);
 public:
 
 // 재정의입니다.
