@@ -213,6 +213,14 @@
 #define IDC_EDIT_TARGET2                1069
 #define IDC_EDIT_TARGET3                1070
 #define IDC_EDIT_TARGET4                1071
+#define IDC_STATIC_TITLE6               1072
+#define IDC_STATIC_TITLE7               1073
+#define IDC_STATIC_TITLE8               1074
+#define IDC_STATIC_TITLE9               1075
+#define IDC_EDIT_TARGET5                1076
+#define IDC_EDIT_TARGET6                1077
+#define IDC_EDIT_TARGET7                1078
+#define IDC_EDIT_TARGET8                1079
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_BUTTON_OPEN                  32771
 #define ID_BUTTON_SAVE                  32772

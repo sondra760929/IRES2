@@ -161,6 +161,20 @@ public:
 	vector< float > m_fFlexuralStrength;
 	vector< float > m_fIceThickness;
 	vector< float > m_fShipSpeed;
+	vector< float > m_fLongitude;
+	vector< float > m_fLatitude;
+	vector< float > m_fX;
+	vector< float > m_fY;
+	vector< vector< float > > m_fExSpeed;
+	vector< vector< int > > realMap;
+	int startRow = 110;							// 시작 지점 행 설정
+	int startCol = 183;							// 시작 지점 열 설정
+	int goalRow = 127;							// 도착 지점 행 설정
+	int goalCol = 82;							// 도착 지점 열 설정
+
+	int maxMapSizeRow;
+	int maxMapSizeCol;
+	void SpeedDecision();
 	float m_fTargetResistance;
 	float m_fInitSpeed;
 	float m_fMaxSpeed;

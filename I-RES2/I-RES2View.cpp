@@ -299,6 +299,53 @@ vector< float > ICE_S;
 vector< float > ICE_T;
 vector< float > A_SPEED[3];
 
+class Node {
+public:
+	int row, col;
+	double g, h, f;
+	double speed;
+	double time;
+
+public:
+	Node(int _x, int _y, double _speed)
+	{
+		this->row = _x;
+		this->col = _y;
+		this->speed = _speed;
+		time = 0;
+		g = 0;
+		h = 0;
+		f = 0;
+	}
+
+	void changeValue(int _x, int _y, double _speed)
+	{
+		this->row = _x;
+		this->col = _y;
+		this->speed = _speed;
+	}
+
+	void changeScore(double _g, double _h, double _f)
+	{
+		g = _g;
+		h = _h;
+		f = _f;
+	}
+
+	void getRow()
+	{
+		cout << this->row;
+	}
+	void getCol()
+	{
+		cout << this->col;
+	}
+	void getSpeed()
+	{
+		cout << this->speed;
+	}
+};
+
 
 CIRES2View::CIRES2View()
 	: mOSG(0L)
@@ -3346,9 +3393,9 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			CALC_SATELLITE(m_fConcentration[i], m_fFlexuralStrength[i], HH);
 		}
 
-		vector< float > estimation_speed;
+		m_fShipSpeed.resize(count, 0);
 		FILE* fp;
-		fopen_s(&fp, m_strProjectPath + "\\satellite" + "_from_estimation" + ".out", "wt");
+		fopen_s(&fp, m_strProjectPath + "\\satellite_from_estimation" + ".out", "wt");
 		if (fp)
 		{
 			float R_TOTAL;
@@ -3359,7 +3406,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			for (int i = 0; i < ESTIMATION_DATA[0].size(); i++)
 			{
 				float es = GetEstimatonSpeed(m_fTargetResistance, ESTIMATION_DATA[0][i], ESTIMATION_DATA[9][i]);
-				estimation_speed.push_back(es);
+				m_fShipSpeed[i] = es;
 				for (int j = 0; j < ESTIMATION_DATA[0][i].size(); j++)
 				{
 					fprintf_s(fp, "%9.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf%15.6lf\n",
@@ -3373,7 +3420,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			fclose(fp);
 		}
 
-		fopen_s(&fp, m_strProjectPath + "\\satellite" + "_to_estimation" + ".out", "wt");
+		fopen_s(&fp, m_strProjectPath + "\\satellite_to_estimation" + ".out", "wt");
 		if (fp)
 		{
 			float R_TOTAL;
@@ -3381,13 +3428,339 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			float factor;
 			float pack;
 			fprintf_s(fp, "   Vs(kts)\n");
-			for (int i = 0; i < estimation_speed.size(); i++)
+			for (int i = 0; i < m_fShipSpeed.size(); i++)
 			{
 					fprintf_s(fp, "%9.6lf\n",
-						estimation_speed[i]);
+						m_fShipSpeed[i]);
 			}
 
 			fclose(fp);
+		}
+
+		if (m_fLongitude.size() > 0)
+		{
+			for (int i = 0; i < m_fShipSpeed.size(); i++)
+			{
+				m_fExSpeed[m_fX[i]][m_fY[i]] = m_fShipSpeed[i];
+			}
+
+			SpeedDecision();
+
+			vector<vector<Node>> ASNode(m_fExSpeed.size(), vector<Node>(m_fExSpeed[0].size(), Node(0, 0, 0)));
+
+			for (int i = 0; i < maxMapSizeRow; i++)
+			{
+				for (int j = 0; j < maxMapSizeCol; j++)
+				{
+					ASNode[i][j].changeValue(i, j, m_fExSpeed[i][j]);       //.emplace_back(i, j, ex_speed[i][j]);   뒤로 넣는 방식 말고 객체 이용
+																		  // 행, 열의 위치와 속도 대입
+				}
+			}
+
+			//ShowMap();
+			for (int i = 0; i < maxMapSizeRow; i++)
+			{
+				for (int j = 0; j < maxMapSizeCol; j++)
+				{
+					if (m_fExSpeed[i][j] < 1)
+					{
+						realMap[i][j] = 0;
+					}
+					else
+					{
+						realMap[i][j] = 1;
+					}
+				}
+				cout << endl;
+			}
+
+			vector<vector<int>> PassList(maxMapSizeRow, vector<int>(maxMapSizeCol, 0));			// 이동 가능한 지점 모음
+			vector<vector<int>> DecisionList(maxMapSizeRow, vector<int>(maxMapSizeCol, 0));		// 이동 가능한 지점 중 선택된 지점 모음
+
+			for (int i = 0; i < maxMapSizeRow; i++)
+			{
+				for (int j = 0; j < maxMapSizeCol; j++)
+				{
+					if (i == startRow && j == startCol)
+					{
+						DecisionList[startRow][startCol] = 2;		// DecisionList 이동 가능한 지점에 1 설정
+					}												// DecisionList 시작 지점에 2 설정
+					else if (realMap[i][j] == 1)
+					{
+						DecisionList[i][j] = 1;
+					}
+				}
+			}
+
+			for (int i = 0; i < maxMapSizeRow; i++)
+			{
+				for (int j = 0; j < maxMapSizeCol; j++)
+				{
+					if (i == startRow && j == startCol)
+					{
+						PassList[startRow][startCol] = 2;			// PassList 이동 가능한 지점에 1 설정
+					}												// PassList 시작 지점에 2 설정
+					else if (realMap[i][j] == 1)
+					{
+						PassList[i][j] = 1;
+					}
+				}
+			}
+
+			ASNode[startRow][startCol].h = 20 * (abs(goalRow - startRow) + abs(goalCol - startCol)) / (3 * 0.5144);
+			ASNode[startRow][startCol].f = ASNode[startRow][startCol].g + ASNode[startRow][startCol].h;
+
+			// 여기서부터 시작점
+
+			// *it을 사용하면 어떤 값을 찾았는지 알 수 있음
+			int num = 2;
+			int itRowInd = 0;			// 출발 지점 행
+			int itColInd = 0;			// 출발 지점 열
+
+			while (itRowInd != goalRow || itColInd != goalCol)
+			{
+				for (int i = 0; i < maxMapSizeRow; i++)				// 시작점(DecisionList 2값 설정한 위치)의 행 열 찾기
+				{
+					auto it = find(DecisionList[i].begin(), DecisionList[i].end(), num);
+					if (it != DecisionList[i].end())
+					{
+						itRowInd = i;
+						itColInd = distance(DecisionList[i].begin(), it);
+					}
+				}
+
+				if (itRowInd == goalRow && itColInd == goalCol)		// 도착하면 끝내기
+				{
+					fopen_s(&fp, m_strProjectPath + "\\satellite_to_map.out", "wt");
+					if (fp)
+					{
+						fprintf_s(fp, "Estimated arrive time [s] = %.6lf s\n", 2500.0 * ASNode[goalRow][goalCol].f);
+						fprintf_s(fp, "Estimated arrive time [h] = %.6lf h\n", 2500.0 * ASNode[goalRow][goalCol].f / 3600.0);
+						fprintf_s(fp, "Estimated arrive time [day] = %.6lf day\n", 2500.0 * ASNode[goalRow][goalCol].f / (3600.0 * 24.0));
+						for (int i = 0; i < maxMapSizeRow; i++)
+						{
+							for (int j = 0; j < maxMapSizeCol; j++)
+							{
+								if (DecisionList[i][j] > 1)
+								{
+									fprintf_s(fp, "*  ");
+								}
+								else
+								{
+									fprintf_s(fp, "%d  ", DecisionList[i][j]);
+								}
+							}
+							fprintf_s(fp, "\n");
+						}
+						fclose(fp);
+					}
+					break;
+				}
+
+				// PassList 값 설정			각 위치마다 존재하는지 확인 후, realMap에서 지나갈 수 있는 길일 때 PassList에 값 넣기	
+
+				int PassNumber = 0;			// 이동 가능한 지점의 개수 파악 
+
+				if (itRowInd - 1 >= 0 && itColInd - 1 >= 0)					// 북동
+				{
+					if (PassList[itRowInd - 1][itColInd - 1] == 1 || PassList[itRowInd - 1][itColInd - 1] == num + 1)
+					{
+						PassList[itRowInd - 1][itColInd - 1] = num + 1;
+						PassNumber += 1;
+					}
+				}
+				if (itRowInd - 1 >= 0)										// 북
+				{
+					if (PassList[itRowInd - 1][itColInd] == 1 || PassList[itRowInd - 1][itColInd] == num + 1)
+					{
+						PassList[itRowInd - 1][itColInd] = num + 1;
+						PassNumber += 1;
+					}
+				}
+				if (itRowInd - 1 >= 0 && itColInd + 1 < maxMapSizeCol)		// 북서
+				{
+					if (PassList[itRowInd - 1][itColInd + 1] == 1 || PassList[itRowInd - 1][itColInd + 1] == num + 1)
+					{
+						PassList[itRowInd - 1][itColInd + 1] = num + 1;
+						PassNumber += 1;
+					}
+				}
+				if (itColInd - 1 >= 0)										// 동
+				{
+					if (PassList[itRowInd][itColInd - 1] == 1 || PassList[itRowInd][itColInd - 1] == num + 1)
+					{
+						PassList[itRowInd][itColInd - 1] = num + 1;
+						PassNumber += 1;
+					}
+				}
+				if (itColInd + 1 < maxMapSizeCol)							// 서
+				{
+					if (PassList[itRowInd][itColInd + 1] == 1 || PassList[itRowInd][itColInd + 1] == num + 1)
+					{
+						PassList[itRowInd][itColInd + 1] = num + 1;
+						PassNumber += 1;
+					}
+				}
+				if (itRowInd + 1 < maxMapSizeRow && itColInd - 1 >= 0)		// 남동
+				{
+					if (PassList[itRowInd + 1][itColInd - 1] == 1 || PassList[itRowInd + 1][itColInd - 1] == num + 1)
+					{
+						PassList[itRowInd + 1][itColInd - 1] = num + 1;
+						PassNumber += 1;
+					}
+				}
+				if (itRowInd + 1 < maxMapSizeRow)							// 남
+				{
+					if (PassList[itRowInd + 1][itColInd] == 1 || PassList[itRowInd + 1][itColInd] == num + 1)
+					{
+						PassList[itRowInd + 1][itColInd] = num + 1;
+						PassNumber += 1;
+					}
+				}
+				if (itRowInd + 1 < maxMapSizeRow && itColInd + 1 < maxMapSizeCol)		// 남서
+				{
+					if (PassList[itRowInd + 1][itColInd + 1] == 1 || PassList[itRowInd + 1][itColInd + 1] == num + 1)
+					{
+						PassList[itRowInd + 1][itColInd + 1] = num + 1;
+						PassNumber += 1;
+					}
+				}
+
+				// 길이 없을 때
+				if (PassNumber == 0)
+				{
+					PassList[itRowInd][itColInd] = 0;
+					DecisionList[itRowInd][itColInd] = 0;
+					num -= 1;
+					continue;
+				}
+
+
+				int RowCoord = 0;		// 변수들의 행 좌표 (출발점 행열 아님 주의)
+				int ColCoord = 0;		// 변수들의 열 좌표 (출발점 행열 아님 주의)
+
+				int minRowCoord = 0;	// f 최소인 지점의 행
+				int minColCoord = 0;	// f 최소인 지점의 열
+				double minfvalue = 0;   // f 최소인 지점의 f 값
+
+				for (int i = 0; i < maxMapSizeRow; i++)
+				{
+					auto it2 = find(PassList[i].begin(), PassList[i].end(), num + 1);
+					while (it2 != PassList[i].end())
+					{
+						RowCoord = i;
+						ColCoord = distance(PassList[i].begin(), it2);
+
+						// g h f 값 구하기
+						// g 값
+						if (abs(RowCoord - itRowInd) + abs(ColCoord - itColInd) == 1)
+						{
+							ASNode[RowCoord][ColCoord].g = (10 / (ASNode[itRowInd][itColInd].speed * 0.5144))
+								+ (10 / (ASNode[RowCoord][ColCoord].speed * 0.5144)) + ASNode[itRowInd][itColInd].g;
+						}
+						else if (abs(RowCoord - itRowInd) + abs(ColCoord - itColInd) == 2)
+						{
+							ASNode[RowCoord][ColCoord].g = (10 * sqrt(2) / (ASNode[itRowInd][itColInd].speed * 0.5144))
+								+ (10 * sqrt(2) / (ASNode[RowCoord][ColCoord].speed * 0.5144)) + ASNode[itRowInd][itColInd].g;
+						}
+
+						/*
+						// h 값	유클리안
+						ASNode[RowCoord][ColCoord].h = 20 * sqrt((goalRow - RowCoord) * (goalRow - RowCoord) + (goalRow - RowCoord) * (goalRow - RowCoord))
+							/ (ASNode[itRowInd][itColInd].speed * 0.5144);
+						//ASNode[RowCoord][ColCoord].h = 20 * (abs(goalRow - RowCoord) + abs(goalCol - ColCoord)) / (3 * 0.5144);
+						*/
+
+						// h 값 맨하튼
+
+						ASNode[RowCoord][ColCoord].h = 20 * (abs(goalRow - RowCoord) + abs(goalCol - ColCoord)) / (ASNode[itRowInd][itColInd].speed * 0.5144);
+						//ASNode[RowCoord][ColCoord].h = 20 * (abs(goalRow - RowCoord) + abs(goalCol - ColCoord)) / (3 * 0.5144);
+
+
+						// f 값
+						ASNode[RowCoord][ColCoord].f = ASNode[RowCoord][ColCoord].g + ASNode[RowCoord][ColCoord].h;
+
+						// PassList 중에서 f가 최소인 지점 찾기
+						if (minfvalue == 0)
+						{
+							minRowCoord = RowCoord;
+							minColCoord = ColCoord;
+							minfvalue = ASNode[RowCoord][ColCoord].f;
+						}
+						else if (ASNode[RowCoord][ColCoord].f < minfvalue)
+						{
+							minRowCoord = RowCoord;
+							minColCoord = ColCoord;
+							minfvalue = ASNode[RowCoord][ColCoord].f;
+						}
+						// f값이 동일할 때 뭐를 택할지 추가
+						else if (ASNode[RowCoord][ColCoord].f = minfvalue &&
+							((RowCoord - goalRow) * (RowCoord - goalRow) + (ColCoord - goalCol) * (ColCoord - goalCol)) <
+							((minRowCoord - goalRow) * (minRowCoord - goalRow) + (minColCoord - goalCol) * (minColCoord - goalCol)))
+						{
+							minRowCoord = RowCoord;
+							minColCoord = ColCoord;
+							minfvalue = ASNode[RowCoord][ColCoord].f;
+						}
+
+						//cout << RowCoord << " " << ColCoord << endl;		//값 찾기
+						it2 = find(it2 + 1, PassList[i].end(), num + 1);
+					}
+				}
+
+				DecisionList[minRowCoord][minColCoord] = num + 1;		// DecisionList에 최소 f값 지점 설정
+
+
+				///////////////////////////////////////////////////////////////////////////////////////////////
+				// f, g, h 값 확인
+				/*
+				cout << "\n" << "f, g, h 값 확인" << "\n";
+				for (int i = 0; i < maxMapSizeRow; i++)
+				{
+					for (int j = 0; j < maxMapSizeCol; j++)
+					{
+						cout << "| " << ASNode[i][j].f << ", (" << ASNode[i][j].row << ", " << ASNode[i][j].col << ") ";
+					}
+					cout << "|" << endl;
+					for (int j = 0; j < maxMapSizeCol; j++)
+					{
+						cout << "| " << ASNode[i][j].g << ",  " << ASNode[i][j].h << " ";
+					}
+					cout << "|" << endl << endl;
+				}
+				*/
+
+				/*
+				// DecisionList check
+				cout << "DecisionList 값 확인 \n";
+				for (int i = 0; i < maxMapSizeRow; i++)
+				{
+					for (int j = 0; j < maxMapSizeCol; j++)
+					{
+						cout << DecisionList[i][j] << "  ";
+					}
+					cout << endl;
+				}
+				cout << endl;
+
+
+
+				cout << "PassList 값 확인 \n";
+				// PassList check
+				for (int i = 0; i < maxMapSizeRow; i++)
+				{
+					for (int j = 0; j < maxMapSizeCol; j++)
+					{
+						cout << PassList[i][j] << "  ";
+					}
+					cout << endl;
+				}
+				*/
+				//////////////////////////////////////////////////////////////////////////////////////
+
+				num += 1;
+
+			}
 		}
 	}
 	break;
@@ -3439,6 +3812,33 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 		RunExecute(command_string);
 	}
 	//ShellExecute(NULL, "open", m_strAppPath + "\\ice_result.OUT", NULL, NULL, SW_SHOW);
+}
+
+void CIRES2View::SpeedDecision()
+{
+	maxMapSizeRow = m_fExSpeed.size();
+	if (maxMapSizeRow > 0)
+	{
+		maxMapSizeCol = m_fExSpeed[0].size();
+
+		for (int i = 0; i < maxMapSizeRow; i++)
+		{
+			for (int j = 0; j < maxMapSizeCol; j++)
+			{
+				if (m_fExSpeed[i][j] < 1)
+				{
+					m_fExSpeed[i][j] = 0;
+				}
+				else
+				{
+					if (m_fExSpeed[i][j] > 16)
+					{
+						m_fExSpeed[i][j] = 16;
+					}
+				}
+			}
+		}
+	}
 }
 
 void CIRES2View::CALC_ATTAINABLE_SPEED()

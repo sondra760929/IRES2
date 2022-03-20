@@ -234,11 +234,10 @@ BOOL CDlgExcelView::OnInitDialog()
 	else if (m_iType == 1)
 	{
 		CString job_file;
-		job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\Attainable_speed.out";
+
+		job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\satellite_to_map.out";
 		if (PathFileExists(job_file))
 		{
-			m_wndExcelView.SetNumberCols(5);
-			col_count = 5;
 			FILE* fp;
 			fopen_s(&fp, job_file, "rt");
 			if (fp)
@@ -247,24 +246,83 @@ BOOL CDlgExcelView::OnInitDialog()
 				ifp.m_fp_input = fp;
 				ifp.m_array_strSplit.push_back(' ');
 				ifp.m_array_strSplit.push_back(',');
-				if (ifp.ReadOneLineFromFile() > 4)
+				if (ifp.ReadOneLineFromFile() > 6)
 				{
-					m_wndExcelView.QuickSetText(0, -1, ifp.m_array_strOutput[0]);
-					m_wndExcelView.QuickSetText(1, -1, ifp.m_array_strOutput[1]);
-					m_wndExcelView.QuickSetText(2, -1, ifp.m_array_strOutput[2]);
-					m_wndExcelView.QuickSetText(3, -1, ifp.m_array_strOutput[3]);
-					m_wndExcelView.QuickSetText(4, -1, ifp.m_array_strOutput[4]);
+					m_wndExcelView.QuickSetText(0, 0, ifp.m_array_strOutput[5]);
+					m_wndExcelView.QuickSetText(1, 0, ifp.m_array_strOutput[6]);
 				}
-				while (ifp.ReadOneLineFromFile() > 4)
+				if (ifp.ReadOneLineFromFile() > 6)
+				{
+					m_wndExcelView.QuickSetText(0, 1, ifp.m_array_strOutput[5]);
+					m_wndExcelView.QuickSetText(1, 1, ifp.m_array_strOutput[6]);
+				}
+				if (ifp.ReadOneLineFromFile() > 6)
+				{
+					m_wndExcelView.QuickSetText(0, 2, ifp.m_array_strOutput[5]);
+					m_wndExcelView.QuickSetText(1, 2, ifp.m_array_strOutput[6]);
+				}
+
+				row_count = 3;
+				int max_col = 0;
+				int col_count = ifp.ReadOneLineFromFile();
+				while (col_count > 0)
 				{
 					row_count++;
 					m_wndExcelView.SetNumberRows(row_count);
-					m_wndExcelView.QuickSetNumber(-1, row_count - 1, row_count);
-					m_wndExcelView.QuickSetText(0, row_count-1, ifp.m_array_strOutput[0]);
-					m_wndExcelView.QuickSetText(1, row_count-1, ifp.m_array_strOutput[1]);
-					m_wndExcelView.QuickSetText(2, row_count-1, ifp.m_array_strOutput[2]);
-					m_wndExcelView.QuickSetText(3, row_count-1, ifp.m_array_strOutput[3]);
-					m_wndExcelView.QuickSetText(4, row_count-1, ifp.m_array_strOutput[4]);
+					if (col_count > max_col)
+					{
+						m_wndExcelView.SetNumberCols(col_count);
+					}
+					m_wndExcelView.QuickSetNumber(-1, row_count - 1, row_count-4);
+					for (int i = 0; i < col_count; i++)
+					{
+						if (col_count > max_col)
+						{
+							m_wndExcelView.QuickSetNumber(i, -1, i);
+						}
+						m_wndExcelView.QuickSetText(i, row_count - 1, ifp.m_array_strOutput[i]);
+					}
+					if (col_count > max_col)
+					{
+						max_col = col_count;
+					}
+				}
+			}
+		}
+		else
+		{
+			job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\Attainable_speed.out";
+			if (PathFileExists(job_file))
+			{
+				m_wndExcelView.SetNumberCols(5);
+				col_count = 5;
+				FILE* fp;
+				fopen_s(&fp, job_file, "rt");
+				if (fp)
+				{
+					COptImportExportBase ifp;
+					ifp.m_fp_input = fp;
+					ifp.m_array_strSplit.push_back(' ');
+					ifp.m_array_strSplit.push_back(',');
+					if (ifp.ReadOneLineFromFile() > 4)
+					{
+						m_wndExcelView.QuickSetText(0, -1, ifp.m_array_strOutput[0]);
+						m_wndExcelView.QuickSetText(1, -1, ifp.m_array_strOutput[1]);
+						m_wndExcelView.QuickSetText(2, -1, ifp.m_array_strOutput[2]);
+						m_wndExcelView.QuickSetText(3, -1, ifp.m_array_strOutput[3]);
+						m_wndExcelView.QuickSetText(4, -1, ifp.m_array_strOutput[4]);
+					}
+					while (ifp.ReadOneLineFromFile() > 4)
+					{
+						row_count++;
+						m_wndExcelView.SetNumberRows(row_count);
+						m_wndExcelView.QuickSetNumber(-1, row_count - 1, row_count);
+						m_wndExcelView.QuickSetText(0, row_count - 1, ifp.m_array_strOutput[0]);
+						m_wndExcelView.QuickSetText(1, row_count - 1, ifp.m_array_strOutput[1]);
+						m_wndExcelView.QuickSetText(2, row_count - 1, ifp.m_array_strOutput[2]);
+						m_wndExcelView.QuickSetText(3, row_count - 1, ifp.m_array_strOutput[3]);
+						m_wndExcelView.QuickSetText(4, row_count - 1, ifp.m_array_strOutput[4]);
+					}
 				}
 			}
 		}
