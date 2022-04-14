@@ -60,6 +60,7 @@ void CDlgSatelliteData::OnBnClickedButtonFile()
 			ifs.open(file_path);
 			if (ifs.is_open())
 			{
+				m_wndDataView.SetPaintMode(0);
 				m_wndDataView.SetNumberCols(7);
 				int row_count = 0;
 				int max_col_index = 0;
@@ -87,6 +88,7 @@ void CDlgSatelliteData::OnBnClickedButtonFile()
 					m_wndDataView.SetNumberCols(max_col_index);
 					m_wndDataView.BestFit(-1, 3, 0, UG_BESTFIT_TOPHEADINGS);
 				}
+				m_wndDataView.SetPaintMode(1);
 			}
 		}
 	}
@@ -276,7 +278,7 @@ void CDlgSatelliteData::OnOK()
 		{
 			m_pCurrentView->m_fIncreSpeed = 0;
 		}
-		GetDlgItem(IDC_EDIT_TARGET)->GetWindowText(file_path);
+		GetDlgItem(IDC_EDIT_TARGET5)->GetWindowText(file_path);
 		if (file_path != "" && parse_double(string(file_path), edit_value))
 		{
 			m_pCurrentView->startRow = edit_value;
@@ -285,7 +287,7 @@ void CDlgSatelliteData::OnOK()
 		{
 			m_pCurrentView->startRow = 0;
 		}
-		GetDlgItem(IDC_EDIT_TARGET2)->GetWindowText(file_path);
+		GetDlgItem(IDC_EDIT_TARGET6)->GetWindowText(file_path);
 		if (file_path != "" && parse_double(string(file_path), edit_value))
 		{
 			m_pCurrentView->startCol = edit_value;
@@ -294,7 +296,7 @@ void CDlgSatelliteData::OnOK()
 		{
 			m_pCurrentView->startCol = 0;
 		}
-		GetDlgItem(IDC_EDIT_TARGET3)->GetWindowText(file_path);
+		GetDlgItem(IDC_EDIT_TARGET7)->GetWindowText(file_path);
 		if (file_path != "" && parse_double(string(file_path), edit_value))
 		{
 			m_pCurrentView->goalRow = edit_value;
@@ -303,7 +305,7 @@ void CDlgSatelliteData::OnOK()
 		{
 			m_pCurrentView->goalRow = 0;
 		}
-		GetDlgItem(IDC_EDIT_TARGET4)->GetWindowText(file_path);
+		GetDlgItem(IDC_EDIT_TARGET8)->GetWindowText(file_path);
 		if (file_path != "" && parse_double(string(file_path), edit_value))
 		{
 			m_pCurrentView->goalCol = edit_value;

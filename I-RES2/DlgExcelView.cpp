@@ -246,6 +246,10 @@ BOOL CDlgExcelView::OnInitDialog()
 				ifp.m_fp_input = fp;
 				ifp.m_array_strSplit.push_back(' ');
 				ifp.m_array_strSplit.push_back(',');
+				row_count = 3;
+				m_wndExcelView.SetPaintMode(0);
+				m_wndExcelView.SetNumberRows(row_count);
+				m_wndExcelView.SetNumberCols(2);
 				if (ifp.ReadOneLineFromFile() > 6)
 				{
 					m_wndExcelView.QuickSetText(0, 0, ifp.m_array_strOutput[5]);
@@ -262,7 +266,6 @@ BOOL CDlgExcelView::OnInitDialog()
 					m_wndExcelView.QuickSetText(1, 2, ifp.m_array_strOutput[6]);
 				}
 
-				row_count = 3;
 				int max_col = 0;
 				int col_count = ifp.ReadOneLineFromFile();
 				while (col_count > 0)
@@ -281,12 +284,20 @@ BOOL CDlgExcelView::OnInitDialog()
 							m_wndExcelView.QuickSetNumber(i, -1, i);
 						}
 						m_wndExcelView.QuickSetText(i, row_count - 1, ifp.m_array_strOutput[i]);
+						if (ifp.m_array_strOutput[i] == "*")
+						{
+							m_wndExcelView.QuickSetBackColor(i, row_count - 1, RGB(0, 255, 0));
+						}
 					}
 					if (col_count > max_col)
 					{
 						max_col = col_count;
 					}
+					col_count = ifp.ReadOneLineFromFile();
 				}
+				m_wndExcelView.SetPaintMode(1);
+				m_wndExcelView.BestFit(-1, max_col-1, 0, UG_BESTFIT_TOPHEADINGS);
+
 			}
 		}
 		else
