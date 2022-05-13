@@ -3537,17 +3537,17 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 						fprintf_s(fp, "Estimated arrive time [s] = %.6lf s\n", 2500.0 * ASNode[goalRow][goalCol].f);
 						fprintf_s(fp, "Estimated arrive time [h] = %.6lf h\n", 2500.0 * ASNode[goalRow][goalCol].f / 3600.0);
 						fprintf_s(fp, "Estimated arrive time [day] = %.6lf day\n", 2500.0 * ASNode[goalRow][goalCol].f / (3600.0 * 24.0));
-						for (int i = 0; i < maxMapSizeRow; i++)
+						for (int i = 0; i < maxMapSizeCol; i++)
 						{
-							for (int j = 0; j < maxMapSizeCol; j++)
+							for (int j = 0; j < maxMapSizeRow; j++)
 							{
-								if (DecisionList[i][j] > 1)
+								if (DecisionList[j][i] > 1)
 								{
 									fprintf_s(fp, "*  ");
 								}
 								else
 								{
-									fprintf_s(fp, "%d  ", DecisionList[i][j]);
+									fprintf_s(fp, "%d  ", DecisionList[j][i]);
 								}
 							}
 							fprintf_s(fp, "\n");
@@ -6509,6 +6509,110 @@ void CIRES2View::HideOutputSummury()
 	{
 		mOSG->m_bShowSummury = false;
 		mOSG->m_WindowManager->removeChild(mOSG->m_widgetOutputSumurry);
+	}
+}
+
+void CIRES2View::HideMap()
+{
+	if (mOSG && mOSG->m_bShowMap)
+	{
+		mOSG->m_bShowMap = false;
+		mOSG->m_WindowManager->removeChild(mOSG->m_widgetMap);
+	}
+}
+
+void CIRES2View::ShowMap(CString job_name)
+{
+	CString job_path = m_strProjectPath + "\\JOB\\" + job_name + "\\satellite_to_map.out";
+	if (PathFileExists(job_path))
+	{
+		FILE* fp;
+		fopen_s(&fp, job_path, "rt");
+		if (fp)
+		{
+			vector< vector< CString > > map_data;
+			COptImportExportBase ifp;
+			ifp.m_fp_input = fp;
+			ifp.m_array_strSplit.push_back(' ');
+			ifp.m_array_strSplit.push_back(',');
+			int row_count = 3;
+			ifp.ReadOneLineFromFile();
+			ifp.ReadOneLineFromFile();
+			ifp.ReadOneLineFromFile();
+
+			int max_col = 0;
+			int col_count = ifp.ReadOneLineFromFile();
+			while (col_count > 0)
+			{
+				row_count++;
+				vector< CString > map_row;
+				for (int i = 0; i < col_count; i++)
+				{
+					map_row.push_back(ifp.m_array_strOutput[i]);
+					//m_wndExcelView.QuickSetText(i, row_count - 1, ifp.m_array_strOutput[i]);
+					//if (ifp.m_array_strOutput[i] == "*")
+					//{
+					//	m_wndExcelView.QuickSetBackColor(i, row_count - 1, RGB(0, 255, 0));
+					//}
+				}
+				map_data.push_back(map_row);
+				if (col_count > max_col)
+				{
+					max_col = col_count;
+				}
+				col_count = ifp.ReadOneLineFromFile();
+			}
+
+			HideMap();
+
+			osg::ref_ptr<osg::Geode> l_pGeodeSurface = new osg::Geode;
+			osg::ref_ptr<osg::Geometry> l_pGeometrySurface = new osg::Geometry;
+			osg::ref_ptr<osg::Vec3Array> l_pvOriginalPoints = new osg::Vec3Array;
+			osg::ref_ptr<osg::Vec4Array> map_color = new osg::Vec4Array;
+
+			for (int i = 0; i < map_data.size(); i++)
+			{
+				for (int j = 0; j < map_data[i].size() && j < max_col; j++)
+				{
+					l_pvOriginalPoints->push_back(osg::Vec3(j, i, 0));
+					l_pvOriginalPoints->push_back(osg::Vec3(j, i + 1, 0));
+					l_pvOriginalPoints->push_back(osg::Vec3(j + 1, i + 1, 0));
+					l_pvOriginalPoints->push_back(osg::Vec3(j + 1, i, 0));
+
+					if (map_data[i][j] == "*")
+					{
+						map_color->push_back(osg::Vec4(1, 0, 0, 1));
+						map_color->push_back(osg::Vec4(1, 0, 0, 1));
+						map_color->push_back(osg::Vec4(1, 0, 0, 1));
+						map_color->push_back(osg::Vec4(1, 0, 0, 1));
+					}
+					else if (map_data[i][j] == "1")
+					{
+						map_color->push_back(osg::Vec4(0, 0, 1, 1));
+						map_color->push_back(osg::Vec4(0, 0, 1, 1));
+						map_color->push_back(osg::Vec4(0, 0, 1, 1));
+						map_color->push_back(osg::Vec4(0, 0, 1, 1));
+					}
+					else
+					{
+						map_color->push_back(osg::Vec4(0, 1, 0, 1));
+						map_color->push_back(osg::Vec4(0, 1, 0, 1));
+						map_color->push_back(osg::Vec4(0, 1, 0, 1));
+						map_color->push_back(osg::Vec4(0, 1, 0, 1));
+					}
+
+				}
+			}
+
+			l_pGeometrySurface->setVertexArray(l_pvOriginalPoints);
+			l_pGeometrySurface->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, l_pvOriginalPoints->size()));
+			l_pGeometrySurface->setColorArray(map_color.get());
+			l_pGeometrySurface->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+
+			l_pGeodeSurface->addDrawable(l_pGeometrySurface);
+
+			mOSG->mRoot2->addChild(l_pGeodeSurface);
+		}
 	}
 }
 

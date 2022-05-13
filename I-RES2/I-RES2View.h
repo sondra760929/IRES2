@@ -264,6 +264,8 @@ public:
 	//void UpdateWaterlinePos();
 	void ShowOutputSummury(CString job_name);
 	void HideOutputSummury();
+	void ShowMap(CString job_name);
+	void HideMap();
 	vector< float > m_aSectionStart;
 	vector< float > m_aSectionEnd;
 	vector< float > m_aSectionOffset;

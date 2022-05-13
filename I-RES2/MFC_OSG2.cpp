@@ -153,6 +153,7 @@ cOSG2::cOSG2(HWND hwnd) :
 	m_bViewModeOrtho = false;
 	m_fFieldOfView = 45.0f;
 	m_bShowSummury = false;
+	m_bShowMap = false;
 }
 
 cOSG2::~cOSG2()
@@ -705,6 +706,8 @@ void cOSG2::InitCameraConfig(void)
 	m_WindowManager->addChild(m_widgetHullSizeBox);
 
 	m_widgetOutputSumurry = new osgWidget::Box("OUTPUT", osgWidget::Box::VERTICAL, false);
+	m_widgetMap = new osgWidget::Table("MAP");
+
 	//vector< osgWidget::Label* > m_widgetOutputSumurryString;
 	for (int i = 0; i < 28; i++)
 	{

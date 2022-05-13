@@ -323,8 +323,11 @@ void CFileView::OnTvnSelchanged(NMHDR *pNMHDR, LRESULT *pResult)
 				m_OutputToolbar.m_strJobName = this->m_strJobName;
 				AdjustLayout();
 
-				if(m_pView)
+				if (m_pView)
+				{
 					m_pView->ShowOutputSummury(m_strJobName);
+					m_pView->ShowMap(m_strJobName);
+				}
 			}
 		}
 	}

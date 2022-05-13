@@ -30,6 +30,7 @@
 #include <osgWidget/Util>
 #include <osgWidget/WindowManager>
 #include <osgWidget/Box>
+#include <osgWidget/Table>
 #include <osgWidget/Canvas>
 #include <osgWidget/Label>
 #include <osgWidget/Label>
@@ -97,7 +98,9 @@ public:
 	osgWidget::Label* m_widgetHullSize[5];
 
 	osg::ref_ptr < osgWidget::Box > m_widgetOutputSumurry;
+	osg::ref_ptr < osgWidget::Table > m_widgetMap;
 	bool m_bShowSummury;
+	bool m_bShowMap;
 	vector< osgWidget::Label* > m_widgetOutputSumurryString;
 	//map< string, osgWidget::Box* > m_mapNameToToolbar;
 	//void MakeToolbar(string name, string image_path);
