@@ -61,7 +61,7 @@ void CDlgSatelliteData::OnBnClickedButtonFile()
 			if (ifs.is_open())
 			{
 				m_wndDataView.SetPaintMode(0);
-				m_wndDataView.SetNumberCols(7);
+				m_wndDataView.SetNumberCols(9);
 				int row_count = 0;
 				int max_col_index = 0;
 				string line;
@@ -239,6 +239,8 @@ void CDlgSatelliteData::OnOK()
 		m_pCurrentView->m_fLatitude.clear();
 		m_pCurrentView->m_fX.clear();
 		m_pCurrentView->m_fY.clear();
+		m_pCurrentView->m_fedgeX.clear();
+		m_pCurrentView->m_fedgeY.clear();
 
 		CString file_path;
 		double edit_value;
@@ -323,29 +325,36 @@ void CDlgSatelliteData::OnOK()
 		for (int i = 0; i < rows; i++)
 		{
 			double d;
-			if (parse_double(m_wndDataView.QuickGetText(0, i), d))
+			CString value = m_wndDataView.QuickGetText(0, i);
+			if (value != "")
 			{
-				m_pCurrentView->m_fConcentration.push_back(d);
-			}
-			else
-			{
-				m_pCurrentView->m_fConcentration.push_back(0.0f);
-			}
-			if (parse_double(m_wndDataView.QuickGetText(1, i), d))
-			{
-				m_pCurrentView->m_fFlexuralStrength.push_back(d);
-			}
-			else
-			{
-				m_pCurrentView->m_fFlexuralStrength.push_back(0.0f);
-			}
-			if (parse_double(m_wndDataView.QuickGetText(2, i), d))
-			{
-				m_pCurrentView->m_fIceThickness.push_back(d);
-			}
-			else
-			{
-				m_pCurrentView->m_fIceThickness.push_back(0.0f);
+
+				if (parse_double(string(value), d))
+				{
+					m_pCurrentView->m_fConcentration.push_back(d);
+				}
+				else
+				{
+					m_pCurrentView->m_fConcentration.push_back(0.0f);
+				}
+				value = m_wndDataView.QuickGetText(1, i);
+				if (parse_double(string(value), d))
+				{
+					m_pCurrentView->m_fFlexuralStrength.push_back(d);
+				}
+				else
+				{
+					m_pCurrentView->m_fFlexuralStrength.push_back(0.0f);
+				}
+				value = m_wndDataView.QuickGetText(2, i);
+				if (parse_double(string(value), d))
+				{
+					m_pCurrentView->m_fIceThickness.push_back(d);
+				}
+				else
+				{
+					m_pCurrentView->m_fIceThickness.push_back(0.0f);
+				}
 			}
 
 			if (m_iType == 0)
@@ -367,41 +376,69 @@ void CDlgSatelliteData::OnOK()
 				if (col_size > 6)
 				{ 
 					use_map = true;
-					if (parse_double(m_wndDataView.QuickGetText(3, i), d))
+					value = m_wndDataView.QuickGetText(3, i);
+					if (value != "")
 					{
-						m_pCurrentView->m_fLongitude.push_back(d);
+						if (parse_double(string(value), d))
+						{
+							m_pCurrentView->m_fLongitude.push_back(d);
+						}
+						else
+						{
+							m_pCurrentView->m_fLongitude.push_back(0.0f);
+						}
+
+						value = m_wndDataView.QuickGetText(4, i);
+						if (parse_double(string(value), d))
+						{
+							m_pCurrentView->m_fLatitude.push_back(d);
+						}
+						else
+						{
+							m_pCurrentView->m_fLatitude.push_back(0.0f);
+						}
+
+						value = m_wndDataView.QuickGetText(5, i);
+						if (parse_double(string(value), d))
+						{
+							m_pCurrentView->m_fX.push_back(d);
+							if (d > max_x)
+								max_x = d;
+						}
+						else
+						{
+							m_pCurrentView->m_fX.push_back(0.0f);
+						}
+
+						value = m_wndDataView.QuickGetText(6, i);
+						if (parse_double(string(value), d))
+						{
+							m_pCurrentView->m_fY.push_back(d);
+							if (d > max_y)
+								max_y = d;
+						}
+						else
+						{
+							m_pCurrentView->m_fY.push_back(0.0f);
+						}
 					}
-					else
+
+					value = m_wndDataView.QuickGetText(7, i);
+					if (value != "")
 					{
-						m_pCurrentView->m_fLongitude.push_back(0.0f);
-					}
-					if (parse_double(m_wndDataView.QuickGetText(4, i), d))
-					{
-						m_pCurrentView->m_fLatitude.push_back(d);
-					}
-					else
-					{
-						m_pCurrentView->m_fLatitude.push_back(0.0f);
-					}
-					if (parse_double(m_wndDataView.QuickGetText(5, i), d))
-					{
-						m_pCurrentView->m_fX.push_back(d);
-						if (d > max_x)
-							max_x = d;
-					}
-					else
-					{
-						m_pCurrentView->m_fX.push_back(0.0f);
-					}
-					if (parse_double(m_wndDataView.QuickGetText(6, i), d))
-					{
-						m_pCurrentView->m_fY.push_back(d);
-						if (d > max_y)
-							max_y = d;
-					}
-					else
-					{
-						m_pCurrentView->m_fY.push_back(0.0f);
+						if (parse_double(string(value), d))
+						{
+							m_pCurrentView->m_fedgeX.push_back(d);
+							value = m_wndDataView.QuickGetText(8, i);
+							if (parse_double(string(value), d))
+							{
+								m_pCurrentView->m_fedgeY.push_back(d);
+							}
+							else
+							{
+								m_pCurrentView->m_fedgeY.push_back(0);
+							}
+						}
 					}
 				}
 			}

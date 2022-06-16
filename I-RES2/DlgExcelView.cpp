@@ -246,6 +246,8 @@ BOOL CDlgExcelView::OnInitDialog()
 				ifp.m_fp_input = fp;
 				ifp.m_array_strSplit.push_back(' ');
 				ifp.m_array_strSplit.push_back(',');
+				ifp.m_array_strSplit.push_back('(');
+				ifp.m_array_strSplit.push_back(')');
 				row_count = 3;
 				m_wndExcelView.SetPaintMode(0);
 				m_wndExcelView.SetNumberRows(row_count);

@@ -3446,6 +3446,19 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 
 			SpeedDecision();
 
+			for (int i = 0; i < m_fedgeX.size(); i++)
+			{
+				int temp_x = (int)m_fedgeX[i];
+				int temp_y = (int)m_fedgeY[i];
+				if (temp_x >= 0 && temp_x < m_fExSpeed.size())
+				{
+					if (temp_y >= 0 && temp_y < m_fExSpeed[temp_x].size())
+					{
+						m_fExSpeed[temp_x][temp_y] = 0;
+					}
+				}
+			}
+
 			vector<vector<Node>> ASNode(m_fExSpeed.size(), vector<Node>(m_fExSpeed[0].size(), Node(0, 0, 0)));
 
 			for (int i = 0; i < maxMapSizeRow; i++)
@@ -3468,10 +3481,10 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 					}
 					else
 					{
-						realMap[i][j] = 1;
+						//realMap[i][j] = 1;
 					}
 				}
-				cout << endl;
+				//cout << endl;
 			}
 
 			vector<vector<int>> PassList(maxMapSizeRow, vector<int>(maxMapSizeCol, 0));			// 이동 가능한 지점 모음
@@ -3485,7 +3498,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 					{
 						DecisionList[startRow][startCol] = 2;		// DecisionList 이동 가능한 지점에 1 설정
 					}												// DecisionList 시작 지점에 2 설정
-					else if (realMap[i][j] == 1)
+					else if (realMap[i][j] >= 1)
 					{
 						DecisionList[i][j] = 1;
 					}
@@ -3500,7 +3513,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 					{
 						PassList[startRow][startCol] = 2;			// PassList 이동 가능한 지점에 1 설정
 					}												// PassList 시작 지점에 2 설정
-					else if (realMap[i][j] == 1)
+					else if (realMap[i][j] >= 1)
 					{
 						PassList[i][j] = 1;
 					}
@@ -3516,6 +3529,8 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			int num = 2;
 			int itRowInd = 0;			// 출발 지점 행
 			int itColInd = 0;			// 출발 지점 열
+			vector< int > path_rows;
+			vector< int > path_cols;
 
 			while (itRowInd != goalRow || itColInd != goalCol)
 			{
@@ -3529,6 +3544,9 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 					}
 				}
 
+				path_rows.push_back(itRowInd);
+				path_cols.push_back(itColInd);
+
 				if (itRowInd == goalRow && itColInd == goalCol)		// 도착하면 끝내기
 				{
 					fopen_s(&fp, m_strProjectPath + "\\satellite_to_map.out", "wt");
@@ -3537,6 +3555,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 						fprintf_s(fp, "Estimated arrive time [s] = %.6lf s\n", 2500.0 * ASNode[goalRow][goalCol].f);
 						fprintf_s(fp, "Estimated arrive time [h] = %.6lf h\n", 2500.0 * ASNode[goalRow][goalCol].f / 3600.0);
 						fprintf_s(fp, "Estimated arrive time [day] = %.6lf day\n", 2500.0 * ASNode[goalRow][goalCol].f / (3600.0 * 24.0));
+						fprintf_s(fp, "Rows %d, Columns %d\n", maxMapSizeCol, maxMapSizeRow);
 						for (int i = 0; i < maxMapSizeCol; i++)
 						{
 							for (int j = 0; j < maxMapSizeRow; j++)
@@ -3547,11 +3566,24 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 								}
 								else
 								{
-									fprintf_s(fp, "%d  ", DecisionList[j][i]);
+									if (DecisionList[j][i] == 1)
+									{
+										fprintf_s(fp, "%d  ", realMap[j][i]);
+									}
+									else
+									{
+										fprintf_s(fp, "%d  ", DecisionList[j][i]);
+									}
 								}
 							}
 							fprintf_s(fp, "\n");
 						}
+
+						for (int i = 1; i < path_rows.size(); i++)
+						{
+							fprintf_s(fp, "%d, %d -> %d, %d(%.6lf h)\n", path_rows[i-1], path_cols[i-1], path_rows[i], path_cols[i], 2500.0 * ASNode[path_rows[i]][path_cols[i]].f / 3600.0);
+						}
+
 						fclose(fp);
 					}
 					break;
@@ -3825,15 +3857,18 @@ void CIRES2View::SpeedDecision()
 		{
 			for (int j = 0; j < maxMapSizeCol; j++)
 			{
+				realMap[i][j] = 1;
 				if (m_fExSpeed[i][j] < 1)
 				{
-					m_fExSpeed[i][j] = 0;
+					//	원래는 0이어서 못가는 곳 이었으나, 다 갈수 있는 곳으로
+					m_fExSpeed[i][j] = m_fMaxSpeed;
+					realMap[i][j] = 2;
 				}
 				else
 				{
-					if (m_fExSpeed[i][j] > 16)
+					if (m_fExSpeed[i][j] > m_fMaxSpeed)
 					{
-						m_fExSpeed[i][j] = 16;
+						m_fExSpeed[i][j] = m_fMaxSpeed;
 					}
 				}
 			}
@@ -6535,14 +6570,24 @@ void CIRES2View::ShowMap(CString job_name)
 			ifp.m_fp_input = fp;
 			ifp.m_array_strSplit.push_back(' ');
 			ifp.m_array_strSplit.push_back(',');
-			int row_count = 3;
+			ifp.m_array_strSplit.push_back('(');
+			ifp.m_array_strSplit.push_back(')');
 			ifp.ReadOneLineFromFile();
 			ifp.ReadOneLineFromFile();
 			ifp.ReadOneLineFromFile();
+			int temp_count = ifp.ReadOneLineFromFile();
+			int max_rows = 0;
+			int max_cols = 0;
+			if (temp_count > 3)
+			{
+				max_rows = atoi(ifp.m_array_strOutput[1]);
+				max_cols = atoi(ifp.m_array_strOutput[3]);
+			}
 
 			int max_col = 0;
 			int col_count = ifp.ReadOneLineFromFile();
-			while (col_count > 0)
+			int row_count = 0;
+			while (col_count > 0 && row_count < max_rows)
 			{
 				row_count++;
 				vector< CString > map_row;
@@ -6569,6 +6614,8 @@ void CIRES2View::ShowMap(CString job_name)
 			osg::ref_ptr<osg::Geometry> l_pGeometrySurface = new osg::Geometry;
 			osg::ref_ptr<osg::Vec3Array> l_pvOriginalPoints = new osg::Vec3Array;
 			osg::ref_ptr<osg::Vec4Array> map_color = new osg::Vec4Array;
+			osg::ref_ptr<osg::Vec3Array> map_normal = new osg::Vec3Array;
+			map_normal->push_back(osg::Vec3(0, 0, 1));
 
 			for (int i = 0; i < map_data.size(); i++)
 			{
@@ -6593,12 +6640,19 @@ void CIRES2View::ShowMap(CString job_name)
 						map_color->push_back(osg::Vec4(0, 0, 1, 1));
 						map_color->push_back(osg::Vec4(0, 0, 1, 1));
 					}
+					else if (map_data[i][j] == "2")
+					{
+						map_color->push_back(osg::Vec4(1, 1, 1, 1));
+						map_color->push_back(osg::Vec4(1, 1, 1, 1));
+						map_color->push_back(osg::Vec4(1, 1, 1, 1));
+						map_color->push_back(osg::Vec4(1, 1, 1, 1));
+					}
 					else
 					{
-						map_color->push_back(osg::Vec4(0, 1, 0, 1));
-						map_color->push_back(osg::Vec4(0, 1, 0, 1));
-						map_color->push_back(osg::Vec4(0, 1, 0, 1));
-						map_color->push_back(osg::Vec4(0, 1, 0, 1));
+						map_color->push_back(osg::Vec4(0.93, 0.5, 0.2, 1));
+						map_color->push_back(osg::Vec4(0.93, 0.5, 0.2, 1));
+						map_color->push_back(osg::Vec4(0.93, 0.5, 0.2, 1));
+						map_color->push_back(osg::Vec4(0.93, 0.5, 0.2, 1));
 					}
 
 				}
@@ -6608,6 +6662,8 @@ void CIRES2View::ShowMap(CString job_name)
 			l_pGeometrySurface->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, l_pvOriginalPoints->size()));
 			l_pGeometrySurface->setColorArray(map_color.get());
 			l_pGeometrySurface->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+			l_pGeometrySurface->setNormalArray(map_normal);
+			l_pGeometrySurface->setNormalBinding(osg::Geometry::BIND_OVERALL);
 
 			l_pGeodeSurface->addDrawable(l_pGeometrySurface);
 

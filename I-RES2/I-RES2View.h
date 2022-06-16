@@ -165,6 +165,8 @@ public:
 	vector< float > m_fLatitude;
 	vector< float > m_fX;
 	vector< float > m_fY;
+	vector< float > m_fedgeX;
+	vector< float > m_fedgeY;
 	vector< vector< float > > m_fExSpeed;
 	vector< vector< int > > realMap;
 	int startRow = 110;							// 시작 지점 행 설정
