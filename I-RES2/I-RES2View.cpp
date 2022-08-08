@@ -3442,6 +3442,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			for (int i = 0; i < m_fShipSpeed.size(); i++)
 			{
 				m_fExSpeed[m_fX[i]][m_fY[i]] = m_fShipSpeed[i];
+				realMap[m_fX[i]][m_fY[i]] = 1;
 			}
 
 			SpeedDecision();
@@ -3455,6 +3456,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 					if (temp_y >= 0 && temp_y < m_fExSpeed[temp_x].size())
 					{
 						m_fExSpeed[temp_x][temp_y] = 0;
+						realMap[temp_x][temp_y] = 0;
 					}
 				}
 			}
@@ -3471,21 +3473,21 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			}
 
 			//ShowMap();
-			for (int i = 0; i < maxMapSizeRow; i++)
-			{
-				for (int j = 0; j < maxMapSizeCol; j++)
-				{
-					if (m_fExSpeed[i][j] < 1)
-					{
-						realMap[i][j] = 0;
-					}
-					else
-					{
-						//realMap[i][j] = 1;
-					}
-				}
-				//cout << endl;
-			}
+			//for (int i = 0; i < maxMapSizeRow; i++)
+			//{
+			//	for (int j = 0; j < maxMapSizeCol; j++)
+			//	{
+			//		if (m_fExSpeed[i][j] < 1)
+			//		{
+			//			realMap[i][j] = 0;
+			//		}
+			//		else
+			//		{
+			//			//realMap[i][j] = 1;
+			//		}
+			//	}
+			//	//cout << endl;
+			//}
 
 			vector<vector<int>> PassList(maxMapSizeRow, vector<int>(maxMapSizeCol, 0));			// 이동 가능한 지점 모음
 			vector<vector<int>> DecisionList(maxMapSizeRow, vector<int>(maxMapSizeCol, 0));		// 이동 가능한 지점 중 선택된 지점 모음
@@ -3566,14 +3568,14 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 								}
 								else
 								{
-									if (DecisionList[j][i] == 1)
-									{
+									//if (DecisionList[j][i] == 1)
+									//{
 										fprintf_s(fp, "%d  ", realMap[j][i]);
-									}
-									else
-									{
-										fprintf_s(fp, "%d  ", DecisionList[j][i]);
-									}
+									//}
+									//else
+									//{
+									//	fprintf_s(fp, "%d  ", DecisionList[j][i]);
+									//}
 								}
 							}
 							fprintf_s(fp, "\n");
@@ -3857,19 +3859,18 @@ void CIRES2View::SpeedDecision()
 		{
 			for (int j = 0; j < maxMapSizeCol; j++)
 			{
-				realMap[i][j] = 1;
-				if (m_fExSpeed[i][j] < 1)
-				{
-					//	원래는 0이어서 못가는 곳 이었으나, 다 갈수 있는 곳으로
-					m_fExSpeed[i][j] = m_fMaxSpeed;
-					realMap[i][j] = 2;
-				}
-				else
+				if (realMap[i][j] == 1)
 				{
 					if (m_fExSpeed[i][j] > m_fMaxSpeed)
 					{
 						m_fExSpeed[i][j] = m_fMaxSpeed;
 					}
+				}
+				else
+				{
+					//	원래는 0이어서 못가는 곳 이었으나, 다 갈수 있는 곳으로
+					m_fExSpeed[i][j] = m_fMaxSpeed;
+					realMap[i][j] = 2;
 				}
 			}
 		}
