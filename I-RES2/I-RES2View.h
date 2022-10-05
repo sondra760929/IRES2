@@ -293,6 +293,7 @@ public:
 	bool m_isCreateFolder;
 	vector< float > SATELLITE_DATA[10];
 	vector< vector< float > > ESTIMATION_DATA[10];
+	void CheckLand(int c_x, int c_y);
 
 	CDlgTranslation* m_pTranslationDlg;
 	void OnKeyESC();

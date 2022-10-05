@@ -3104,6 +3104,137 @@ void CIRES2View::OnButtonCalculateSectionPoints()
 	//SetCurrentStep(3);
 }
 
+void CIRES2View::CheckLand(int c_x, int c_y)
+{
+	TCHAR buffer[512];
+
+	int temp_status = 0;
+	int temp_index = 0;
+	for (int j = c_y; j >= 0; j--)
+	{
+		_stprintf(buffer, "CheckLand : %d - %d\n", c_x, j);
+		OutputDebugString(buffer);
+		if (m_fExSpeed[c_x][j] < 1)
+		{
+			_stprintf(buffer, "해안선으로 인식\n");
+			OutputDebugString(buffer);
+			realMap[c_x][j] = 0;
+			//if (temp_status == 0)	//	이전 위치가 바다나 얼음임
+			//{
+				temp_status = 1;	//	지금부터는 땅
+				temp_index = j;
+			//}
+			//else if (temp_status == 1)	//	이전 위치가 비어 있어서 땅이라고 인식함
+			//{
+			//	temp_status = 0;	//	지금부터는 바다
+			//}
+		}
+		else
+		{
+			_stprintf(buffer, "realMap : %d\n", realMap[c_x][j]);
+			OutputDebugString(buffer);
+			switch (realMap[c_x][j])
+			{
+			case 0:	//	땅
+			{
+
+			}
+			break;
+			case 1:	//	얼음
+			{
+				if (temp_status == 1)	//	땅에 붙어 있는 바다는 땅인줄 알았는데, 얼음이 있음. 그러면 이전 위치도 바다로 바꿈
+				{
+					_stprintf(buffer, "땅에 붙어 있는 바다는 땅인줄 알았는데, 얼음이 있음. 그러면 이전 위치도 바다로 바꿈\n");
+					OutputDebugString(buffer);
+					for (int jj = j + 1; jj < temp_index; jj++)
+					{
+						realMap[c_x][jj] = 2;
+					}
+					temp_status = 0;
+				}
+			}
+			break;
+			case 2:	//	바다
+			{
+				if (temp_status == 0)	//	땅에 붙어 있는 바다
+				{
+				}
+				else if (temp_status == 1)	//	땅에 붙어 있는 바다는 땅으로 인식
+				{
+					_stprintf(buffer, "땅에 붙어 있는 바다는 땅으로 인식\n");
+					OutputDebugString(buffer);
+					realMap[c_x][j] = 0;
+				}
+			}
+			break;
+			}
+			//realMap[i][j] = 1;
+		}
+	}
+	temp_status = 0;
+	for (int j = c_y; j < maxMapSizeCol; j++)
+	{
+		_stprintf(buffer, "CheckLand : %d - %d\n", c_x, j);
+		OutputDebugString(buffer);
+		if (m_fExSpeed[c_x][j] < 1)
+		{
+			_stprintf(buffer, "해안선으로 인식\n");
+			OutputDebugString(buffer);
+			realMap[c_x][j] = 0;
+			//if (temp_status == 0)	//	이전 위치가 바다나 얼음임
+			//{
+				temp_status = 1;	//	지금부터는 땅
+				temp_index = j;
+			//}
+			//else if (temp_status == 1)	//	이전 위치가 비어 있어서 땅이라고 인식함
+			//{
+			//	temp_status = 0;	//	지금부터는 바다
+			//}
+		}
+		else
+		{
+			_stprintf(buffer, "realMap : %d\n", realMap[c_x][j]);
+			OutputDebugString(buffer);
+			switch (realMap[c_x][j])
+			{
+			case 0:	//	땅
+			{
+
+			}
+			break;
+			case 1:	//	얼음
+			{
+				if (temp_status == 1)	//	땅에 붙어 있는 바다는 땅인줄 알았는데, 얼음이 있음. 그러면 이전 위치도 바다로 바꿈
+				{
+					_stprintf(buffer, "땅에 붙어 있는 바다는 땅인줄 알았는데, 얼음이 있음. 그러면 이전 위치도 바다로 바꿈\n");
+					OutputDebugString(buffer);
+					for (int jj = j - 1; jj > temp_index; jj--)
+					{
+						realMap[c_x][jj] = 2;
+					}
+					temp_status = 0;
+				}
+			}
+			break;
+			case 2:	//	바다
+			{
+				if (temp_status == 0)	//	땅에 붙어 있는 바다
+				{
+				}
+				else if (temp_status == 1)	//	땅에 붙어 있는 바다는 땅으로 인식
+				{
+					_stprintf(buffer, "땅에 붙어 있는 바다는 땅으로 인식\n");
+					OutputDebugString(buffer);
+					realMap[c_x][j] = 0;
+				}
+			}
+			break;
+			}
+			//realMap[i][j] = 1;
+		}
+	}
+}
+
 void CIRES2View::CalculateOutputResult(int type, bool refresh)
 {
 	DeleteTempFiles(m_strProjectPath);
@@ -3471,20 +3602,30 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			}
 
 			//ShowMap();
-			for (int i = 0; i < maxMapSizeRow; i++)
-			{
-				for (int j = 0; j < maxMapSizeCol; j++)
+			//for (int i = 0; i < maxMapSizeRow; i++)
+			//{
+			//	for (int j = 0; j < maxMapSizeCol; j++)
+			//	{
+			//		if (m_fExSpeed[i][j] < 1)
+			//		{
+			//			realMap[i][j] = 0;
+			//		}
+			//		else
+			//		{
+			//			//realMap[i][j] = 1;
+			//		}
+			//	}
+			//	//cout << endl;
+			//}
+			//	new check
+			int center_x = maxMapSizeRow / 2;
+			int center_y = maxMapSizeCol / 2;
+			if (m_fExSpeed[center_x][center_y] > 0)	//	가운데가 바다나 얼음일 경우
+			{				
+				for (int i = 0; i < maxMapSizeRow; i++)
 				{
-					if (m_fExSpeed[i][j] < 1)
-					{
-						realMap[i][j] = 0;
-					}
-					else
-					{
-						//realMap[i][j] = 1;
-					}
+					CheckLand(i, center_y);
 				}
-				//cout << endl;
 			}
 
 			vector<vector<int>> PassList(maxMapSizeRow, vector<int>(maxMapSizeCol, 0));			// 이동 가능한 지점 모음
@@ -3562,17 +3703,17 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 							{
 								if (DecisionList[j][i] > 1)
 								{
-									fprintf_s(fp, "*  ");
+									fprintf_s(fp, "*  ");	//	이동 경로 2
 								}
 								else
 								{
 									if (DecisionList[j][i] == 1)
 									{
-										fprintf_s(fp, "%d  ", realMap[j][i]);
+										fprintf_s(fp, "%d  ", realMap[j][i]);	//	갈 수 있는 곳 : 물, 얼음
 									}
 									else
 									{
-										fprintf_s(fp, "%d  ", DecisionList[j][i]);
+										fprintf_s(fp, "%d  ", DecisionList[j][i]);	//	못가는 곳 0
 									}
 								}
 							}
@@ -6616,6 +6757,10 @@ void CIRES2View::ShowMap(CString job_name)
 			osg::ref_ptr<osg::Vec4Array> map_color = new osg::Vec4Array;
 			osg::ref_ptr<osg::Vec3Array> map_normal = new osg::Vec3Array;
 			map_normal->push_back(osg::Vec3(0, 0, 1));
+			osg::Vec4 color_path = osg::Vec4(1, 0, 0, 1);
+			osg::Vec4 color_sea = osg::Vec4(109.0/255.0, 207.0/255.0, 246.0/255.0, 1);
+			osg::Vec4 color_ice = osg::Vec4(1, 1, 1, 1);
+			osg::Vec4 color_land = osg::Vec4(254.0/255, 238.0/255.0, 179.0/255.0, 1);
 
 			for (int i = 0; i < map_data.size(); i++)
 			{
@@ -6628,33 +6773,32 @@ void CIRES2View::ShowMap(CString job_name)
 
 					if (map_data[i][j] == "*")
 					{
-						map_color->push_back(osg::Vec4(1, 0, 0, 1));
-						map_color->push_back(osg::Vec4(1, 0, 0, 1));
-						map_color->push_back(osg::Vec4(1, 0, 0, 1));
-						map_color->push_back(osg::Vec4(1, 0, 0, 1));
+						map_color->push_back(color_path);
+						map_color->push_back(color_path);
+						map_color->push_back(color_path);
+						map_color->push_back(color_path);
 					}
-					else if (map_data[i][j] == "1")
+					else if (map_data[i][j] == "1")	//	얼음
 					{
-						map_color->push_back(osg::Vec4(0, 0, 1, 1));
-						map_color->push_back(osg::Vec4(0, 0, 1, 1));
-						map_color->push_back(osg::Vec4(0, 0, 1, 1));
-						map_color->push_back(osg::Vec4(0, 0, 1, 1));
+						map_color->push_back(color_ice);
+						map_color->push_back(color_ice);
+						map_color->push_back(color_ice);
+						map_color->push_back(color_ice);
 					}
-					else if (map_data[i][j] == "2")
+					else if (map_data[i][j] == "2")	//	바다
 					{
-						map_color->push_back(osg::Vec4(1, 1, 1, 1));
-						map_color->push_back(osg::Vec4(1, 1, 1, 1));
-						map_color->push_back(osg::Vec4(1, 1, 1, 1));
-						map_color->push_back(osg::Vec4(1, 1, 1, 1));
+						map_color->push_back(color_sea);
+						map_color->push_back(color_sea);
+						map_color->push_back(color_sea);
+						map_color->push_back(color_sea);
 					}
-					else
+					else	//	땅
 					{
-						map_color->push_back(osg::Vec4(0.93, 0.5, 0.2, 1));
-						map_color->push_back(osg::Vec4(0.93, 0.5, 0.2, 1));
-						map_color->push_back(osg::Vec4(0.93, 0.5, 0.2, 1));
-						map_color->push_back(osg::Vec4(0.93, 0.5, 0.2, 1));
+						map_color->push_back(color_land);
+						map_color->push_back(color_land);
+						map_color->push_back(color_land);
+						map_color->push_back(color_land);
 					}
-
 				}
 			}
 
@@ -6667,7 +6811,12 @@ void CIRES2View::ShowMap(CString job_name)
 
 			l_pGeodeSurface->addDrawable(l_pGeometrySurface);
 
-			mOSG->mRoot2->addChild(l_pGeodeSurface);
+			osg::AutoTransform* at = new osg::AutoTransform;
+			at->setPosition(osg::Vec3(0.0f, 0.0f, 0.0f));
+			at->setAutoRotateMode(osg::AutoTransform::ROTATE_TO_SCREEN);
+			at->addChild(l_pGeodeSurface);
+
+			mOSG->mRoot2->addChild(at);
 		}
 	}
 }
