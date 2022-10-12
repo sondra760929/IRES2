@@ -321,6 +321,22 @@ public:
 	void SaveIceInput();
 	void OnButtonSaveSectionData();
 	float GetEstimatonSpeed(float target_sistance, vector<float>& speed, vector<float>& resistance);
+
+	void ShowAllMap();
+	osg::MatrixTransform* map_center;
+	float offset_x = 0;
+	float offset_y = 0;
+
+	void CheckLand();
+	bool LoadEstimation(CString file_path);
+	bool LoadEstimation2(CString file_path);
+	bool LoadEstimationNodes(CString file_path);
+	vector<int> m_aNodePointX;
+	vector<int> m_aNodePointY;
+	bool m_bRunForInterface;
+	CString HMS_OutputFolder;
+	void OpenFromIRES(CString path_name);
+
 public:
 
 // 재정의입니다.

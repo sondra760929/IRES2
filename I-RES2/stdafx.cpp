@@ -36,6 +36,7 @@ CIRES2View* m_pCurrentView = NULL;
 float UNIT_TO_M = 1.0f;
 float M_TO_UNIT = 1.0f;
 UNIT_MODE m_iCurrentUnitMode = UNIT_M;
+HKEY main_key;
 
 void SetButtons(CMFCButton* btn, UINT img, CString tooltip)
 {

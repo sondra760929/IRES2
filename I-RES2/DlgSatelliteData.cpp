@@ -178,8 +178,26 @@ BOOL CDlgSatelliteData::OnInitDialog()
 	m_wndDataView.SetHScrollMode(UG_SCROLLTRACKING);
 	if (m_iType == 1)
 	{
+		CString value_string;
+		value_string.Format("%g", m_pCurrentView->m_fTargetResistance);
+		GetDlgItem(IDC_EDIT_TARGET)->SetWindowText(value_string);
+		value_string.Format("%g", m_pCurrentView->m_fInitSpeed);
+		GetDlgItem(IDC_EDIT_TARGET2)->SetWindowText(value_string);
+		value_string.Format("%g", m_pCurrentView->m_fMaxSpeed);
+		GetDlgItem(IDC_EDIT_TARGET3)->SetWindowText(value_string);
+		value_string.Format("%g", m_pCurrentView->m_fIncreSpeed);
+		GetDlgItem(IDC_EDIT_TARGET4)->SetWindowText(value_string);
+		value_string.Format("%d", m_pCurrentView->startRow);
+		GetDlgItem(IDC_EDIT_TARGET5)->SetWindowText(value_string);
+		value_string.Format("%d", m_pCurrentView->startCol);
+		GetDlgItem(IDC_EDIT_TARGET6)->SetWindowText(value_string);
+		value_string.Format("%d", m_pCurrentView->goalRow);
+		GetDlgItem(IDC_EDIT_TARGET7)->SetWindowText(value_string);
+		value_string.Format("%d", m_pCurrentView->goalCol);
+		GetDlgItem(IDC_EDIT_TARGET8)->SetWindowText(value_string);
+
 		SetWindowText("Estimation data input");
-		m_wndDataView.SetNumberCols(7);
+		m_wndDataView.SetNumberCols(9);
 		m_wndDataView.QuickSetText(0, -1, "Concentration");
 		m_wndDataView.QuickSetText(1, -1, "Flexural strength");
 		m_wndDataView.QuickSetText(2, -1, "Ice thickness");
@@ -187,6 +205,40 @@ BOOL CDlgSatelliteData::OnInitDialog()
 		m_wndDataView.QuickSetText(4, -1, "Latitude");
 		m_wndDataView.QuickSetText(5, -1, "X");
 		m_wndDataView.QuickSetText(6, -1, "Y");
+		m_wndDataView.QuickSetText(7, -1, "Edge_X");
+		m_wndDataView.QuickSetText(8, -1, "Edge_Y");
+
+		int row_count = m_pCurrentView->m_fConcentration.size();
+		row_count = row_count > m_pCurrentView->m_fLongitude.size() ? row_count : m_pCurrentView->m_fLongitude.size();
+		row_count = row_count > m_pCurrentView->m_fedgeX.size() ? row_count : m_pCurrentView->m_fedgeX.size();
+		m_wndDataView.SetNumberRows(row_count);
+		for (int i = 0; i < m_pCurrentView->m_fConcentration.size(); i++)
+		{
+			value_string.Format("%lf", m_pCurrentView->m_fConcentration[i]);
+			m_wndDataView.QuickSetText(0, i, value_string);
+			value_string.Format("%lf", m_pCurrentView->m_fFlexuralStrength[i]);
+			m_wndDataView.QuickSetText(1, i, value_string);
+			value_string.Format("%lf", m_pCurrentView->m_fIceThickness[i]);
+			m_wndDataView.QuickSetText(2, i, value_string);
+		}
+		for (int i = 0; i < m_pCurrentView->m_fLongitude.size(); i++)
+		{
+			value_string.Format("%lf", m_pCurrentView->m_fLongitude[i]);
+			m_wndDataView.QuickSetText(3, i, value_string);
+			value_string.Format("%lf", m_pCurrentView->m_fLatitude[i]);
+			m_wndDataView.QuickSetText(4, i, value_string);
+			value_string.Format("%lf", m_pCurrentView->m_fX[i]);
+			m_wndDataView.QuickSetText(5, i, value_string);
+			value_string.Format("%lf", m_pCurrentView->m_fY[i]);
+			m_wndDataView.QuickSetText(6, i, value_string);
+		}
+		for (int i = 0; i < m_pCurrentView->m_fedgeX.size(); i++)
+		{
+			value_string.Format("%lf", m_pCurrentView->m_fedgeX[i]);
+			m_wndDataView.QuickSetText(7, i, value_string);
+			value_string.Format("%lf", m_pCurrentView->m_fedgeY[i]);
+			m_wndDataView.QuickSetText(8, i, value_string);
+		}
 	}
 	else
 	{
@@ -195,33 +247,32 @@ BOOL CDlgSatelliteData::OnInitDialog()
 		m_wndDataView.QuickSetText(1, -1, "Flexural strength");
 		m_wndDataView.QuickSetText(2, -1, "Ice thickness");
 		m_wndDataView.QuickSetText(3, -1, "Ship speed");
-	}
 
+		if (m_pCurrentView->m_fConcentration.size() > 0)
+		{
+			int row_count = m_pCurrentView->m_fConcentration.size();
+			m_wndDataView.SetNumberRows(row_count);
+			CString value_string;
+			for (int i = 0; i < row_count; i++)
+			{
+				m_wndDataView.QuickSetNumber(-1, i, i + 1);
+				value_string.Format("%lf", m_pCurrentView->m_fConcentration[i]);
+				m_wndDataView.QuickSetText(0, i, value_string);
+				value_string.Format("%lf", m_pCurrentView->m_fFlexuralStrength[i]);
+				m_wndDataView.QuickSetText(1, i, value_string);
+				value_string.Format("%lf", m_pCurrentView->m_fIceThickness[i]);
+				m_wndDataView.QuickSetText(2, i, value_string);
+				value_string.Format("%lf", m_pCurrentView->m_fShipSpeed[i]);
+				m_wndDataView.QuickSetText(3, i, value_string);
+			}
+		}
+
+		m_wndDataView.BestFit(-1, 3, 0, UG_BESTFIT_TOPHEADINGS);
+	}
 
 	CRect rect;
 	GetClientRect(&rect);
 	SetSize(rect.Width(), rect.Height());
-
-	if (m_pCurrentView->m_fConcentration.size() > 0)
-	{
-		int row_count = m_pCurrentView->m_fConcentration.size();
-		m_wndDataView.SetNumberRows(row_count);
-		CString value_string;
-		for (int i = 0; i < row_count; i++)
-		{
-			m_wndDataView.QuickSetNumber(-1, i, i+1);
-			value_string.Format("%lf", m_pCurrentView->m_fConcentration[i]);
-			m_wndDataView.QuickSetText(0, i, value_string);
-			value_string.Format("%lf", m_pCurrentView->m_fFlexuralStrength[i]);
-			m_wndDataView.QuickSetText(1, i, value_string);
-			value_string.Format("%lf", m_pCurrentView->m_fIceThickness[i]);
-			m_wndDataView.QuickSetText(2, i, value_string);
-			value_string.Format("%lf", m_pCurrentView->m_fShipSpeed[i]);
-			m_wndDataView.QuickSetText(3, i, value_string);
-		}
-	}
-
-	m_wndDataView.BestFit(-1, 3, 0, UG_BESTFIT_TOPHEADINGS);
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 예외: OCX 속성 페이지는 FALSE를 반환해야 합니다.
 }
@@ -452,6 +503,25 @@ void CDlgSatelliteData::OnOK()
 		{
 			m_pCurrentView->m_fExSpeed.resize(max_x + 1, vector< float >(max_y + 1, 0));
 			m_pCurrentView->realMap.resize(max_x + 1, vector< int >(max_y + 1, 0));
+		}
+
+		GetDlgItem(IDC_EDIT_DATA_FILE)->GetWindowText(file_path);
+		CopyFile(file_path, m_strProjectPath + "\\ICE_MAP.inp", FALSE);
+
+		FILE* fp;
+		fopen_s(&fp, m_strProjectPath + "\\ICE_MAP_INPUT.inp", "wt");
+		if (fp)
+		{
+			fprintf_s(fp, "%lf\n", m_pCurrentView->m_fTargetResistance);
+			fprintf_s(fp, "%lf\n", m_pCurrentView->m_fInitSpeed);
+			fprintf_s(fp, "%lf\n", m_pCurrentView->m_fMaxSpeed);
+			fprintf_s(fp, "%lf\n", m_pCurrentView->m_fIncreSpeed);
+			fprintf_s(fp, "%d\n", m_pCurrentView->startRow);
+			fprintf_s(fp, "%d\n", m_pCurrentView->startCol);
+			fprintf_s(fp, "%d\n", m_pCurrentView->goalRow);
+			fprintf_s(fp, "%d\n", m_pCurrentView->goalCol);
+
+			fclose(fp);
 		}
 	}
 	CDialog::OnOK();

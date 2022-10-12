@@ -44,6 +44,7 @@
 #include "PosterPrinter.h"
 #include "DlgCalc.h"
 #include <BRep_Tool.hxx>
+#include <osgUtil/Tessellator>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -387,6 +388,7 @@ CIRES2View::CIRES2View()
 	//m_iWaterLineRot[1] = 0;
 	//m_iWaterLineRot[2] = 0;
 	m_pCurrentView = this;
+	m_bRunForInterface = false;
 }
 
 CIRES2View::~CIRES2View()
@@ -744,6 +746,14 @@ void CIRES2View::OnInitialUpdate()
 	ResizeControl(0, 0);
 
 	OnButtonzoomall();
+
+	SetTimer(2, 1000, NULL);
+
+	//ShowAllMap();
+	//LoadMap();
+
+	CString ires_path = AfxGetApp()->GetProfileString(_T("HMS"), _T("INIT_IRES"));
+	OpenFromIRES(ires_path);
 }
 
 void CIRES2View::RunExecute(CString command_string)
@@ -773,6 +783,94 @@ void CIRES2View::RunExecute(CString command_string)
 	}
 }
 
+void CIRES2View::OpenFromIRES(CString path_name)
+{
+	ClearProject(m_strProjectPath);
+
+	CString document_folder = GetDocumentFolder();
+	m_strProjectPath = GetNewProjectFolder();
+
+	CString command_string;
+	command_string = m_strAppPath + "\\unzip.exe " + path_name + " -d " + m_strProjectPath;
+
+	RunExecute(command_string);
+
+	CString temp_string;
+	temp_string = m_strProjectPath + "\\hull.osg";
+	if (PathFileExists(temp_string))
+	{
+		m_isCreateFolder = true;
+
+		time(&start_time);
+		time(&end_time);
+		double diff_time1 = difftime(end_time, start_time);
+
+		CT2CA pszConvertedAnsiString(temp_string);
+		std::string strStd(pszConvertedAnsiString);
+		osg::Node* geo_node = osgDB::readNodeFile(strStd);
+		if (geo_node)
+		{
+			PreFrameUpdateData pf(osgHull, NULL);
+			m_QRemoveChild.push(pf);
+
+			PreFrameUpdateData pf1(osgHull, geo_node);
+			m_QAddChild.push(pf1);
+
+			ClearSections();
+			m_pMainFrame->m_wndClassView.SetHulllStatus(true);
+			m_pMainFrame->m_wndClassView.SetDraftStatus(true);
+			m_pMainFrame->m_wndClassView.SetCrossStatus(true);
+			m_pMainFrame->m_wndClassView.SetMaterialStatus(true);
+			m_pMainFrame->m_wndClassView.SetConditionStatus(true);
+
+			m_pMainFrame->m_wndClassView1.SetHulllStatus(true);
+			m_pMainFrame->m_wndClassView1.SetDraftStatus(true);
+			m_pMainFrame->m_wndClassView1.SetCrossStatus(true);
+			m_pMainFrame->m_wndClassView1.SetMaterialStatus(true);
+			//m_pMainFrame->m_wndClassView1.SetConditionStatus(true);
+
+			m_pMainFrame->m_wndClassView2.SetHulllStatus(true);
+			m_pMainFrame->m_wndClassView2.SetDraftStatus(true);
+			m_pMainFrame->m_wndClassView2.SetCrossStatus(true);
+			m_pMainFrame->m_wndClassView2.SetMaterialStatus(true);
+			if (LoadEstimation(m_strProjectPath + "\\ICE_MAP.inp"))
+			{
+				if (LoadEstimation2(m_strProjectPath + "\\ICE_MAP_INPUT.inp"))
+				{
+					m_pMainFrame->m_wndClassView2.SetEstimationStatus(true);
+				}
+			}
+			//m_pMainFrame->m_wndClassView2.SetConditionStatus(true);
+
+			m_pMainFrame->m_wndFileView.Clear();
+			m_pMainFrame->m_wndClassView.ClearJobList();
+			m_pMainFrame->m_wndClassView1.ClearJobList();
+			m_pMainFrame->m_wndClassView2.ClearJobList();
+
+			//LoadDatumFile();
+
+			temp_string = m_strProjectPath + "\\JOB";
+			CFileFind file;
+			BOOL b = file.FindFile(temp_string + _T("\\*.*"));		// 모든 확장자를 다 사용.
+		//	CString strMusicFilter = ".MP3.OGG.WMA.WAV";			// 필터링 하고 싶으면 이렇게 쓰면 됨
+			CString strFolderItem, strFileExt, strTempString;
+			while (b)
+			{
+				b = file.FindNextFile();
+				if (file.IsDirectory() && !file.IsDots())			// 디렉토리 발견시 
+				{
+					strFolderItem = file.GetFileTitle();
+					m_pMainFrame->m_wndClassView.AddJobItem(strFolderItem);
+					m_pMainFrame->m_wndFileView.AddItem(strFolderItem);
+				}
+				if (!file.IsDots())									// 파일 탐색 필터 정의에따라 해당 StringList에 추가
+				{
+					if (file.IsDirectory()) continue;				// 폴더만 남는 경우는 넣으면 안됨 
+				}
+			}
+		}
+	}
+}
 void CIRES2View::OnButtonOpen()
 {
 	CFileDialog dlg(TRUE,
@@ -784,84 +882,7 @@ void CIRES2View::OnButtonOpen()
 
 	if (dlg.DoModal() == IDOK)
 	{
-		ClearProject(m_strProjectPath);
-
-		CString document_folder = GetDocumentFolder();
-		m_strProjectPath = GetNewProjectFolder();
-
-		CString command_string;
-		command_string = m_strAppPath + "\\unzip.exe " + dlg.GetPathName() + " -d " + m_strProjectPath;
-		
-		RunExecute(command_string);
-
-		CString temp_string;
-		temp_string = m_strProjectPath + "\\hull.osg";
-		if (PathFileExists(temp_string))
-		{
-			m_isCreateFolder = true;
-
-			time(&start_time);
-			time(&end_time);
-			double diff_time1 = difftime(end_time, start_time);
-
-			CT2CA pszConvertedAnsiString(temp_string);
-			std::string strStd(pszConvertedAnsiString);
-			osg::Node* geo_node = osgDB::readNodeFile(strStd);
-			if (geo_node)
-			{
-				PreFrameUpdateData pf(osgHull, NULL);
-				m_QRemoveChild.push(pf);
-
-				PreFrameUpdateData pf1(osgHull, geo_node);
-				m_QAddChild.push(pf1);
-
-				ClearSections();
-				m_pMainFrame->m_wndClassView.SetHulllStatus(true);
-				m_pMainFrame->m_wndClassView.SetDraftStatus(true);
-				m_pMainFrame->m_wndClassView.SetCrossStatus(true);
-				m_pMainFrame->m_wndClassView.SetMaterialStatus(true);
-				m_pMainFrame->m_wndClassView.SetConditionStatus(true);
-
-				m_pMainFrame->m_wndClassView1.SetHulllStatus(true);
-				m_pMainFrame->m_wndClassView1.SetDraftStatus(true);
-				m_pMainFrame->m_wndClassView1.SetCrossStatus(true);
-				m_pMainFrame->m_wndClassView1.SetMaterialStatus(true);
-				//m_pMainFrame->m_wndClassView1.SetConditionStatus(true);
-
-				m_pMainFrame->m_wndClassView2.SetHulllStatus(true);
-				m_pMainFrame->m_wndClassView2.SetDraftStatus(true);
-				m_pMainFrame->m_wndClassView2.SetCrossStatus(true);
-				m_pMainFrame->m_wndClassView2.SetMaterialStatus(true);
-				//m_pMainFrame->m_wndClassView2.SetConditionStatus(true);
-
-				m_pMainFrame->m_wndFileView.Clear();
-				m_pMainFrame->m_wndClassView.ClearJobList();
-				m_pMainFrame->m_wndClassView1.ClearJobList();
-				m_pMainFrame->m_wndClassView2.ClearJobList();
-
-				//LoadDatumFile();
-
-				temp_string = m_strProjectPath + "\\JOB";
-				CFileFind file;
-				BOOL b = file.FindFile(temp_string + _T("\\*.*"));		// 모든 확장자를 다 사용.
-			//	CString strMusicFilter = ".MP3.OGG.WMA.WAV";			// 필터링 하고 싶으면 이렇게 쓰면 됨
-				CString strFolderItem, strFileExt, strTempString;
-				while (b)
-				{
-					b = file.FindNextFile();
-					if (file.IsDirectory() && !file.IsDots())			// 디렉토리 발견시 
-					{
-						strFolderItem = file.GetFileTitle();
-						m_pMainFrame->m_wndClassView.AddJobItem(strFolderItem);
-						m_pMainFrame->m_wndFileView.AddItem(strFolderItem);
-					}
-					if (!file.IsDots())									// 파일 탐색 필터 정의에따라 해당 StringList에 추가
-					{
-						if (file.IsDirectory()) continue;				// 폴더만 남는 경우는 넣으면 안됨 
-					}
-				}
-			}
-		}
+		OpenFromIRES(dlg.GetPathName());
 	}
 }
 
@@ -3590,349 +3611,428 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 				}
 			}
 
-			vector<vector<Node>> ASNode(m_fExSpeed.size(), vector<Node>(m_fExSpeed[0].size(), Node(0, 0, 0)));
-
-			for (int i = 0; i < maxMapSizeRow; i++)
+			for (int i = 0; i < m_fedgeX.size(); i++)
 			{
-				for (int j = 0; j < maxMapSizeCol; j++)
+				int temp_x = (int)m_fedgeX[i];
+				int temp_y = (int)m_fedgeY[i];
+				if (temp_x >= 0 && temp_x < m_fExSpeed.size())
 				{
-					ASNode[i][j].changeValue(i, j, m_fExSpeed[i][j]);       //.emplace_back(i, j, ex_speed[i][j]);   뒤로 넣는 방식 말고 객체 이용
-																		  // 행, 열의 위치와 속도 대입
+					if (temp_y >= 0 && temp_y < m_fExSpeed[temp_x].size())
+					{
+						realMap[temp_x][temp_y] = 0;
+					}
 				}
 			}
+			CheckLand();
 
-			//ShowMap();
-			//for (int i = 0; i < maxMapSizeRow; i++)
-			//{
-			//	for (int j = 0; j < maxMapSizeCol; j++)
-			//	{
-			//		if (m_fExSpeed[i][j] < 1)
-			//		{
-			//			realMap[i][j] = 0;
-			//		}
-			//		else
-			//		{
-			//			//realMap[i][j] = 1;
-			//		}
-			//	}
-			//	//cout << endl;
-			//}
-			//	new check
-			int center_x = maxMapSizeRow / 2;
-			int center_y = maxMapSizeCol / 2;
-			if (m_fExSpeed[center_x][center_y] > 0)	//	가운데가 바다나 얼음일 경우
-			{				
+			if (m_bRunForInterface)
+			{
+				//	이미지 저장
+				osg::ref_ptr<osg::Image> posterImage = 0;
+				posterImage = new osg::Image;
+				posterImage->allocateImage(maxMapSizeRow, maxMapSizeCol, 1, GL_RGBA, GL_UNSIGNED_BYTE);
+				osg::Vec4 color_path = osg::Vec4(1, 0, 0, 1);
+				osg::Vec4 color_sea = osg::Vec4(109.0 / 255.0, 207.0 / 255.0, 246.0 / 255.0, 1);
+				osg::Vec4 color_ice = osg::Vec4(1, 1, 1, 1);
+				osg::Vec4 color_land = osg::Vec4(254.0 / 255, 238.0 / 255.0, 179.0 / 255.0, 1);
+				for (int i = 0; i < maxMapSizeCol; i++)
+				{
+					for (int j = 0; j < maxMapSizeRow; j++)
+					{
+						if (realMap[j][i] == 1)
+						{
+							posterImage->setColor(color_ice, osg::Vec2((float)j/(float)maxMapSizeRow, (float)i / (float)maxMapSizeCol));
+						}
+						else if (realMap[j][i] == 2)
+						{
+							posterImage->setColor(color_sea, osg::Vec2((float)j / (float)maxMapSizeRow, (float)i / (float)maxMapSizeCol));
+						}
+						else
+						{
+							posterImage->setColor(color_land, osg::Vec2((float)j / (float)maxMapSizeRow, (float)i / (float)maxMapSizeCol));
+						}
+					}
+				}
+				char save_file[512];
+				sprintf_s(save_file, "%s\\output.bmp", HMS_OutputFolder);
+				osgDB::writeImageFile(*posterImage, save_file);
+				AfxGetApp()->WriteProfileString(_T("HMS"), _T("OUTPUT_BMP"), save_file);
+			}
+
+
+			int start_row = startRow;
+			int start_col = startCol;
+			int goal_row = goalRow;
+			int goal_col = goalCol;
+			int interface_loop = 1;
+			if (m_bRunForInterface && m_aNodePointX.size() > 1)
+			{
+				interface_loop = m_aNodePointX.size() - 1;
+				start_row = m_aNodePointX[0];
+				start_col = m_aNodePointY[0];
+				goal_row = m_aNodePointX[1];
+				goal_col = m_aNodePointY[1];
+			}
+
+			vector< vector< int > > nodes_rows;
+			vector< vector< int > > nodes_cols;
+
+			for (int interface_index = 0; interface_index < interface_loop; interface_index++)
+			{
+				vector<vector<Node>> ASNode(m_fExSpeed.size(), vector<Node>(m_fExSpeed[0].size(), Node(0, 0, 0)));
 				for (int i = 0; i < maxMapSizeRow; i++)
 				{
-					CheckLand(i, center_y);
-				}
-			}
-
-			vector<vector<int>> PassList(maxMapSizeRow, vector<int>(maxMapSizeCol, 0));			// 이동 가능한 지점 모음
-			vector<vector<int>> DecisionList(maxMapSizeRow, vector<int>(maxMapSizeCol, 0));		// 이동 가능한 지점 중 선택된 지점 모음
-
-			for (int i = 0; i < maxMapSizeRow; i++)
-			{
-				for (int j = 0; j < maxMapSizeCol; j++)
-				{
-					if (i == startRow && j == startCol)
+					for (int j = 0; j < maxMapSizeCol; j++)
 					{
-						DecisionList[startRow][startCol] = 2;		// DecisionList 이동 가능한 지점에 1 설정
-					}												// DecisionList 시작 지점에 2 설정
-					else if (realMap[i][j] >= 1)
-					{
-						DecisionList[i][j] = 1;
+						ASNode[i][j].changeValue(i, j, m_fExSpeed[i][j]);       //.emplace_back(i, j, ex_speed[i][j]);   뒤로 넣는 방식 말고 객체 이용
+																			  // 행, 열의 위치와 속도 대입
 					}
 				}
-			}
+				vector<vector<int>> PassList(maxMapSizeRow, vector<int>(maxMapSizeCol, 0));			// 이동 가능한 지점 모음
+				vector<vector<int>> DecisionList(maxMapSizeRow, vector<int>(maxMapSizeCol, 0));		// 이동 가능한 지점 중 선택된 지점 모음
 
-			for (int i = 0; i < maxMapSizeRow; i++)
-			{
-				for (int j = 0; j < maxMapSizeCol; j++)
+				for (int i = 0; i < maxMapSizeRow; i++)
 				{
-					if (i == startRow && j == startCol)
+					for (int j = 0; j < maxMapSizeCol; j++)
 					{
-						PassList[startRow][startCol] = 2;			// PassList 이동 가능한 지점에 1 설정
-					}												// PassList 시작 지점에 2 설정
-					else if (realMap[i][j] >= 1)
-					{
-						PassList[i][j] = 1;
-					}
-				}
-			}
-
-			ASNode[startRow][startCol].h = 20 * (abs(goalRow - startRow) + abs(goalCol - startCol)) / (3 * 0.5144);
-			ASNode[startRow][startCol].f = ASNode[startRow][startCol].g + ASNode[startRow][startCol].h;
-
-			// 여기서부터 시작점
-
-			// *it을 사용하면 어떤 값을 찾았는지 알 수 있음
-			int num = 2;
-			int itRowInd = 0;			// 출발 지점 행
-			int itColInd = 0;			// 출발 지점 열
-			vector< int > path_rows;
-			vector< int > path_cols;
-
-			while (itRowInd != goalRow || itColInd != goalCol)
-			{
-				for (int i = 0; i < maxMapSizeRow; i++)				// 시작점(DecisionList 2값 설정한 위치)의 행 열 찾기
-				{
-					auto it = find(DecisionList[i].begin(), DecisionList[i].end(), num);
-					if (it != DecisionList[i].end())
-					{
-						itRowInd = i;
-						itColInd = distance(DecisionList[i].begin(), it);
-					}
-				}
-
-				path_rows.push_back(itRowInd);
-				path_cols.push_back(itColInd);
-
-				if (itRowInd == goalRow && itColInd == goalCol)		// 도착하면 끝내기
-				{
-					fopen_s(&fp, m_strProjectPath + "\\satellite_to_map.out", "wt");
-					if (fp)
-					{
-						fprintf_s(fp, "Estimated arrive time [s] = %.6lf s\n", 2500.0 * ASNode[goalRow][goalCol].f);
-						fprintf_s(fp, "Estimated arrive time [h] = %.6lf h\n", 2500.0 * ASNode[goalRow][goalCol].f / 3600.0);
-						fprintf_s(fp, "Estimated arrive time [day] = %.6lf day\n", 2500.0 * ASNode[goalRow][goalCol].f / (3600.0 * 24.0));
-						fprintf_s(fp, "Rows %d, Columns %d\n", maxMapSizeCol, maxMapSizeRow);
-						for (int i = 0; i < maxMapSizeCol; i++)
+						if (i == start_row && j == start_col)
 						{
-							for (int j = 0; j < maxMapSizeRow; j++)
+							DecisionList[start_row][start_col] = 2;		// DecisionList 이동 가능한 지점에 1 설정
+						}												// DecisionList 시작 지점에 2 설정
+						else if (realMap[i][j] >= 1)
+						{
+							DecisionList[i][j] = 1;
+						}
+					}
+				}
+
+				for (int i = 0; i < maxMapSizeRow; i++)
+				{
+					for (int j = 0; j < maxMapSizeCol; j++)
+					{
+						if (i == start_row && j == start_col)
+						{
+							PassList[start_row][start_col] = 2;			// PassList 이동 가능한 지점에 1 설정
+						}												// PassList 시작 지점에 2 설정
+						else if (realMap[i][j] >= 1)
+						{
+							PassList[i][j] = 1;
+						}
+					}
+				}
+
+				ASNode[start_row][start_col].h = 20 * (abs(goal_row - start_row) + abs(goal_col - start_col)) / (3 * 0.5144);
+				ASNode[start_row][start_col].f = ASNode[start_row][start_col].g + ASNode[start_row][start_col].h;
+
+				// 여기서부터 시작점
+
+				// *it을 사용하면 어떤 값을 찾았는지 알 수 있음
+				int num = 2;
+				int itRowInd = 0;			// 출발 지점 행
+				int itColInd = 0;			// 출발 지점 열
+				vector< int > path_rows;
+				vector< int > path_cols;
+
+				while (itRowInd != goal_row || itColInd != goal_col)
+				{
+					for (int i = 0; i < maxMapSizeRow; i++)				// 시작점(DecisionList 2값 설정한 위치)의 행 열 찾기
+					{
+						auto it = find(DecisionList[i].begin(), DecisionList[i].end(), num);
+						if (it != DecisionList[i].end())
+						{
+							itRowInd = i;
+							itColInd = distance(DecisionList[i].begin(), it);
+						}
+					}
+
+					path_rows.push_back(itRowInd);
+					path_cols.push_back(itColInd);
+
+					if (itRowInd == goal_row && itColInd == goal_col)		// 도착하면 끝내기
+					{
+						if (m_bRunForInterface)
+						{
+							//	경로 저장
+							nodes_rows.push_back(path_rows);
+							nodes_cols.push_back(path_cols);
+						}
+						else
+						{
+							fopen_s(&fp, m_strProjectPath + "\\satellite_to_map.out", "wt");
+							if (fp)
 							{
-								if (DecisionList[j][i] > 1)
+								fprintf_s(fp, "Estimated arrive time [s] = %.6lf s\n", 2500.0 * ASNode[goal_row][goal_col].f);
+								fprintf_s(fp, "Estimated arrive time [h] = %.6lf h\n", 2500.0 * ASNode[goal_row][goal_col].f / 3600.0);
+								fprintf_s(fp, "Estimated arrive time [day] = %.6lf day\n", 2500.0 * ASNode[goal_row][goal_col].f / (3600.0 * 24.0));
+								fprintf_s(fp, "Rows %d, Columns %d\n", maxMapSizeCol, maxMapSizeRow);
+								for (int i = 0; i < maxMapSizeCol; i++)
 								{
-									fprintf_s(fp, "*  ");	//	이동 경로 2
+									for (int j = 0; j < maxMapSizeRow; j++)
+									{
+										if (DecisionList[j][i] > 1)
+										{
+											fprintf_s(fp, "*  ");	//	이동 경로 2
+										}
+										else
+										{
+											if (DecisionList[j][i] == 1)
+											{
+												fprintf_s(fp, "%d  ", realMap[j][i]);	//	갈 수 있는 곳 : 물, 얼음
+											}
+											else
+											{
+												fprintf_s(fp, "%d  ", DecisionList[j][i]);	//	못가는 곳 0
+											}
+										}
+									}
+									fprintf_s(fp, "\n");
 								}
-								else
+
+								for (int i = 1; i < path_rows.size(); i++)
 								{
-									if (DecisionList[j][i] == 1)
-									{
-										fprintf_s(fp, "%d  ", realMap[j][i]);	//	갈 수 있는 곳 : 물, 얼음
-									}
-									else
-									{
-										fprintf_s(fp, "%d  ", DecisionList[j][i]);	//	못가는 곳 0
-									}
+									fprintf_s(fp, "%d, %d -> %d, %d(%.6lf h)\n", path_rows[i - 1], path_cols[i - 1], path_rows[i], path_cols[i], 2500.0 * ASNode[path_rows[i]][path_cols[i]].f / 3600.0);
 								}
+
+								fclose(fp);
 							}
-							fprintf_s(fp, "\n");
 						}
+						break;
+					}
 
-						for (int i = 1; i < path_rows.size(); i++)
+					// PassList 값 설정			각 위치마다 존재하는지 확인 후, realMap에서 지나갈 수 있는 길일 때 PassList에 값 넣기	
+
+					int PassNumber = 0;			// 이동 가능한 지점의 개수 파악 
+
+					if (itRowInd - 1 >= 0 && itColInd - 1 >= 0)					// 북동
+					{
+						if (PassList[itRowInd - 1][itColInd - 1] == 1 || PassList[itRowInd - 1][itColInd - 1] == num + 1)
 						{
-							fprintf_s(fp, "%d, %d -> %d, %d(%.6lf h)\n", path_rows[i-1], path_cols[i-1], path_rows[i], path_cols[i], 2500.0 * ASNode[path_rows[i]][path_cols[i]].f / 3600.0);
+							PassList[itRowInd - 1][itColInd - 1] = num + 1;
+							PassNumber += 1;
 						}
-
-						fclose(fp);
 					}
-					break;
-				}
-
-				// PassList 값 설정			각 위치마다 존재하는지 확인 후, realMap에서 지나갈 수 있는 길일 때 PassList에 값 넣기	
-
-				int PassNumber = 0;			// 이동 가능한 지점의 개수 파악 
-
-				if (itRowInd - 1 >= 0 && itColInd - 1 >= 0)					// 북동
-				{
-					if (PassList[itRowInd - 1][itColInd - 1] == 1 || PassList[itRowInd - 1][itColInd - 1] == num + 1)
+					if (itRowInd - 1 >= 0)										// 북
 					{
-						PassList[itRowInd - 1][itColInd - 1] = num + 1;
-						PassNumber += 1;
-					}
-				}
-				if (itRowInd - 1 >= 0)										// 북
-				{
-					if (PassList[itRowInd - 1][itColInd] == 1 || PassList[itRowInd - 1][itColInd] == num + 1)
-					{
-						PassList[itRowInd - 1][itColInd] = num + 1;
-						PassNumber += 1;
-					}
-				}
-				if (itRowInd - 1 >= 0 && itColInd + 1 < maxMapSizeCol)		// 북서
-				{
-					if (PassList[itRowInd - 1][itColInd + 1] == 1 || PassList[itRowInd - 1][itColInd + 1] == num + 1)
-					{
-						PassList[itRowInd - 1][itColInd + 1] = num + 1;
-						PassNumber += 1;
-					}
-				}
-				if (itColInd - 1 >= 0)										// 동
-				{
-					if (PassList[itRowInd][itColInd - 1] == 1 || PassList[itRowInd][itColInd - 1] == num + 1)
-					{
-						PassList[itRowInd][itColInd - 1] = num + 1;
-						PassNumber += 1;
-					}
-				}
-				if (itColInd + 1 < maxMapSizeCol)							// 서
-				{
-					if (PassList[itRowInd][itColInd + 1] == 1 || PassList[itRowInd][itColInd + 1] == num + 1)
-					{
-						PassList[itRowInd][itColInd + 1] = num + 1;
-						PassNumber += 1;
-					}
-				}
-				if (itRowInd + 1 < maxMapSizeRow && itColInd - 1 >= 0)		// 남동
-				{
-					if (PassList[itRowInd + 1][itColInd - 1] == 1 || PassList[itRowInd + 1][itColInd - 1] == num + 1)
-					{
-						PassList[itRowInd + 1][itColInd - 1] = num + 1;
-						PassNumber += 1;
-					}
-				}
-				if (itRowInd + 1 < maxMapSizeRow)							// 남
-				{
-					if (PassList[itRowInd + 1][itColInd] == 1 || PassList[itRowInd + 1][itColInd] == num + 1)
-					{
-						PassList[itRowInd + 1][itColInd] = num + 1;
-						PassNumber += 1;
-					}
-				}
-				if (itRowInd + 1 < maxMapSizeRow && itColInd + 1 < maxMapSizeCol)		// 남서
-				{
-					if (PassList[itRowInd + 1][itColInd + 1] == 1 || PassList[itRowInd + 1][itColInd + 1] == num + 1)
-					{
-						PassList[itRowInd + 1][itColInd + 1] = num + 1;
-						PassNumber += 1;
-					}
-				}
-
-				// 길이 없을 때
-				if (PassNumber == 0)
-				{
-					PassList[itRowInd][itColInd] = 0;
-					DecisionList[itRowInd][itColInd] = 0;
-					num -= 1;
-					continue;
-				}
-
-
-				int RowCoord = 0;		// 변수들의 행 좌표 (출발점 행열 아님 주의)
-				int ColCoord = 0;		// 변수들의 열 좌표 (출발점 행열 아님 주의)
-
-				int minRowCoord = 0;	// f 최소인 지점의 행
-				int minColCoord = 0;	// f 최소인 지점의 열
-				double minfvalue = 0;   // f 최소인 지점의 f 값
-
-				for (int i = 0; i < maxMapSizeRow; i++)
-				{
-					auto it2 = find(PassList[i].begin(), PassList[i].end(), num + 1);
-					while (it2 != PassList[i].end())
-					{
-						RowCoord = i;
-						ColCoord = distance(PassList[i].begin(), it2);
-
-						// g h f 값 구하기
-						// g 값
-						if (abs(RowCoord - itRowInd) + abs(ColCoord - itColInd) == 1)
+						if (PassList[itRowInd - 1][itColInd] == 1 || PassList[itRowInd - 1][itColInd] == num + 1)
 						{
-							ASNode[RowCoord][ColCoord].g = (10 / (ASNode[itRowInd][itColInd].speed * 0.5144))
-								+ (10 / (ASNode[RowCoord][ColCoord].speed * 0.5144)) + ASNode[itRowInd][itColInd].g;
+							PassList[itRowInd - 1][itColInd] = num + 1;
+							PassNumber += 1;
 						}
-						else if (abs(RowCoord - itRowInd) + abs(ColCoord - itColInd) == 2)
-						{
-							ASNode[RowCoord][ColCoord].g = (10 * sqrt(2) / (ASNode[itRowInd][itColInd].speed * 0.5144))
-								+ (10 * sqrt(2) / (ASNode[RowCoord][ColCoord].speed * 0.5144)) + ASNode[itRowInd][itColInd].g;
-						}
-
-						/*
-						// h 값	유클리안
-						ASNode[RowCoord][ColCoord].h = 20 * sqrt((goalRow - RowCoord) * (goalRow - RowCoord) + (goalRow - RowCoord) * (goalRow - RowCoord))
-							/ (ASNode[itRowInd][itColInd].speed * 0.5144);
-						//ASNode[RowCoord][ColCoord].h = 20 * (abs(goalRow - RowCoord) + abs(goalCol - ColCoord)) / (3 * 0.5144);
-						*/
-
-						// h 값 맨하튼
-
-						ASNode[RowCoord][ColCoord].h = 20 * (abs(goalRow - RowCoord) + abs(goalCol - ColCoord)) / (ASNode[itRowInd][itColInd].speed * 0.5144);
-						//ASNode[RowCoord][ColCoord].h = 20 * (abs(goalRow - RowCoord) + abs(goalCol - ColCoord)) / (3 * 0.5144);
-
-
-						// f 값
-						ASNode[RowCoord][ColCoord].f = ASNode[RowCoord][ColCoord].g + ASNode[RowCoord][ColCoord].h;
-
-						// PassList 중에서 f가 최소인 지점 찾기
-						if (minfvalue == 0)
-						{
-							minRowCoord = RowCoord;
-							minColCoord = ColCoord;
-							minfvalue = ASNode[RowCoord][ColCoord].f;
-						}
-						else if (ASNode[RowCoord][ColCoord].f < minfvalue)
-						{
-							minRowCoord = RowCoord;
-							minColCoord = ColCoord;
-							minfvalue = ASNode[RowCoord][ColCoord].f;
-						}
-						// f값이 동일할 때 뭐를 택할지 추가
-						else if (ASNode[RowCoord][ColCoord].f = minfvalue &&
-							((RowCoord - goalRow) * (RowCoord - goalRow) + (ColCoord - goalCol) * (ColCoord - goalCol)) <
-							((minRowCoord - goalRow) * (minRowCoord - goalRow) + (minColCoord - goalCol) * (minColCoord - goalCol)))
-						{
-							minRowCoord = RowCoord;
-							minColCoord = ColCoord;
-							minfvalue = ASNode[RowCoord][ColCoord].f;
-						}
-
-						//cout << RowCoord << " " << ColCoord << endl;		//값 찾기
-						it2 = find(it2 + 1, PassList[i].end(), num + 1);
 					}
-				}
-
-				DecisionList[minRowCoord][minColCoord] = num + 1;		// DecisionList에 최소 f값 지점 설정
-
-
-				///////////////////////////////////////////////////////////////////////////////////////////////
-				// f, g, h 값 확인
-				/*
-				cout << "\n" << "f, g, h 값 확인" << "\n";
-				for (int i = 0; i < maxMapSizeRow; i++)
-				{
-					for (int j = 0; j < maxMapSizeCol; j++)
+					if (itRowInd - 1 >= 0 && itColInd + 1 < maxMapSizeCol)		// 북서
 					{
-						cout << "| " << ASNode[i][j].f << ", (" << ASNode[i][j].row << ", " << ASNode[i][j].col << ") ";
+						if (PassList[itRowInd - 1][itColInd + 1] == 1 || PassList[itRowInd - 1][itColInd + 1] == num + 1)
+						{
+							PassList[itRowInd - 1][itColInd + 1] = num + 1;
+							PassNumber += 1;
+						}
 					}
-					cout << "|" << endl;
-					for (int j = 0; j < maxMapSizeCol; j++)
+					if (itColInd - 1 >= 0)										// 동
 					{
-						cout << "| " << ASNode[i][j].g << ",  " << ASNode[i][j].h << " ";
+						if (PassList[itRowInd][itColInd - 1] == 1 || PassList[itRowInd][itColInd - 1] == num + 1)
+						{
+							PassList[itRowInd][itColInd - 1] = num + 1;
+							PassNumber += 1;
+						}
 					}
-					cout << "|" << endl << endl;
-				}
-				*/
-
-				/*
-				// DecisionList check
-				cout << "DecisionList 값 확인 \n";
-				for (int i = 0; i < maxMapSizeRow; i++)
-				{
-					for (int j = 0; j < maxMapSizeCol; j++)
+					if (itColInd + 1 < maxMapSizeCol)							// 서
 					{
-						cout << DecisionList[i][j] << "  ";
+						if (PassList[itRowInd][itColInd + 1] == 1 || PassList[itRowInd][itColInd + 1] == num + 1)
+						{
+							PassList[itRowInd][itColInd + 1] = num + 1;
+							PassNumber += 1;
+						}
+					}
+					if (itRowInd + 1 < maxMapSizeRow && itColInd - 1 >= 0)		// 남동
+					{
+						if (PassList[itRowInd + 1][itColInd - 1] == 1 || PassList[itRowInd + 1][itColInd - 1] == num + 1)
+						{
+							PassList[itRowInd + 1][itColInd - 1] = num + 1;
+							PassNumber += 1;
+						}
+					}
+					if (itRowInd + 1 < maxMapSizeRow)							// 남
+					{
+						if (PassList[itRowInd + 1][itColInd] == 1 || PassList[itRowInd + 1][itColInd] == num + 1)
+						{
+							PassList[itRowInd + 1][itColInd] = num + 1;
+							PassNumber += 1;
+						}
+					}
+					if (itRowInd + 1 < maxMapSizeRow && itColInd + 1 < maxMapSizeCol)		// 남서
+					{
+						if (PassList[itRowInd + 1][itColInd + 1] == 1 || PassList[itRowInd + 1][itColInd + 1] == num + 1)
+						{
+							PassList[itRowInd + 1][itColInd + 1] = num + 1;
+							PassNumber += 1;
+						}
+					}
+
+					// 길이 없을 때
+					if (PassNumber == 0)
+					{
+						PassList[itRowInd][itColInd] = 0;
+						DecisionList[itRowInd][itColInd] = 0;
+						num -= 1;
+						continue;
+					}
+
+
+					int RowCoord = 0;		// 변수들의 행 좌표 (출발점 행열 아님 주의)
+					int ColCoord = 0;		// 변수들의 열 좌표 (출발점 행열 아님 주의)
+
+					int minRowCoord = 0;	// f 최소인 지점의 행
+					int minColCoord = 0;	// f 최소인 지점의 열
+					double minfvalue = 0;   // f 최소인 지점의 f 값
+
+					for (int i = 0; i < maxMapSizeRow; i++)
+					{
+						auto it2 = find(PassList[i].begin(), PassList[i].end(), num + 1);
+						while (it2 != PassList[i].end())
+						{
+							RowCoord = i;
+							ColCoord = distance(PassList[i].begin(), it2);
+
+							// g h f 값 구하기
+							// g 값
+							if (abs(RowCoord - itRowInd) + abs(ColCoord - itColInd) == 1)
+							{
+								ASNode[RowCoord][ColCoord].g = (10 / (ASNode[itRowInd][itColInd].speed * 0.5144))
+									+ (10 / (ASNode[RowCoord][ColCoord].speed * 0.5144)) + ASNode[itRowInd][itColInd].g;
+							}
+							else if (abs(RowCoord - itRowInd) + abs(ColCoord - itColInd) == 2)
+							{
+								ASNode[RowCoord][ColCoord].g = (10 * sqrt(2) / (ASNode[itRowInd][itColInd].speed * 0.5144))
+									+ (10 * sqrt(2) / (ASNode[RowCoord][ColCoord].speed * 0.5144)) + ASNode[itRowInd][itColInd].g;
+							}
+
+							/*
+							// h 값	유클리안
+							ASNode[RowCoord][ColCoord].h = 20 * sqrt((goalRow - RowCoord) * (goalRow - RowCoord) + (goalRow - RowCoord) * (goalRow - RowCoord))
+								/ (ASNode[itRowInd][itColInd].speed * 0.5144);
+							//ASNode[RowCoord][ColCoord].h = 20 * (abs(goalRow - RowCoord) + abs(goalCol - ColCoord)) / (3 * 0.5144);
+							*/
+
+							// h 값 맨하튼
+
+							ASNode[RowCoord][ColCoord].h = 20 * (abs(goal_row - RowCoord) + abs(goal_col - ColCoord)) / (ASNode[itRowInd][itColInd].speed * 0.5144);
+							//ASNode[RowCoord][ColCoord].h = 20 * (abs(goalRow - RowCoord) + abs(goalCol - ColCoord)) / (3 * 0.5144);
+
+
+							// f 값
+							ASNode[RowCoord][ColCoord].f = ASNode[RowCoord][ColCoord].g + ASNode[RowCoord][ColCoord].h;
+
+							// PassList 중에서 f가 최소인 지점 찾기
+							if (minfvalue == 0)
+							{
+								minRowCoord = RowCoord;
+								minColCoord = ColCoord;
+								minfvalue = ASNode[RowCoord][ColCoord].f;
+							}
+							else if (ASNode[RowCoord][ColCoord].f < minfvalue)
+							{
+								minRowCoord = RowCoord;
+								minColCoord = ColCoord;
+								minfvalue = ASNode[RowCoord][ColCoord].f;
+							}
+							// f값이 동일할 때 뭐를 택할지 추가
+							else if (ASNode[RowCoord][ColCoord].f = minfvalue &&
+								((RowCoord - goal_row) * (RowCoord - goal_row) + (ColCoord - goal_col) * (ColCoord - goal_col)) <
+								((minRowCoord - goal_row) * (minRowCoord - goal_row) + (minColCoord - goal_col) * (minColCoord - goal_col)))
+							{
+								minRowCoord = RowCoord;
+								minColCoord = ColCoord;
+								minfvalue = ASNode[RowCoord][ColCoord].f;
+							}
+
+							//cout << RowCoord << " " << ColCoord << endl;		//값 찾기
+							it2 = find(it2 + 1, PassList[i].end(), num + 1);
+						}
+					}
+
+					DecisionList[minRowCoord][minColCoord] = num + 1;		// DecisionList에 최소 f값 지점 설정
+
+
+					///////////////////////////////////////////////////////////////////////////////////////////////
+					// f, g, h 값 확인
+					/*
+					cout << "\n" << "f, g, h 값 확인" << "\n";
+					for (int i = 0; i < maxMapSizeRow; i++)
+					{
+						for (int j = 0; j < maxMapSizeCol; j++)
+						{
+							cout << "| " << ASNode[i][j].f << ", (" << ASNode[i][j].row << ", " << ASNode[i][j].col << ") ";
+						}
+						cout << "|" << endl;
+						for (int j = 0; j < maxMapSizeCol; j++)
+						{
+							cout << "| " << ASNode[i][j].g << ",  " << ASNode[i][j].h << " ";
+						}
+						cout << "|" << endl << endl;
+					}
+					*/
+
+					/*
+					// DecisionList check
+					cout << "DecisionList 값 확인 \n";
+					for (int i = 0; i < maxMapSizeRow; i++)
+					{
+						for (int j = 0; j < maxMapSizeCol; j++)
+						{
+							cout << DecisionList[i][j] << "  ";
+						}
+						cout << endl;
 					}
 					cout << endl;
-				}
-				cout << endl;
 
 
 
-				cout << "PassList 값 확인 \n";
-				// PassList check
-				for (int i = 0; i < maxMapSizeRow; i++)
-				{
-					for (int j = 0; j < maxMapSizeCol; j++)
+					cout << "PassList 값 확인 \n";
+					// PassList check
+					for (int i = 0; i < maxMapSizeRow; i++)
 					{
-						cout << PassList[i][j] << "  ";
+						for (int j = 0; j < maxMapSizeCol; j++)
+						{
+							cout << PassList[i][j] << "  ";
+						}
+						cout << endl;
 					}
-					cout << endl;
+					*/
+					//////////////////////////////////////////////////////////////////////////////////////
+
+					num += 1;
+
 				}
-				*/
-				//////////////////////////////////////////////////////////////////////////////////////
 
-				num += 1;
+				if (m_bRunForInterface)
+				{
+					start_row = m_aNodePointX[interface_index + 1];
+					start_col = m_aNodePointY[interface_index + 1];
+					goal_row = m_aNodePointX[interface_index + 2];
+					goal_col = m_aNodePointY[interface_index + 2];
+				}
+			}
 
+			if (m_bRunForInterface)
+			{
+				//	경로 저장
+				char save_file[512];
+				sprintf_s(save_file, "%s\\path.txt", HMS_OutputFolder);
+				FILE* fp_path;
+				fopen_s(&fp_path, save_file, "wt");
+				if (fp_path)
+				{
+					for (int i = 0; i < nodes_rows.size(); i++)
+					{
+						fprintf_s(fp_path, "%d\n", nodes_rows[i].size());
+						for (int j = 0; j < nodes_rows[i].size(); j++)
+						{
+							fprintf_s(fp_path, "%d,%d\n", nodes_rows[i][j], nodes_cols[i][j]);
+						}
+					}
+					fclose(fp_path);
+					AfxGetApp()->WriteProfileString(_T("HMS"), _T("OUTPUT_NODES"), save_file);
+				}
 			}
 		}
 	}
@@ -5500,6 +5600,38 @@ void CIRES2View::OnTimer(UINT_PTR nIDEvent)
 
 		KillTimer(1);
 	}
+	else if (nIDEvent == 2)
+	{
+		int nValue;
+		nValue = AfxGetApp()->GetProfileInt(_T("HMS"), _T("Update"), 0);
+		if (nValue == 1)
+		{
+			AfxGetApp()->WriteProfileInt(_T("HMS"), _T("Update"), 0);
+
+			CString strFilePath;
+			strFilePath = AfxGetApp()->GetProfileString(_T("HMS"), _T("ICE_INFO"));
+			if (PathFileExists(strFilePath))
+			{
+				if (LoadEstimation(strFilePath))
+				{
+					strFilePath = AfxGetApp()->GetProfileString(_T("HMS"), _T("NODE_INFO"));
+					HMS_OutputFolder = AfxGetApp()->GetProfileString(_T("HMS"), _T("OUTPUT_Folder"));
+					if (LoadEstimationNodes(strFilePath))
+					{
+						m_bRunForInterface = true;
+						CalculateOutputResult(2);
+						m_bRunForInterface = false;
+
+						AfxGetApp()->WriteProfileInt(_T("HMS"), _T("Update"), 2);
+					}
+				}
+			}
+			else
+			{
+				AfxGetApp()->WriteProfileString(_T("HMS"), _T("Error"), _T("-"));
+			}
+		}
+	}
 
 	CView::OnTimer(nIDEvent);
 }
@@ -6697,6 +6829,340 @@ void CIRES2View::HideMap()
 	}
 }
 
+void CIRES2View::ShowAllMap()
+{
+	map_center = new osg::MatrixTransform();
+
+	if (PathFileExists("d://output.txt"))
+	{
+		FILE* fp;
+		fopen_s(&fp, "d://output.txt", "rt");
+		if (fp)
+		{
+			COptImportExportBase ifp;
+			ifp.m_fp_input = fp;
+			ifp.m_array_strSplit.push_back(' ');
+			ifp.m_array_strSplit.push_back(',');
+			ifp.m_array_strSplit.push_back('(');
+			ifp.m_array_strSplit.push_back(')');
+			BeginProgress();
+			m_iStatus = 0;
+			m_iTotal = 179837;
+			osg::ref_ptr<osg::Geode> l_pGeodeSurface = new osg::Geode;
+			osg::ref_ptr<osg::Vec3Array> map_normal = new osg::Vec3Array;
+			map_normal->push_back(osg::Vec3(0, 0, 1));
+			osg::Vec4 color_path = osg::Vec4(1, 0, 0, 1);
+			osg::Vec4 color_sea = osg::Vec4(109.0 / 255.0, 207.0 / 255.0, 246.0 / 255.0, 1);
+			osg::Vec4 color_ice = osg::Vec4(1, 1, 1, 1);
+			osg::Vec4 color_land = osg::Vec4(254.0 / 255, 238.0 / 255.0, 179.0 / 255.0, 1);
+
+			osg::ref_ptr<osg::Vec4Array> map_color = new osg::Vec4Array;
+			osg::ref_ptr<osg::Vec4Array> map_color1 = new osg::Vec4Array;
+			osg::ref_ptr<osg::Vec4Array> map_color2 = new osg::Vec4Array;
+			map_color->push_back(color_ice);
+			map_color1->push_back(color_land);
+			map_color2->push_back(color_path);
+			float minx = 0;
+			float miny = 0;
+			float maxx = 0;
+			float maxy = 0;
+
+			int temp_count = ifp.ReadOneLineFromFile();
+			while (temp_count > 0)
+			{
+				osg::ref_ptr<osg::Vec3Array> l_pvOriginalPoints = new osg::Vec3Array;
+
+				int pt_count = atoi(ifp.m_array_strOutput[0]);
+				for (int i = 0; i < pt_count; i++)
+				{
+					int temp_count = ifp.ReadOneLineFromFile();
+					if (temp_count > 1)
+					{
+						float x = atof(ifp.m_array_strOutput[0]);// *25000.0f - 3063000.0f;
+						float y = atof(ifp.m_array_strOutput[1]);// *25000.0f - 3112000.0f;
+
+						l_pvOriginalPoints->push_back(osg::Vec3(x, y, 0));
+
+						maxx = (maxx < x) ? x : maxx;
+						maxy = (maxy < y) ? y : maxy;
+						minx = (minx > x) ? x : minx;
+						miny = (miny > y) ? y : miny;
+					}
+				}
+
+				//osg::ref_ptr<osg::Geometry> l_pGeometrySurface = new osg::Geometry;
+				//l_pGeometrySurface->setVertexArray(l_pvOriginalPoints);
+				//l_pGeometrySurface->setColorArray(map_color);
+				//l_pGeometrySurface->setColorBinding(osg::Geometry::BIND_OVERALL);
+				//l_pGeometrySurface->setNormalArray(map_normal);
+				//l_pGeometrySurface->setNormalBinding(osg::Geometry::BIND_OVERALL);
+				//l_pGeometrySurface->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POLYGON, 0, l_pvOriginalPoints->size()));
+				////l_pGeometrySurface->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 4, 4));
+
+				//osgUtil::Tessellator tessellator;
+				//tessellator.setTessellationType(osgUtil::Tessellator::TESS_TYPE_GEOMETRY);
+				//tessellator.setWindingType(osgUtil::Tessellator::TESS_WINDING_NONZERO);
+				//tessellator.retessellatePolygons(*l_pGeometrySurface);
+
+				//l_pGeodeSurface->addDrawable(l_pGeometrySurface);
+
+				osg::ref_ptr<osg::Geometry> l_pGeometryBorder = new osg::Geometry;
+				l_pGeometryBorder->setVertexArray(l_pvOriginalPoints);
+				l_pGeometryBorder->setColorArray(map_color1);
+				l_pGeometryBorder->setColorBinding(osg::Geometry::BIND_OVERALL);
+				l_pGeometryBorder->addPrimitiveSet(new osg::DrawArrays(GL_LINE_LOOP, 0, l_pvOriginalPoints->size()));
+				//l_pGeometryBorder->addPrimitiveSet(new osg::DrawArrays(GL_LINE_LOOP, 4, 4));
+				l_pGeometryBorder->getOrCreateStateSet()->setAttribute(new osg::LineWidth(5.0f));
+
+				l_pGeodeSurface->addDrawable(l_pGeometryBorder);
+
+				m_iStatus++;
+				UpdateProgress();
+				temp_count = ifp.ReadOneLineFromFile();
+			}
+
+			osg::ref_ptr<osg::Vec3Array> l_pvOriginalPoints = new osg::Vec3Array;
+			osg::ref_ptr<osg::Geometry> l_pGeometryBorder = new osg::Geometry;
+			int i_minx = (int)minx;
+			int i_maxx = (int)maxx;
+			int i_miny = (int)miny;
+			int i_maxy = (int)maxy;
+			l_pvOriginalPoints->push_back(osg::Vec3(i_minx, i_miny, 0));
+			l_pvOriginalPoints->push_back(osg::Vec3(i_maxx, i_miny, 0));
+			l_pvOriginalPoints->push_back(osg::Vec3(i_maxx, i_maxy, 0));
+			l_pvOriginalPoints->push_back(osg::Vec3(i_minx, i_maxy, 0));
+
+			l_pGeometryBorder->setVertexArray(l_pvOriginalPoints);
+			l_pGeometryBorder->setColorArray(map_color1);
+			l_pGeometryBorder->setColorBinding(osg::Geometry::BIND_OVERALL);
+			l_pGeometryBorder->addPrimitiveSet(new osg::DrawArrays(GL_LINE_LOOP, 0, l_pvOriginalPoints->size()));
+			//l_pGeometryBorder->addPrimitiveSet(new osg::DrawArrays(GL_LINE_LOOP, 4, 4));
+			l_pGeometryBorder->getOrCreateStateSet()->setAttribute(new osg::LineWidth(5.0f));
+
+			l_pGeodeSurface->addDrawable(l_pGeometryBorder);
+			mOSG->mRoot2->addChild(map_center);
+			mOSG->mRoot2->addChild(l_pGeodeSurface);
+
+			EndProgress();
+
+			FILE* fp_out;
+			fopen_s(&fp_out, "d://output_range.txt", "wt");
+			fprintf_s(fp_out, "%d,%d,%d,%d", i_minx, i_miny, i_maxx, i_maxy);
+			fclose(fp_out);
+		}
+	}
+	else
+	{
+		FILE* fp;
+		fopen_s(&fp, "d://points.xy", "rt");
+		if (fp)
+		{
+			COptImportExportBase ifp;
+			ifp.m_fp_input = fp;
+			ifp.m_array_strSplit.push_back(' ');
+			ifp.m_array_strSplit.push_back(',');
+			ifp.m_array_strSplit.push_back('(');
+			ifp.m_array_strSplit.push_back(')');
+			ifp.m_array_strSplit.push_back('\t');
+			FILE* fp_out;
+			fopen_s(&fp_out, "d://output.txt", "wt");
+			FILE* fp1;
+			fopen_s(&fp1, "d://nums.txt", "rt");
+			if (fp1)
+			{
+				BeginProgress();
+				m_iStatus = 0;
+				m_iTotal = 179837;
+				osg::ref_ptr<osg::Geode> l_pGeodePoints = new osg::Geode;
+				osg::ref_ptr<osg::Geode> l_pGeodeSurface = new osg::Geode;
+				osg::ref_ptr<osg::Vec3Array> map_normal = new osg::Vec3Array;
+				map_normal->push_back(osg::Vec3(0, 0, 1));
+				osg::Vec4 color_path = osg::Vec4(1, 0, 0, 1);
+				osg::Vec4 color_sea = osg::Vec4(109.0 / 255.0, 207.0 / 255.0, 246.0 / 255.0, 1);
+				osg::Vec4 color_ice = osg::Vec4(1, 1, 1, 1);
+				osg::Vec4 color_land = osg::Vec4(254.0 / 255, 238.0 / 255.0, 179.0 / 255.0, 1);
+
+				float minx, miny, maxx, maxy;
+
+				FILE* fp2;
+				fopen_s(&fp2, "d://example_minimum.txt", "rt");
+				if (fp2)
+				{
+					COptImportExportBase ifp2;
+					ifp2.m_fp_input = fp2;
+					ifp2.m_array_strSplit.push_back(' ');
+					ifp2.m_array_strSplit.push_back(',');
+
+					osg::ref_ptr<osg::Geometry> l_pGeometrySurface = new osg::Geometry;
+					osg::ref_ptr<osg::Vec3Array> l_pvOriginalPoints = new osg::Vec3Array;
+					osg::ref_ptr<osg::Vec4Array> map_color = new osg::Vec4Array;
+					map_color->push_back(color_ice);
+
+					int temp_count = ifp2.ReadOneLineFromFile();
+					while (temp_count > 1)
+					{
+						float x = atof(ifp2.m_array_strOutput[temp_count - 2]);// *25000.0f - 3063000.0f;
+						float y = atof(ifp2.m_array_strOutput[temp_count - 1]);// *25000.0f - 3112000.0f;
+
+						l_pvOriginalPoints->push_back(osg::Vec3(x, y, 0));
+						temp_count = ifp2.ReadOneLineFromFile();
+
+						if (l_pvOriginalPoints->size() == 1)
+						{
+							minx = maxx = x;
+							miny = maxy = y;
+						}
+						else
+						{
+							maxx = (maxx < x) ? x : maxx;
+							maxy = (maxy < y) ? y : maxy;
+							minx = (minx > x) ? x : minx;
+							miny = (miny > y) ? y : miny;
+						}
+					}
+
+					l_pGeometrySurface->setVertexArray(l_pvOriginalPoints);
+					l_pGeometrySurface->setColorArray(map_color);
+					l_pGeometrySurface->setColorBinding(osg::Geometry::BIND_OVERALL);
+					l_pGeometrySurface->addPrimitiveSet(new osg::DrawArrays(GL_POINTS, 0, l_pvOriginalPoints->size()));
+					//l_pGeometryBorder->addPrimitiveSet(new osg::DrawArrays(GL_LINE_LOOP, 4, 4));
+					l_pGeometrySurface->getOrCreateStateSet()->setAttribute(new osg::Point(5.0f));
+					l_pGeodePoints->addDrawable(l_pGeometrySurface);
+				}
+
+				COptImportExportBase ifp1;
+				ifp1.m_fp_input = fp1;
+				int temp_count = ifp1.ReadOneLineFromFile();
+				while (temp_count > 0)
+				{
+					osg::ref_ptr<osg::Geometry> l_pGeometrySurface = new osg::Geometry;
+					osg::ref_ptr<osg::Vec3Array> l_pvOriginalPoints = new osg::Vec3Array;
+					osg::ref_ptr<osg::Vec4Array> map_color = new osg::Vec4Array;
+					osg::ref_ptr<osg::Vec4Array> map_color1 = new osg::Vec4Array;
+					map_color->push_back(color_land);
+					map_color1->push_back(color_path);
+
+					int pt_count = atoi(ifp1.m_array_strOutput[0]);
+
+					int prev_x = 0;
+					int prev_y = 0;
+					float temp_min_x, temp_min_y, temp_max_x, temp_max_y;
+					for (int i = 0; i < pt_count; i++)
+					{
+						temp_count = ifp.ReadOneLineFromFile();
+						if (temp_count > 1)
+						{
+							float x = (atof(ifp.m_array_strOutput[0]) + 3063000.0f) / 25000.0f;
+							float y = (atof(ifp.m_array_strOutput[1]) + 3112000.0f) / 25000.0f;
+							//float x = atof(ifp.m_array_strOutput[0]);
+							//float y = atof(ifp.m_array_strOutput[1]);
+							//int i_x = (int)x;
+							//int i_y = (int)y;
+
+							if (l_pvOriginalPoints->size() == 0)
+							{
+								temp_min_x = temp_max_x = x;
+								temp_min_y = temp_max_y = y;
+								//prev_x = i_x;
+								//prev_y = i_y;
+								l_pvOriginalPoints->push_back(osg::Vec3(x, y, 0));
+							}
+							else
+							{
+								temp_max_x = (temp_max_x < x) ? x : temp_max_x;
+								temp_max_y = (temp_max_y < y) ? y : temp_max_y;
+								temp_min_x = (temp_min_x > x) ? x : temp_min_x;
+								temp_min_y = (temp_min_y > y) ? y : temp_min_y;
+								//if (prev_x != i_x || prev_y != i_y)
+								//{
+								l_pvOriginalPoints->push_back(osg::Vec3(x, y, 0));
+								//	prev_x = i_x;
+								//	prev_y = i_y;
+								//}
+							}
+						}
+					}
+					if (!((temp_max_x < minx || temp_min_x > maxx) || (temp_max_y < miny || temp_min_y > maxy)))
+					{
+						if (l_pvOriginalPoints->size() > 0)
+						{
+							fprintf_s(fp_out, "%d\n", l_pvOriginalPoints->size());
+							for (int i = 0; i < l_pvOriginalPoints->size(); i++)
+							{
+								fprintf_s(fp_out, "%.2lf,%.2lf\n", l_pvOriginalPoints->at(i).x(), l_pvOriginalPoints->at(i).y());
+							}
+							//l_pGeometrySurface->setVertexArray(l_pvOriginalPoints);
+							//l_pGeometrySurface->setColorArray(map_color);
+							//l_pGeometrySurface->setColorBinding(osg::Geometry::BIND_OVERALL);
+							//l_pGeometrySurface->setNormalArray(map_normal);
+							//l_pGeometrySurface->setNormalBinding(osg::Geometry::BIND_OVERALL);
+							//l_pGeometrySurface->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POLYGON, 0, l_pvOriginalPoints->size()));
+							////l_pGeometrySurface->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 4, 4));
+
+							//osgUtil::Tessellator tessellator;
+							//tessellator.setTessellationType(osgUtil::Tessellator::TESS_TYPE_GEOMETRY);
+							//tessellator.setWindingType(osgUtil::Tessellator::TESS_WINDING_NONZERO);
+							//tessellator.retessellatePolygons(*l_pGeometrySurface);
+
+							//l_pGeodeSurface->addDrawable(l_pGeometrySurface);
+
+							osg::ref_ptr<osg::Geometry> l_pGeometryBorder = new osg::Geometry;
+							l_pGeometryBorder->setVertexArray(l_pvOriginalPoints);
+							l_pGeometryBorder->setColorArray(map_color1);
+							l_pGeometryBorder->setColorBinding(osg::Geometry::BIND_OVERALL);
+							l_pGeometryBorder->addPrimitiveSet(new osg::DrawArrays(GL_LINE_LOOP, 0, l_pvOriginalPoints->size()));
+							//l_pGeometryBorder->addPrimitiveSet(new osg::DrawArrays(GL_LINE_LOOP, 4, 4));
+							l_pGeometryBorder->getOrCreateStateSet()->setAttribute(new osg::LineWidth(5.0f));
+
+							l_pGeodeSurface->addDrawable(l_pGeometryBorder);
+						}
+					}
+
+					m_iStatus++;
+					UpdateProgress();
+					temp_count = ifp1.ReadOneLineFromFile();
+
+					//if (m_iStatus > 100)
+					//	break;
+				}
+				fclose(fp_out);
+
+				//osg::AutoTransform* at = new osg::AutoTransform;
+				//at->setPosition(osg::Vec3(0.0f, 0.0f, 0.0f));
+				//at->setAutoRotateMode(osg::AutoTransform::ROTATE_TO_SCREEN);
+				//at->addChild(l_pGeodeSurface);
+
+				map_center->addChild(l_pGeodePoints);
+				mOSG->mRoot2->addChild(map_center);
+				mOSG->mRoot2->addChild(l_pGeodeSurface);
+
+				EndProgress();
+			}
+		}
+	}
+}
+
+void CIRES2View::CheckLand()
+{
+	char temp_file_path[512];
+	sprintf_s(temp_file_path, "%s\\map.bmp", m_strAppPath);
+	osg::ref_ptr<osg::Image> image = osgDB::readImageFile(temp_file_path);
+	int width = image->s();
+	int height = image->t();
+	for (int i = 0; i < maxMapSizeRow; i++)
+	{
+		for (int j = 0; j < maxMapSizeCol; j++)
+		{
+			if (realMap[i][j] != 1)
+			{
+				osg::Vec4 color = image->getColor(osg::Vec2((float)(i + 211) / (float)width, (float)(j + 107) / (float)height));
+				if (color.r() < 0.5f)
+					realMap[i][j] = 0;
+			}
+		}
+	}
+}
+
 void CIRES2View::ShowMap(CString job_name)
 {
 	CString job_path = m_strProjectPath + "\\JOB\\" + job_name + "\\satellite_to_map.out";
@@ -7620,6 +8086,29 @@ void CIRES2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		OnKeyESC();
 	}
 
+	//if (nChar == VK_UP)
+	//{
+	//	offset_y += 1000.0f;
+	//}
+	//if (nChar == VK_DOWN)
+	//{
+	//	offset_y -= 1000.0f;
+	//}
+	//if (nChar == VK_LEFT)
+	//{
+	//	offset_x -= 1000.0f;
+	//}
+	//if (nChar == VK_RIGHT)
+	//{
+	//	offset_x += 1000.0f;
+	//}
+	//osg::Matrix A = osg::Matrix::translate(osg::Vec3f(offset_x, offset_y, 0));
+	//map_center->setMatrix(A);
+
+	//char temp_str[200];
+	//sprintf_s(temp_str, 200, "%.2lf / %.2lf", offset_x, offset_y);
+	//mOSG->m_widgetHullSize[4]->setLabel(temp_str);
+
 	CView::OnKeyDown(nChar, nRepCnt, nFlags);
 }
 
@@ -7641,6 +8130,7 @@ void CIRES2View::ClearProject(CString current_project_path)
 	m_pMainFrame->m_wndClassView2.SetDraftStatus(false);
 	m_pMainFrame->m_wndClassView2.SetCrossStatus(false);
 	m_pMainFrame->m_wndClassView2.SetMaterialStatus(false);
+	m_pMainFrame->m_wndClassView2.SetEstimationStatus(false);	
 	//m_pMainFrame->m_wndClassView2.SetConditionStatus(false);
 
 	m_pMainFrame->m_wndFileView.Clear();
@@ -7866,4 +8356,202 @@ float CIRES2View::GetEstimatonSpeed(float target_sistance, vector<float>& speed,
 		}
 	}
 	return estimation_speed;
+}
+
+bool CIRES2View::LoadEstimation2(CString file_path)
+{
+	if (PathFileExists(file_path))
+	{
+		ifstream ifs;
+		ifs.open(file_path);
+		if (ifs.is_open())
+		{
+			string line;
+			if (getline(ifs, line))
+			{
+				m_fTargetResistance = atof(line.c_str());
+			}
+			if (getline(ifs, line))
+			{
+				m_fInitSpeed = atof(line.c_str());
+			}
+			if (getline(ifs, line))
+			{
+				m_fMaxSpeed = atof(line.c_str());
+			}
+			if (getline(ifs, line))
+			{
+				m_fIncreSpeed = atof(line.c_str());
+			}
+			if (getline(ifs, line))
+			{
+				startRow = atoi(line.c_str());
+			}
+			if (getline(ifs, line))
+			{
+				startCol = atoi(line.c_str());
+			}
+			if (getline(ifs, line))
+			{
+				goalRow = atoi(line.c_str());
+			}
+			if (getline(ifs, line))
+			{
+				goalCol = atoi(line.c_str());
+			}
+			ifs.close();
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CIRES2View::LoadEstimation(CString file_path)
+{
+	if (PathFileExists(file_path))
+	{
+		ifstream ifs;
+		ifs.open(file_path);
+		if (ifs.is_open())
+		{
+			m_fConcentration.clear();
+			m_fFlexuralStrength.clear();
+			m_fIceThickness.clear();
+			m_fShipSpeed.clear();
+			m_fLongitude.clear();
+			m_fLatitude.clear();
+			m_fX.clear();
+			m_fY.clear();
+			m_fedgeX.clear();
+			m_fedgeY.clear();
+
+			int row_count = 0;
+			int max_col_index = 0;
+			string line;
+			int max_x = 0;
+			int max_y = 0;
+			while (getline(ifs, line))
+			{
+				row_count++;
+				int col_index = 0;
+				stringstream ss(line);
+				string temp;
+				while (getline(ss, temp, ','))
+				{
+					if (!temp.empty())
+					{
+						switch (col_index)
+						{
+						case 0:
+						{
+							m_fConcentration.push_back(atof(temp.c_str()));
+						}
+						break;
+						case 1:
+						{
+							m_fFlexuralStrength.push_back(atof(temp.c_str()));
+						}
+						break;
+						case 2:
+						{
+							m_fIceThickness.push_back(atof(temp.c_str()));
+						}
+						break;
+						case 3:
+						{
+							m_fLongitude.push_back(atof(temp.c_str()));
+						}
+						break;
+						case 4:
+						{
+							m_fLatitude.push_back(atof(temp.c_str()));
+						}
+						break;
+						case 5:
+						{
+							double x = atof(temp.c_str());
+							m_fX.push_back(x);
+							if (x > max_x)
+								max_x = x;
+						}
+						break;
+						case 6:
+						{
+							double y = atof(temp.c_str());
+							m_fY.push_back(y);
+							if (y > max_y)
+								max_y = y;
+						}
+						break;
+						case 7:
+						{
+							m_fedgeX.push_back(atof(temp.c_str()));
+						}
+						break;
+						case 8:
+						{
+							m_fedgeY.push_back(atof(temp.c_str()));
+						}
+						break;
+						}
+					}
+					col_index++;
+				}
+			}
+
+			m_fExSpeed.resize(max_x + 1, vector< float >(max_y + 1, 0));
+			realMap.resize(max_x + 1, vector< int >(max_y + 1, 0));
+
+			ifs.close();
+
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CIRES2View::LoadEstimationNodes(CString file_path)
+{
+	if (PathFileExists(file_path))
+	{
+		ifstream ifs;
+		ifs.open(file_path);
+		if (ifs.is_open())
+		{
+			m_aNodePointX.clear();
+			m_aNodePointY.clear();
+			string line;
+			while (getline(ifs, line))
+			{
+				stringstream ss(line);
+				string temp;
+				int col_index = 0;
+				while (getline(ss, temp, ','))
+				{
+					if (!temp.empty())
+					{
+						switch (col_index)
+						{
+						case 0:
+						{
+							m_aNodePointX.push_back(atof(temp.c_str()));
+						}
+						break;
+						case 1:
+						{
+							m_aNodePointY.push_back(atof(temp.c_str()));
+						}
+						break;
+						}
+					}
+					col_index++;
+				}
+			}
+
+			ifs.close();
+
+			return true;
+		}
+	}
+	return false;
 }

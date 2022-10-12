@@ -76,8 +76,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\include;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\include;E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\inc;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\include;$(ProjectDir)Ultimate_Grid\Include;E:\library\ChartCtrl\ChartCtrlDemoSource\VS2010\Projects\ChartCtrlLib\ChartCtrlLib;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\win64\vc14\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\lib;E:\library\ChartCtrl\ChartCtrlDemoSource\VS2010\Projects\ChartCtrlLib\x64\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>f:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\include;f:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\include;f:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\inc;f:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\include;$(ProjectDir)Ultimate_Grid\Include;f:\library\ChartCtrl\ChartCtrlDemoSource\VS2010\Projects\ChartCtrlLib\ChartCtrlLib;$(IncludePath)</IncludePath>
+    <LibraryPath>f:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\win64\vc14\lib;f\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\lib;f:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\lib;f:\library\ChartCtrl\ChartCtrlDemoSource\VS2010\Projects\ChartCtrlLib\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -85,8 +85,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\include;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\include;E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\inc;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\include;$(ProjectDir)Ultimate_Grid\Include;E:\Library\RInside\include;E:\Library\Rcpp\include;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\win64\vc14\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\lib;E:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>f:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\include;f:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\include;f:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\inc;f:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\include;$(ProjectDir)Ultimate_Grid\Include;f:\Library\RInside\include;f:\Library\Rcpp\include;$(IncludePath)</IncludePath>
+    <LibraryPath>f:\Library\OpenCascade\OpenCASCADE-7.3.0\opencascade-7.3.0\win64\vc14\lib;f:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\x64_2017\lib;f:\Library\OpenSceneGraph\OpenSceneGraph-3.6.2\3rdParty_x64\x64\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
