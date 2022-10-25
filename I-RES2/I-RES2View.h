@@ -169,6 +169,7 @@ public:
 	vector< float > m_fedgeY;
 	vector< vector< float > > m_fExSpeed;
 	vector< vector< int > > realMap;
+	vector< vector< int > > realMap_origin;
 	int startRow = 110;							// 시작 지점 행 설정
 	int startCol = 183;							// 시작 지점 열 설정
 	int goalRow = 127;							// 도착 지점 행 설정
@@ -293,7 +294,7 @@ public:
 	bool m_isCreateFolder;
 	vector< float > SATELLITE_DATA[10];
 	vector< vector< float > > ESTIMATION_DATA[10];
-	void CheckLand(int c_x, int c_y);
+	//void CheckLand(int c_x, int c_y);
 
 	CDlgTranslation* m_pTranslationDlg;
 	void OnKeyESC();

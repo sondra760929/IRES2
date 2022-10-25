@@ -501,7 +501,7 @@ void CDlgSatelliteData::OnOK()
 
 		if (use_map && max_x > 0 && max_y > 0)
 		{
-			m_pCurrentView->m_fExSpeed.resize(max_x + 1, vector< float >(max_y + 1, 0));
+			m_pCurrentView->m_fExSpeed.resize(max_x + 1, vector< float >(max_y + 1, -1));
 			m_pCurrentView->realMap.resize(max_x + 1, vector< int >(max_y + 1, 0));
 		}
 
