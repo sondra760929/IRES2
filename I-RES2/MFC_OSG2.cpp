@@ -324,6 +324,8 @@ void cOSG2::InitCameraConfig(void)
 	camera->setProjectionMatrixAsPerspective(
 		30.0f, static_cast<double>(traits->width)/static_cast<double>(traits->height), 1.0, 1000.0);
 
+	camera->setCullingMode(camera->getCullingMode() & ~osg::CullSettings::VIEW_FRUSTUM_SIDES_CULLING);
+
 	// Add the Camera to the Viewer
 	//mViewer->addSlave(camera.get());
 	mViewer->setCamera(camera.get());

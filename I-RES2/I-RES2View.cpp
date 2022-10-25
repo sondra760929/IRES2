@@ -3627,38 +3627,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 
 			if (m_bRunForInterface)
 			{
-				//	이미지 저장
-				osg::ref_ptr<osg::Image> posterImage = 0;
-				posterImage = new osg::Image;
-				posterImage->allocateImage(maxMapSizeRow, maxMapSizeCol, 1, GL_RGBA, GL_UNSIGNED_BYTE);
-				osg::Vec4 color_path = osg::Vec4(1, 0, 0, 1);
-				osg::Vec4 color_sea = osg::Vec4(109.0 / 255.0, 207.0 / 255.0, 246.0 / 255.0, 1);
-				osg::Vec4 color_ice = osg::Vec4(1, 1, 1, 1);
-				osg::Vec4 color_land = osg::Vec4(254.0 / 255, 238.0 / 255.0, 179.0 / 255.0, 1);
-				for (int i = 0; i < maxMapSizeCol; i++)
-				{
-					for (int j = 0; j < maxMapSizeRow; j++)
-					{
-						if (realMap[j][i] == 1)
-						{
-							posterImage->setColor(color_ice, osg::Vec2((float)j/(float)maxMapSizeRow, (float)i / (float)maxMapSizeCol));
-						}
-						else if (realMap[j][i] == 2)
-						{
-							posterImage->setColor(color_sea, osg::Vec2((float)j / (float)maxMapSizeRow, (float)i / (float)maxMapSizeCol));
-						}
-						else
-						{
-							posterImage->setColor(color_land, osg::Vec2((float)j / (float)maxMapSizeRow, (float)i / (float)maxMapSizeCol));
-						}
-					}
-				}
-				char save_file[512];
-				sprintf_s(save_file, "%s\\output.bmp", HMS_OutputFolder);
-				osgDB::writeImageFile(*posterImage, save_file);
-				AfxGetApp()->WriteProfileString(_T("HMS"), _T("OUTPUT_BMP"), save_file);
 			}
-
 
 			int start_row = startRow;
 			int start_col = startCol;
@@ -4015,8 +3984,99 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 
 			if (m_bRunForInterface)
 			{
-				//	경로 저장
+				//	이미지 저장
+				osg::ref_ptr<osg::Image> posterImage = 0;
+				posterImage = new osg::Image;
+				posterImage->allocateImage(maxMapSizeRow * 10, maxMapSizeCol * 10, 1, GL_RGBA, GL_UNSIGNED_BYTE);
+				osg::Vec4 color_path = osg::Vec4(1, 0, 0, 1);
+				osg::Vec4 color_sea = osg::Vec4(109.0 / 255.0, 207.0 / 255.0, 246.0 / 255.0, 1);
+				osg::Vec4 color_ice = osg::Vec4(1, 1, 1, 1);
+				osg::Vec4 color_land = osg::Vec4(254.0 / 255, 238.0 / 255.0, 179.0 / 255.0, 1);
+				osg::Vec4 color_node = osg::Vec4(0, 0, 0, 1);
+				for (int i = 0; i < maxMapSizeCol; i++)
+				{
+					for (int j = 0; j < maxMapSizeRow; j++)
+					{
+						if (realMap[j][i] == 1)
+						{
+							for (int k = 0; k < 10; k++)
+							{
+								for (int l = 0; l < 10; l++)
+								{
+									posterImage->setColor(color_ice, osg::Vec2((float)(j * 10 + k) / (float)(maxMapSizeRow * 10), (float)(i * 10 + l) / (float)(maxMapSizeCol * 10)));
+								}
+							}
+						}
+						else if (realMap[j][i] == 2)
+						{
+							for (int k = 0; k < 10; k++)
+							{
+								for (int l = 0; l < 10; l++)
+								{
+									posterImage->setColor(color_sea, osg::Vec2((float)(j * 10 + k) / (float)(maxMapSizeRow * 10), (float)(i * 10 + l) / (float)(maxMapSizeCol * 10)));
+								}
+							}
+						}
+						else
+						{
+							for (int k = 0; k < 10; k++)
+							{
+								for (int l = 0; l < 10; l++)
+								{
+									posterImage->setColor(color_land, osg::Vec2((float)(j * 10 + k) / (float)(maxMapSizeRow * 10), (float)(i * 10 + l) / (float)(maxMapSizeCol * 10)));
+								}
+							}
+						}
+					}
+				}
+
+				osg::Vec2 node_shape[] = {
+					osg::Vec2(4, 2), osg::Vec2(5, 2),
+					osg::Vec2(4, 3), osg::Vec2(5, 3),
+					osg::Vec2(4, 4), osg::Vec2(5, 4), osg::Vec2(2, 4), osg::Vec2(3, 4), osg::Vec2(6, 4), osg::Vec2(7, 4),
+					osg::Vec2(4, 5), osg::Vec2(5, 5), osg::Vec2(2, 5), osg::Vec2(3, 5), osg::Vec2(6, 5), osg::Vec2(7, 5),
+					osg::Vec2(4, 6), osg::Vec2(5, 6),
+					osg::Vec2(4, 7), osg::Vec2(5, 7),
+				};
+				osg::Vec2 route_shape[] = {
+					osg::Vec2(4, 8), osg::Vec2(5, 8),
+					osg::Vec2(4, 7), osg::Vec2(5, 7),
+					osg::Vec2(4, 6), osg::Vec2(5, 6), osg::Vec2(3, 6), osg::Vec2(6, 6),
+					osg::Vec2(4, 5), osg::Vec2(5, 5), osg::Vec2(3, 5), osg::Vec2(6, 5),
+					osg::Vec2(4, 4), osg::Vec2(5, 4), osg::Vec2(3, 4), osg::Vec2(6, 4), osg::Vec2(2, 4), osg::Vec2(7, 4),
+					osg::Vec2(4, 3), osg::Vec2(5, 3), osg::Vec2(3, 3), osg::Vec2(6, 3), osg::Vec2(2, 3), osg::Vec2(7, 3),
+					osg::Vec2(4, 2), osg::Vec2(5, 2), osg::Vec2(3, 2), osg::Vec2(6, 2), osg::Vec2(2, 2), osg::Vec2(7, 2), osg::Vec2(1, 2), osg::Vec2(8, 2),
+					osg::Vec2(4, 1), osg::Vec2(5, 1), osg::Vec2(3, 1), osg::Vec2(6, 1), osg::Vec2(2, 1), osg::Vec2(7, 1), osg::Vec2(1, 1), osg::Vec2(8, 1),
+				};
+
+				for (int i = 0; i < nodes_rows.size(); i++)
+				{
+					for (int j = 0; j < nodes_rows[i].size(); j++)
+					{
+						if (j == 0 || j == nodes_rows[i].size() - 1)
+						{
+							//	start, end
+							for (int k = 0; k < 40; k++)
+							{
+								posterImage->setColor(color_path, osg::Vec2((float)(nodes_rows[i][j] * 10 + route_shape[k].x()) / (float)(maxMapSizeRow * 10), (float)(nodes_cols[i][j] * 10 + route_shape[k].y()) / (float)(maxMapSizeCol * 10)));
+							}
+						}
+						else
+						{
+							for (int k = 0; k < 20; k++)
+							{
+								posterImage->setColor(color_node, osg::Vec2((float)(nodes_rows[i][j] * 10 + node_shape[k].x()) / (float)(maxMapSizeRow * 10), (float)(nodes_cols[i][j] * 10 + node_shape[k].y()) / (float)(maxMapSizeCol * 10)));
+							}
+						}
+					}
+				}
+
 				char save_file[512];
+				sprintf_s(save_file, "%s\\output.bmp", HMS_OutputFolder);
+				osgDB::writeImageFile(*posterImage, save_file);
+				AfxGetApp()->WriteProfileString(_T("HMS"), _T("OUTPUT_BMP"), save_file);
+
+				//	경로 저장
 				sprintf_s(save_file, "%s\\path.txt", HMS_OutputFolder);
 				FILE* fp_path;
 				fopen_s(&fp_path, save_file, "wt");
@@ -7226,44 +7286,133 @@ void CIRES2View::ShowMap(CString job_name)
 			osg::Vec4 color_path = osg::Vec4(1, 0, 0, 1);
 			osg::Vec4 color_sea = osg::Vec4(109.0/255.0, 207.0/255.0, 246.0/255.0, 1);
 			osg::Vec4 color_ice = osg::Vec4(1, 1, 1, 1);
-			osg::Vec4 color_land = osg::Vec4(254.0/255, 238.0/255.0, 179.0/255.0, 1);
+			osg::Vec4 color_land = osg::Vec4(254.0 / 255, 238.0 / 255.0, 179.0 / 255.0, 1);
+			osg::Vec4 color_black = osg::Vec4(0, 0, 0, 1);
 
 			for (int i = 0; i < map_data.size(); i++)
 			{
 				for (int j = 0; j < map_data[i].size() && j < max_col; j++)
 				{
-					l_pvOriginalPoints->push_back(osg::Vec3(j, i, 0));
-					l_pvOriginalPoints->push_back(osg::Vec3(j, i + 1, 0));
-					l_pvOriginalPoints->push_back(osg::Vec3(j + 1, i + 1, 0));
-					l_pvOriginalPoints->push_back(osg::Vec3(j + 1, i, 0));
 
 					if (map_data[i][j] == "*")
 					{
-						map_color->push_back(color_path);
-						map_color->push_back(color_path);
-						map_color->push_back(color_path);
-						map_color->push_back(color_path);
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j, (float)i, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j, (float)i + 0.4f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.4f, (float)i + 0.4f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.4f, (float)i, 0));
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.6f, (float)i, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.6f, (float)i + 0.4f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 1.0f, (float)i + 0.4f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 1.0f, (float)i, 0));
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.6f, (float)i + 0.6f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.6f, (float)i + 1.0f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 1.0f, (float)i + 1.0f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 1.0f, (float)i + 0.6f, 0));
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.0f, (float)i + 0.6f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.0f, (float)i + 1.0f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.4f, (float)i + 1.0f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.4f, (float)i + 0.6f, 0));
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.4f, (float)i + 0.0f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.4f, (float)i + 0.2f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.6f, (float)i + 0.2f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.6f, (float)i + 0.0f, 0));
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.8f, (float)i + 0.4f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.8f, (float)i + 0.6f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 1.0f, (float)i + 0.6f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 1.0f, (float)i + 0.4f, 0));
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.4f, (float)i + 0.8f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.4f, (float)i + 1.0f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.6f, (float)i + 1.0f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.6f, (float)i + 0.8f, 0));
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.0f, (float)i + 0.4f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.0f, (float)i + 0.6f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.2f, (float)i + 0.6f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.2f, (float)i + 0.4f, 0));
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.4f, (float)i + 0.2f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.4f, (float)i + 0.8f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.6f, (float)i + 0.8f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.6f, (float)i + 0.2f, 0));
+							map_color->push_back(color_path);
+							map_color->push_back(color_path);
+							map_color->push_back(color_path);
+							map_color->push_back(color_path);
+
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.2f, (float)i + 0.4f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.2f, (float)i + 0.6f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.8f, (float)i + 0.6f, 0));
+							l_pvOriginalPoints->push_back(osg::Vec3((float)j + 0.8f, (float)i + 0.4f, 0));
+							map_color->push_back(color_path);
+							map_color->push_back(color_path);
+							map_color->push_back(color_path);
+							map_color->push_back(color_path);
 					}
-					else if (map_data[i][j] == "1")	//	얼음
+					else
 					{
-						map_color->push_back(color_ice);
-						map_color->push_back(color_ice);
-						map_color->push_back(color_ice);
-						map_color->push_back(color_ice);
-					}
-					else if (map_data[i][j] == "2")	//	바다
-					{
-						map_color->push_back(color_sea);
-						map_color->push_back(color_sea);
-						map_color->push_back(color_sea);
-						map_color->push_back(color_sea);
-					}
-					else	//	땅
-					{
-						map_color->push_back(color_land);
-						map_color->push_back(color_land);
-						map_color->push_back(color_land);
-						map_color->push_back(color_land);
+						l_pvOriginalPoints->push_back(osg::Vec3(j, i, 0));
+						l_pvOriginalPoints->push_back(osg::Vec3(j, i + 1, 0));
+						l_pvOriginalPoints->push_back(osg::Vec3(j + 1, i + 1, 0));
+						l_pvOriginalPoints->push_back(osg::Vec3(j + 1, i, 0));
+						if (map_data[i][j] == "1")	//	얼음
+						{
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+							map_color->push_back(color_ice);
+						}
+						else if (map_data[i][j] == "2")	//	바다
+						{
+							map_color->push_back(color_sea);
+							map_color->push_back(color_sea);
+							map_color->push_back(color_sea);
+							map_color->push_back(color_sea);
+						}
+						else	//	땅
+						{
+							map_color->push_back(color_land);
+							map_color->push_back(color_land);
+							map_color->push_back(color_land);
+							map_color->push_back(color_land);
+						}
 					}
 				}
 			}
