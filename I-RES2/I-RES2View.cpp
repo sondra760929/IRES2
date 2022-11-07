@@ -347,6 +347,19 @@ public:
 	}
 };
 
+class NodePath {
+public:
+	int row, col, dicision;
+
+public:
+	NodePath(int _r, int _c, double _d)
+	{
+		this->row = _r;
+		this->col = _c;
+		this->dicision = _d;
+	}
+};
+
 
 CIRES2View::CIRES2View()
 	: mOSG(0L)
@@ -669,6 +682,7 @@ void CIRES2View::OnInitialUpdate()
 		m_pMainFrame->m_wndClassView2.m_SectionToolbar.m_pView = this;
 
 		m_pMainFrame->m_wndFileView.m_pView = this;
+		m_pMainFrame->m_wndFileView.m_OutputToolbar.m_pView = this;
 		//m_pEditStart = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_START));
 		//m_pEditEnd = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_END));
 		//m_pEditSpace = DYNAMIC_DOWNCAST(CMFCRibbonEdit, pFrame->m_wndRibbonBar.FindByID(ID_EDIT_SPACE));
@@ -3572,6 +3586,21 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 			fclose(fp);
 		}
 
+		//fopen_s(&fp, "d:\\satellite_to_estimation.in", "rt");
+		//if (fp)
+		//{
+		//	COptImportExportBase ifp;
+		//	ifp.m_fp_input = fp;
+		//	int index = 0;
+		//	ifp.ReadOneLineFromFile();
+		//	while (ifp.ReadOneLineFromFile() > 0)
+		//	{
+		//		if(index < m_fShipSpeed.size())
+		//			m_fShipSpeed[index] = atof(ifp.m_strOneLine);
+		//		index++;
+		//	}
+		//}
+
 		fopen_s(&fp, m_strProjectPath + "\\satellite_to_estimation" + ".out", "wt");
 		if (fp)
 		{
@@ -3602,10 +3631,10 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 
 			SpeedDecision();
 
-			realMap_origin.resize(realMap.size());
+			realMap_origin.clear();
+			realMap_origin.resize(realMap.size(), vector<int>(realMap[0].size(), 0));
 			for (int i = 0; i < realMap.size(); i++)
 			{
-				realMap_origin[i].resize(realMap[i].size());
 				for (int j = 0; j < realMap[i].size(); j++)
 				{
 					realMap_origin[i][j] = realMap[i][j];
@@ -3697,7 +3726,8 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 						{
 							PassList[start_row][start_col] = 2;			// PassList 이동 가능한 지점에 1 설정
 						}												// PassList 시작 지점에 2 설정
-						else if (realMap[i][j] >= 1)
+						//else if (realMap[i][j] >= 1)
+						else if (realMap[i][j] >= 1 && m_fExSpeed[i][j] > 0)
 						{
 							PassList[i][j] = 1;
 						}
@@ -3736,6 +3766,30 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 						if (m_bRunForInterface)
 						{
 							//	경로 저장
+							vector< NodePath* > find_nodes;
+							for (int i = 0; i < path_rows.size(); i++)
+							{
+								find_nodes.push_back(new NodePath(path_rows[i], path_cols[i], DecisionList[path_rows[i]][path_cols[i]]));
+							}
+
+							sort(find_nodes.begin(), find_nodes.end(), [](const NodePath* lhs, const NodePath* rhs)
+								{
+									return lhs->dicision < rhs->dicision;
+								});
+
+							path_rows.clear();
+							path_cols.clear();
+							for (int i = 0; i < find_nodes.size(); i++)
+							{
+								if (find_nodes[i]->dicision > 0)
+								{
+									path_rows.push_back(find_nodes[i]->row);
+									path_cols.push_back(find_nodes[i]->col);
+								}
+								delete find_nodes[i];
+							}
+							find_nodes.clear();
+
 							nodes_rows.push_back(path_rows);
 							nodes_cols.push_back(path_cols);
 						}
@@ -4022,7 +4076,7 @@ void CIRES2View::CalculateOutputResult(int type, bool refresh)
 								}
 							}
 						}
-						else if (realMap_origin[j][i] == 2)
+						else if (realMap_origin[j][i] == 0)
 						{
 							for (int k = 0; k < 10; k++)
 							{
@@ -4179,8 +4233,8 @@ void CIRES2View::SpeedDecision()
 					if (m_fExSpeed[i][j] < 1)
 					{
 						//	원래는 0이어서 못가는 곳 이었으나, 다 갈수 있는 곳으로
-						m_fExSpeed[i][j] = m_fMaxSpeed;
-						//realMap[i][j] = 2;
+						//m_fExSpeed[i][j] = m_fMaxSpeed;
+						realMap[i][j] = 0;
 					}
 					else
 					{
@@ -4195,7 +4249,7 @@ void CIRES2View::SpeedDecision()
 					//CString temp_string;
 					//temp_string.Format("%d, %d : %lf\n", i, j, m_fExSpeed[i][j]);
 					//OutputDebugString(temp_string);
-					realMap[i][j] = 2;
+					realMap[i][j] = 0;
 				}
 			}
 		}
@@ -7238,21 +7292,164 @@ void CIRES2View::CheckLand()
 	{
 		for (int j = 0; j < maxMapSizeCol; j++)
 		{
-			if (realMap[i][j] != 1)
+			if (realMap[i][j] < 1)
 			{
 				osg::Vec4 color = image->getColor(osg::Vec2((float)(i + 211) / (float)width, (float)(j + 107) / (float)height));
 				if (color.r() < 0.5f)
 				{
-					realMap[i][j] = 0;
-					realMap_origin[i][j] = 0;
+					realMap[i][j] = -1;
+					realMap_origin[i][j] = -1;
 				}
 			}
 		}
 	}
 }
 
+void CIRES2View::SaveMap(CString path_name)
+{
+	CString job_path = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\satellite_to_map.out";
+	if (PathFileExists(job_path))
+	{
+		FILE* fp;
+		fopen_s(&fp, job_path, "rt");
+		if (fp)
+		{
+			vector< vector< CString > > map_data;
+			COptImportExportBase ifp;
+			ifp.m_fp_input = fp;
+			ifp.m_array_strSplit.push_back(' ');
+			ifp.m_array_strSplit.push_back(',');
+			ifp.m_array_strSplit.push_back('(');
+			ifp.m_array_strSplit.push_back(')');
+			ifp.ReadOneLineFromFile();
+			ifp.ReadOneLineFromFile();
+			ifp.ReadOneLineFromFile();
+			int temp_count = ifp.ReadOneLineFromFile();
+			int max_rows = 0;
+			int max_cols = 0;
+			if (temp_count > 3)
+			{
+				max_rows = atoi(ifp.m_array_strOutput[1]);
+				max_cols = atoi(ifp.m_array_strOutput[3]);
+			}
+
+			int max_col = 0;
+			int col_count = ifp.ReadOneLineFromFile();
+			int row_count = 0;
+			while (col_count > 0 && row_count < max_rows)
+			{
+				row_count++;
+				vector< CString > map_row;
+				for (int i = 0; i < col_count; i++)
+				{
+					map_row.push_back(ifp.m_array_strOutput[i]);
+					//m_wndExcelView.QuickSetText(i, row_count - 1, ifp.m_array_strOutput[i]);
+					//if (ifp.m_array_strOutput[i] == "*")
+					//{
+					//	m_wndExcelView.QuickSetBackColor(i, row_count - 1, RGB(0, 255, 0));
+					//}
+				}
+				map_data.push_back(map_row);
+				if (col_count > max_col)
+				{
+					max_col = col_count;
+				}
+				col_count = ifp.ReadOneLineFromFile();
+			}
+
+			osg::Vec2 node_shape[] = {
+				osg::Vec2(4, 2), osg::Vec2(5, 2),
+				osg::Vec2(4, 3), osg::Vec2(5, 3),
+				osg::Vec2(4, 4), osg::Vec2(5, 4), osg::Vec2(2, 4), osg::Vec2(3, 4), osg::Vec2(6, 4), osg::Vec2(7, 4),
+				osg::Vec2(4, 5), osg::Vec2(5, 5), osg::Vec2(2, 5), osg::Vec2(3, 5), osg::Vec2(6, 5), osg::Vec2(7, 5),
+				osg::Vec2(4, 6), osg::Vec2(5, 6),
+				osg::Vec2(4, 7), osg::Vec2(5, 7),
+			};
+			osg::Vec2 route_shape[] = {
+				osg::Vec2(4, 8), osg::Vec2(5, 8),
+				osg::Vec2(4, 7), osg::Vec2(5, 7),
+				osg::Vec2(4, 6), osg::Vec2(5, 6), osg::Vec2(3, 6), osg::Vec2(6, 6),
+				osg::Vec2(4, 5), osg::Vec2(5, 5), osg::Vec2(3, 5), osg::Vec2(6, 5),
+				osg::Vec2(4, 4), osg::Vec2(5, 4), osg::Vec2(3, 4), osg::Vec2(6, 4), osg::Vec2(2, 4), osg::Vec2(7, 4),
+				osg::Vec2(4, 3), osg::Vec2(5, 3), osg::Vec2(3, 3), osg::Vec2(6, 3), osg::Vec2(2, 3), osg::Vec2(7, 3),
+				osg::Vec2(4, 2), osg::Vec2(5, 2), osg::Vec2(3, 2), osg::Vec2(6, 2), osg::Vec2(2, 2), osg::Vec2(7, 2), osg::Vec2(1, 2), osg::Vec2(8, 2),
+				osg::Vec2(4, 1), osg::Vec2(5, 1), osg::Vec2(3, 1), osg::Vec2(6, 1), osg::Vec2(2, 1), osg::Vec2(7, 1), osg::Vec2(1, 1), osg::Vec2(8, 1),
+			};
+
+			osg::ref_ptr<osg::Image> posterImage = 0;
+			posterImage = new osg::Image;
+			posterImage->allocateImage(map_data[0].size() * 10, map_data.size() * 10, 1, GL_RGBA, GL_UNSIGNED_BYTE);
+			osg::Vec4 color_path = osg::Vec4(1, 0, 0, 1);
+			osg::Vec4 color_sea = osg::Vec4(109.0 / 255.0, 207.0 / 255.0, 246.0 / 255.0, 1);
+			osg::Vec4 color_ice = osg::Vec4(1, 1, 1, 1);
+			osg::Vec4 color_land = osg::Vec4(254.0 / 255, 238.0 / 255.0, 179.0 / 255.0, 1);
+			osg::Vec4 color_node = osg::Vec4(0, 0, 0, 1);
+			for (int i = 0; i < map_data.size(); i++)
+			{
+				for (int j = 0; j < map_data[i].size(); j++)
+				{
+					if (map_data[i][j] == "*")
+					{
+						for (int k = 0; k < 10; k++)
+						{
+							for (int l = 0; l < 10; l++)
+							{
+								posterImage->setColor(color_ice, osg::Vec2((float)(j * 10 + k) / (float)(map_data[i].size() * 10), (float)(i * 10 + l) / (float)(map_data.size() * 10)));
+							}
+						}
+
+						//for (int k = 0; k < 40; k++)
+						//{
+						//	posterImage->setColor(color_path, osg::Vec2((float)(nodes_rows[i][j] * 10 + route_shape[k].x()) / (float)(map_data[i].size() * 10), (float)(nodes_cols[i][j] * 10 + route_shape[k].y()) / (float)(maxMapSizeCol * 10)));
+						//}
+						for (int k = 0; k < 20; k++)
+						{
+							posterImage->setColor(color_path, osg::Vec2((float)(j * 10 + node_shape[k].x()) / (float)(map_data[i].size() * 10), (float)(i * 10 + node_shape[k].y()) / (float)(map_data.size() * 10)));
+						}
+					}
+					else if (map_data[i][j] == "1")
+					{
+						for (int k = 0; k < 10; k++)
+						{
+							for (int l = 0; l < 10; l++)
+							{
+								posterImage->setColor(color_ice, osg::Vec2((float)(j * 10 + k) / (float)(map_data[i].size() * 10), (float)(i * 10 + l) / (float)(map_data.size() * 10)));
+							}
+						}
+					}
+					else if (map_data[i][j] == "0")
+					{
+						for (int k = 0; k < 10; k++)
+						{
+							for (int l = 0; l < 10; l++)
+							{
+								posterImage->setColor(color_sea, osg::Vec2((float)(j * 10 + k) / (float)(map_data[i].size() * 10), (float)(i * 10 + l) / (float)(map_data.size() * 10)));
+							}
+						}
+					}
+					else
+					{
+						for (int k = 0; k < 10; k++)
+						{
+							for (int l = 0; l < 10; l++)
+							{
+								posterImage->setColor(color_land, osg::Vec2((float)(j * 10 + k) / (float)(map_data[i].size() * 10), (float)(i * 10 + l) / (float)(map_data.size() * 10)));
+							}
+						}
+					}
+				}
+			}
+
+			char save_file[512];
+			sprintf_s(save_file, path_name);
+			osgDB::writeImageFile(*posterImage, save_file);
+		}
+	}
+}
+
 void CIRES2View::ShowMap(CString job_name)
 {
+	m_strJobName = job_name;
 	CString job_path = m_strProjectPath + "\\JOB\\" + job_name + "\\satellite_to_map.out";
 	if (PathFileExists(job_path))
 	{
@@ -7427,7 +7624,7 @@ void CIRES2View::ShowMap(CString job_name)
 							map_color->push_back(color_ice);
 							map_color->push_back(color_ice);
 						}
-						else if (map_data[i][j] == "2")	//	바다
+						else if (map_data[i][j] == "0")	//	바다
 						{
 							map_color->push_back(color_sea);
 							map_color->push_back(color_sea);

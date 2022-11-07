@@ -48,3 +48,13 @@ SetupIRES2020.zip
 SetupIRES2020_20200910.exe
 SetupIRES2020_201009.exe
 x64/Release/I-RES2.zip
+SetupIRES2022.exe
+x64/Release/CROSS_SECTION.INP
+x64/Release/DRAFT_SECTION.INP
+x64/Release/ECHO.OUT
+x64/Release/FRAME.inp
+x64/Release/ICE_INPUT.inp
+x64/Release/ICE_MAP.inp
+x64/Release/ICE_MAP_INPUT.inp
+x64/Release/I-RES2.exe
+x64/Release/WATERLINE_OUTSIDE.inp

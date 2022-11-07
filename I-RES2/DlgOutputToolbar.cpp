@@ -138,8 +138,27 @@ void CDlgOutputToolbar::OnBnClickedMfcbuttonExcel2()
 
 void CDlgOutputToolbar::OnBnClickedMfcbuttonGraph2()
 {
-	CDlgChartView pDlg;
-	pDlg.m_strJobName = this->m_strJobName;
-	pDlg.m_iType = 1;
-	pDlg.DoModal();
+	CString job_file;
+
+	job_file = m_strProjectPath + "\\JOB\\" + m_strJobName + "\\satellite_to_map.out";
+	if (PathFileExists(job_file))
+	{
+		CFileDialog dlg(FALSE,
+			NULL,
+			NULL,
+			OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+			"Image Files (*.bmp)|*.bmp|All Files (*.*)|*.*||",
+			NULL);
+		if (dlg.DoModal() == IDOK)
+		{
+			m_pView->SaveMap(dlg.GetPathName());
+		}
+	}
+	else
+	{
+		CDlgChartView pDlg;
+		pDlg.m_strJobName = this->m_strJobName;
+		pDlg.m_iType = 1;
+		pDlg.DoModal();
+	}
 }

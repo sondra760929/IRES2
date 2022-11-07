@@ -324,6 +324,8 @@ public:
 	float GetEstimatonSpeed(float target_sistance, vector<float>& speed, vector<float>& resistance);
 
 	void ShowAllMap();
+	void SaveMap(CString path_name);
+	CString m_strJobName;
 	osg::MatrixTransform* map_center;
 	float offset_x = 0;
 	float offset_y = 0;

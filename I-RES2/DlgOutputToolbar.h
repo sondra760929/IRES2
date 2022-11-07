@@ -10,6 +10,7 @@ class CDlgOutputToolbar : public CDialog
 public:
 	CDlgOutputToolbar(CWnd* pParent = nullptr);   // 표준 생성자입니다.
 	virtual ~CDlgOutputToolbar();
+	CIRES2View* m_pView;
 	CString m_strJobName;
 	void ResizeControl(int cx, int cy);
 // 대화 상자 데이터입니다.
